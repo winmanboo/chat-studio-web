@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Bubble, Sender, Conversations } from "@ant-design/x";
+import { Bubble, Sender, Conversations, ConversationsProps } from "@ant-design/x";
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css';
@@ -14,6 +14,9 @@ import {
   DatabaseOutlined,
   GlobalOutlined,
   ThunderboltOutlined,
+  SettingOutlined,
+  EditOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -25,6 +28,8 @@ import {
   Upload,
   message as antdMessage,
   Spin,
+  Modal,
+  Input,
 } from "antd";
 
 // 初始化 markdown-it
@@ -68,6 +73,8 @@ const ChatPage: React.FC = () => {
   const [selectedId, setSelectedId] = useState(initialConversations[0].key);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [hasStarted, setHasStarted] = useState(false);
+  const [editingConversation, setEditingConversation] = useState<{key: string, label: string} | null>(null);
+  const [newConversationName, setNewConversationName] = useState('');
 
   // 打字机效果
   const typewriterEffect = (messageIndex: number, fullContent: string) => {
@@ -211,10 +218,74 @@ def greet(name):
     </Menu>
   );
 
-  // 自定义渲染对话项（已移除）
-  // const renderConversation = (item: ConversationItem) => (
-  //   <div />
-  // );
+  // 修改会话名称
+  const handleEditConversation = (key: string, currentLabel: string) => {
+    setEditingConversation({ key, label: currentLabel });
+    setNewConversationName(currentLabel);
+  };
+
+  // 确认修改会话名称
+  const confirmEditConversation = () => {
+    if (editingConversation && newConversationName.trim()) {
+      setConversations(prev => 
+        prev.map(conv => 
+          conv.key === editingConversation.key 
+            ? { ...conv, label: newConversationName.trim() } 
+            : conv
+        )
+      );
+      if (selectedId === editingConversation.key) {
+        antdMessage.success("会话名称已更新");
+      }
+      setEditingConversation(null);
+      setNewConversationName('');
+    }
+  };
+
+  // 删除会话
+  const handleDeleteConversation = (key: string) => {
+    if (conversations.length <= 1) {
+      antdMessage.warning("至少需要保留一个会话");
+      return;
+    }
+    
+    const newConversations = conversations.filter(conv => conv.key !== key);
+    setConversations(newConversations);
+    
+    // 如果删除的是当前选中的会话，切换到第一个会话
+    if (selectedId === key) {
+      setSelectedId(newConversations[0].key);
+      setMessages([]);
+      setHasStarted(false);
+    }
+    
+    antdMessage.success("会话已删除");
+  };
+
+  // 为Conversations组件创建菜单项
+  const conversationMenu: ConversationsProps['menu'] = (item) => ({
+    items: [
+      {
+        label: '修改名称',
+        key: 'edit',
+        icon: <EditOutlined />,
+      },
+      {
+        label: '删除会话',
+        key: 'delete',
+        icon: <DeleteOutlined />,
+        danger: true,
+      },
+    ],
+    onClick: (menuInfo) => {
+      menuInfo.domEvent.stopPropagation();
+      if (menuInfo.key === 'edit') {
+        handleEditConversation(item.key, String(item.label || ''));
+      } else if (menuInfo.key === 'delete') {
+        handleDeleteConversation(item.key);
+      }
+    },
+  });
 
   // 主区域对齐：未开始时居中，开始后拉伸填满
   const mainAlignItems = hasStarted ? "stretch" : "center";
@@ -256,14 +327,22 @@ def greet(name):
               color: "#222",
             }}
           >
-            <Button
-              type="text"
-              icon={<PlusOutlined />}
-              style={{ fontWeight: "bold", fontSize: 18 }}
-              onClick={handleAddConversation}
-            >
-              新建对话
-            </Button>
+            <Flex justify="center" gap={8}>
+              <Button
+                type="text"
+                icon={<PlusOutlined />}
+                style={{ fontWeight: "bold", fontSize: 18 }}
+                onClick={handleAddConversation}
+              >
+                新建对话
+              </Button>
+              <Button
+                type="text"
+                icon={<SettingOutlined />}
+                style={{ fontWeight: "bold", fontSize: 18 }}
+                onClick={() => antdMessage.info("设置功能开发中")}
+              />
+            </Flex>
           </div>
         )}
         <div
@@ -283,6 +362,7 @@ def greet(name):
               setMessages([]);
               setHasStarted(false);
             }}
+            menu={conversationMenu}
           />
         </div>
         <div
@@ -643,6 +723,21 @@ def greet(name):
           </>
         )}
       </div>
+      {/* 编辑会话名称的模态框 */}
+      <Modal
+        title="修改会话名称"
+        open={!!editingConversation}
+        onOk={confirmEditConversation}
+        onCancel={() => setEditingConversation(null)}
+        destroyOnClose
+      >
+        <Input
+          value={newConversationName}
+          onChange={(e) => setNewConversationName(e.target.value)}
+          onPressEnter={confirmEditConversation}
+          placeholder="请输入会话名称"
+        />
+      </Modal>
     </div>
   );
 };
