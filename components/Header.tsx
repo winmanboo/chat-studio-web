@@ -1,0 +1,103 @@
+import React from 'react';
+import { Layout, Avatar, Button } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
+
+const { Header } = Layout;
+
+interface HeaderProps {
+  selectedTab: string;
+  onTabChange: (tab: string) => void;
+  onUserClick: () => void;
+}
+
+const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onTabChange, onUserClick }) => {
+  const capsuleTabs = [
+    { key: 'chat', icon: '💬', label: '聊天' },
+    { key: 'kb', icon: '📚', label: '知识库' },
+    { key: 'market', icon: '🛒', label: '市场' },
+  ];
+
+  return (
+    <Header 
+      style={{ 
+        background: '#fff', 
+        padding: '0 24px', 
+        position: 'relative', 
+        height: 64, 
+        boxShadow: '0 2px 8px #f0f1f2',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}
+    >
+      {/* 左上角Logo */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{
+          width: 32,
+          height: 32,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: 8,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontSize: 16,
+          fontWeight: 'bold',
+          marginRight: 12
+        }}>
+          AI
+        </div>
+        <span style={{ fontSize: 18, fontWeight: 'bold', color: '#333' }}>
+          Chat Studio
+        </span>
+      </div>
+
+      {/* 悬浮胶囊按钮 */}
+      <div style={{
+        position: 'absolute',
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+        background: '#f5f5f5',
+        borderRadius: 32,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.10), 0 1.5px 6px rgba(0,0,0,0.08)',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '4px 8px',
+        zIndex: 10,
+      }}>
+        {capsuleTabs.map((tab, idx) => (
+          <Button
+            key={tab.key}
+            type={selectedTab === tab.key ? 'primary' : 'text'}
+            style={{
+              borderRadius: 32,
+              marginLeft: idx === 0 ? 0 : 4,
+              marginRight: idx === capsuleTabs.length - 1 ? 0 : 4,
+              fontWeight: selectedTab === tab.key ? 'bold' : undefined,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4
+            }}
+            onClick={() => onTabChange(tab.key)}
+          >
+            <span>{tab.icon}</span>
+            {tab.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* 右上角用户按钮 */}
+      <div>
+        <Avatar
+          size={40}
+          icon={<UserOutlined />}
+          style={{ cursor: 'pointer', background: '#e6f4ff', color: '#1677ff' }}
+          onClick={onUserClick}
+        />
+      </div>
+    </Header>
+  );
+};
+
+export default HeaderComponent; 
