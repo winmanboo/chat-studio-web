@@ -17,6 +17,7 @@ import {
   SettingOutlined,
   EditOutlined,
   DeleteOutlined,
+  CommentOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -30,6 +31,7 @@ import {
   Spin,
   Modal,
   Input,
+  Space,
 } from "antd";
 
 // 初始化 markdown-it
@@ -49,12 +51,12 @@ const md = new MarkdownIt({
 });
 
 const initialConversations = [
-  { key: "1", label: "RAG开发", icon: "🤖" },
-  { key: "2", label: "AI助手", icon: "🧑‍💻" },
-  { key: "3", label: "市场咨询", icon: "🛒" },
-  { key: "4", label: "产品反馈", icon: "💡" },
-  { key: "5", label: "团队群聊", icon: "👥" },
-  { key: "6", label: "测试对话", icon: "🧪" },
+  { key: "1", label: "RAG开发", icon: "🤖", group: "今天" },
+  { key: "2", label: "AI助手", icon: "🧑‍💻", group: "昨天" },
+  { key: "3", label: "市场咨询", icon: "🛒", group: "三天前" },
+  { key: "4", label: "产品反馈", icon: "💡", group: "一周前" },
+  { key: "5", label: "团队群聊", icon: "👥", group: "一个月前" },
+  { key: "6", label: "测试对话", icon: "🧪", group: "今天" },
 ];
 
 // 定义消息类型
@@ -67,9 +69,22 @@ interface ChatMessage {
   displayContent?: string;
 }
 
+// 定义基础会话项类型
+interface BaseConversationItem {
+  key: string;
+  label: string;
+  icon: string;
+  group: string;
+}
+
+// 定义会话项类型，继承基础类型
+interface ConversationItem extends BaseConversationItem {}
+
 const ChatPage: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [conversations, setConversations] = useState(initialConversations);
+  const [conversations, setConversations] = useState<
+    BaseConversationItem[]
+  >(initialConversations);
   const [selectedId, setSelectedId] = useState(initialConversations[0].key);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [hasStarted, setHasStarted] = useState(false);
@@ -110,6 +125,7 @@ const ChatPage: React.FC = () => {
         key: newId,
         label: `新对话${conversations.length + 1}`,
         icon: "💬",
+        group: "今天",
       },
     ]);
     setSelectedId(newId);
@@ -287,6 +303,37 @@ def greet(name):
     },
   });
 
+
+  // 分组排序和标题自定义
+  const groupable: ConversationsProps['groupable'] = {
+    sort: (a: string, b: string): number => {
+      // 定义分组的顺序
+      const groupOrder: Record<string, number> = {
+        '今天': 0,
+        '昨天': 1,
+        '三天前': 2,
+        '一周前': 3,
+        '一个月前': 4,
+      };
+      
+      const orderA = groupOrder[a] !== undefined ? groupOrder[a] : Infinity;
+      const orderB = groupOrder[b] !== undefined ? groupOrder[b] : Infinity;
+      
+      return orderA - orderB;
+    },
+    title: (group, { components: { GroupTitle } }) =>
+      group ? (
+        <GroupTitle>
+          <Space>
+            <CommentOutlined />
+            <span>{group}</span>
+          </Space>
+        </GroupTitle>
+      ) : (
+        <GroupTitle />
+      ),
+  };
+
   // 主区域对齐：未开始时居中，开始后拉伸填满
   const mainAlignItems = hasStarted ? "stretch" : "center";
   const mainJustify = hasStarted ? "flex-start" : "center";
@@ -363,6 +410,7 @@ def greet(name):
               setHasStarted(false);
             }}
             menu={conversationMenu}
+            groupable={groupable}
           />
         </div>
         <div
