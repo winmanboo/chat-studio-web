@@ -362,74 +362,98 @@ def greet(name):
           color: "#222",
         }}
       >
-        {/* 新建对话按钮（替换原顶部文字） */}
-        {!collapsed && (
+        {collapsed ? (
+          // 折叠状态下只显示展开按钮
           <div
             style={{
               width: "100%",
-              padding: "16px 0 8px 0",
-              textAlign: "center",
-              borderBottom: "1px solid #f0f0f0",
-              position: "relative",
-              color: "#222",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <Flex justify="center" gap={8}>
-              <Button
-                type="text"
-                icon={<PlusOutlined />}
-                style={{ fontWeight: "bold", fontSize: 18 }}
-                onClick={handleAddConversation}
-              >
-                新建对话
-              </Button>
-              <Button
-                type="text"
-                icon={<SettingOutlined />}
-                style={{ fontWeight: "bold", fontSize: 18 }}
-                onClick={() => antdMessage.info("设置功能开发中")}
-              />
-            </Flex>
+            <Button
+              type="text"
+              icon={<MenuUnfoldOutlined />}
+              onClick={() => setCollapsed(false)}
+              style={{ 
+                fontSize: 18,
+                color: token.colorText
+              }}
+            />
           </div>
+        ) : (
+          // 展开状态显示完整内容
+          <>
+            {/* 新建对话按钮（替换原顶部文字） */}
+            <div
+              style={{
+                width: "100%",
+                padding: "16px 0 8px 0",
+                textAlign: "center",
+                borderBottom: "1px solid #f0f0f0",
+                position: "relative",
+                color: "#222",
+              }}
+            >
+              <Flex justify="center" gap={8}>
+                <Button
+                  type="text"
+                  icon={<PlusOutlined />}
+                  style={{ fontWeight: "bold", fontSize: 18 }}
+                  onClick={handleAddConversation}
+                >
+                  新建对话
+                </Button>
+                <Button
+                  type="text"
+                  icon={<SettingOutlined />}
+                  style={{ fontWeight: "bold", fontSize: 18 }}
+                  onClick={() => antdMessage.info("设置功能开发中")}
+                />
+              </Flex>
+            </div>
+            <div
+              style={{
+                flex: 1,
+                width: "100%",
+                overflowY: "auto",
+                padding: 8,
+              }}
+            >
+              <Conversations
+                style={{ width: "100%", color: "#222" }}
+                items={conversations}
+                activeKey={selectedId}
+                onActiveChange={(key) => {
+                  setSelectedId(key);
+                  setMessages([]);
+                  setHasStarted(false);
+                }}
+                menu={conversationMenu}
+                groupable={groupable}
+              />
+            </div>
+            <div
+              style={{
+                width: "100%",
+                padding: 8,
+                borderTop: "1px solid #f0f0f0",
+                textAlign: "center",
+              }}
+            >
+              <Button
+                type="text"
+                icon={<MenuFoldOutlined />}
+                onClick={() => setCollapsed(true)}
+                style={{ width: "100%" }}
+              >
+                收起
+              </Button>
+            </div>
+          </>
         )}
-        <div
-          style={{
-            flex: 1,
-            width: "100%",
-            overflowY: "auto",
-            padding: collapsed ? 0 : 8,
-          }}
-        >
-          <Conversations
-            style={{ width: "100%", color: "#222" }}
-            items={conversations}
-            activeKey={selectedId}
-            onActiveChange={(key) => {
-              setSelectedId(key);
-              setMessages([]);
-              setHasStarted(false);
-            }}
-            menu={conversationMenu}
-            groupable={groupable}
-          />
-        </div>
-        <div
-          style={{
-            width: "100%",
-            padding: 8,
-            borderTop: "1px solid #f0f0f0",
-            textAlign: "center",
-          }}
-        >
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed((v) => !v)}
-            style={{ width: "100%" }}
-          >
-            {!collapsed && "收起"}
-          </Button>
-        </div>
       </div>
       {/* 右侧聊天区 */}
       <div
