@@ -44,3 +44,8 @@ export const sendCode = (email: string) => {
     params: { email }
   });
 };
+
+// 登出
+export const logout = () => {
+  return request.post('/auth/logout');
+};

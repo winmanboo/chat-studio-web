@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Input, Switch, Divider, Space, Tabs, message } from 'antd';
 import { UserOutlined, SettingOutlined, LogoutOutlined, MailOutlined, LockOutlined, GiftOutlined, SendOutlined } from '@ant-design/icons';
-import { login, register, sendCode, LoginRequest, RegisterRequest, AuthResponse, UserInfo } from '../src/api';
+import { login, register, logout, sendCode, LoginRequest, RegisterRequest, AuthResponse, UserInfo } from '../src/api';
 
 interface UserModalProps {
   open: boolean;
@@ -137,6 +137,41 @@ const UserModal: React.FC<UserModalProps> = ({
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      // 调用登出接口
+      await logout();
+      
+      // 清除localStorage中的认证信息
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userInfo');
+      }
+      
+      // 更新应用状态
+      setUserInfo(null);
+      onLogout();
+      onCancel();
+      
+      messageApi.success('登出成功');
+    } catch (error) {
+      // 即使接口调用失败，也要清除本地认证信息
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userInfo');
+      }
+      
+      setUserInfo(null);
+      onLogout();
+      onCancel();
+      
+      messageApi.error('登出失败: ' + (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const onFinish = (values: unknown) => {
     if (activeTab === 'login') {
       handleLogin();
@@ -193,7 +228,8 @@ const UserModal: React.FC<UserModalProps> = ({
             type="primary" 
             danger 
             icon={<LogoutOutlined />} 
-            onClick={onLogout}
+            onClick={handleLogout}
+            loading={loading}
             block
           >
             退出登录
