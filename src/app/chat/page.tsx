@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { 
   Sender, 
   Conversations, 
@@ -138,6 +138,8 @@ const ChatPage: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [conversations, setConversations] = useState<ConversationItem[]>(initialConversations);
   const [selectedId, setSelectedId] = useState(initialConversations[0].key);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const bubbleListRef = useRef<HTMLDivElement>(null);
   const [hasStarted, setHasStarted] = useState(false);
   const [editingConversation, setEditingConversation] = useState<{key: string, label: string} | null>(null);
   const [newConversationName, setNewConversationName] = useState('');
@@ -149,6 +151,26 @@ const ChatPage: React.FC = () => {
   // 检索模式与深度思考
   const [searchMode, setSearchMode] = useState<null | "web" | "kb">(null);
   const [deepThinking, setDeepThinking] = useState<boolean>(false);
+
+  // 自动滚动到底部的函数
+  const scrollToBottom = () => {
+    if (bubbleListRef.current && !isUserScrolling) {
+      const container = bubbleListRef.current;
+      container.scrollTop = container.scrollHeight;
+    }
+  };
+
+  // 监听消息变化，自动滚动到底部
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // 监听用户滚动行为
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
+    setIsUserScrolling(!isAtBottom);
+  };
   
   const modeLabel =
     searchMode === "web"
@@ -724,6 +746,8 @@ const ChatPage: React.FC = () => {
         ) : (
           <>
             <div
+              ref={bubbleListRef}
+              onScroll={handleScroll}
               style={{
                 flex: 1,
                 overflowY: "auto",
@@ -763,7 +787,6 @@ const ChatPage: React.FC = () => {
                       }
                     },
                   }}
-                  autoScroll
                   style={{ width: '100%' }}
                 />
               </div>
