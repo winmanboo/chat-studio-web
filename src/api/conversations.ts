@@ -4,9 +4,21 @@ import { AxiosResponseTransformer } from 'axios';
 // 创建会话接口返回的sessionId类型
 export type SessionId = string;
 
+// 会话列表项类型
+export interface SessionItem {
+  sessionId: string;
+  sessionTitle: string;
+  createdAt: number;
+}
+
 // 创建会话接口
 export const createSession = (): Promise<SessionId> => {
   return request.post<SessionId>('/chat/v1/session/create') as unknown as Promise<SessionId>;
+};
+
+// 获取会话列表接口
+export const getSessionList = (): Promise<SessionItem[]> => {
+  return request.get<SessionItem[]>('/chat/v1/sessions') as unknown as Promise<SessionItem[]>;
 };
 
 // 聊天接口参数类型

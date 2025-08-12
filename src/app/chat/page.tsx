@@ -42,7 +42,7 @@ import {
   Space,
   Typography,
 } from "antd";
-import { createSession, chatStream, ChatRequest } from "@/api/conversations";
+import { createSession, chatStream, ChatRequest, getSessionList, SessionItem } from "@/api/conversations";
 
 // 样式常量
 const ICON_SIZE = 15;
@@ -50,6 +50,40 @@ const BUTTON_SIZE = 18;
 const BOLD_BUTTON_STYLE = { fontWeight: "bold", fontSize: BUTTON_SIZE };
 const USER_AVATAR_STYLE = { backgroundColor: '#1890ff', color: 'white' };
 const ASSISTANT_AVATAR_STYLE = { backgroundColor: '#f0f0f0', color: 'black' };
+
+// 时间分组函数
+const getTimeGroup = (timestamp: number): string => {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const oneDay = 24 * 60 * 60 * 1000;
+  const threeDays = 3 * oneDay;
+  const oneWeek = 7 * oneDay;
+  const oneMonth = 30 * oneDay;
+
+  if (diff < oneDay) {
+    return '今天';
+  } else if (diff < 2 * oneDay) {
+    return '昨天';
+  } else if (diff < threeDays) {
+    return '三天前';
+  } else if (diff < oneWeek) {
+    return '一周前';
+  } else if (diff < oneMonth) {
+    return '一个月前';
+  } else {
+    return '更早';
+  }
+};
+
+// 将API数据转换为组件所需格式
+const convertSessionToConversation = (session: SessionItem): ConversationItem => {
+  return {
+    key: session.sessionId,
+    label: session.sessionTitle,
+    icon: '💬', // 默认图标
+    group: getTimeGroup(session.createdAt)
+  };
+};
 
 // 初始化 markdown-it
 const md = new MarkdownIt({
@@ -144,8 +178,8 @@ interface ConversationItem {
 
 const ChatPage: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [conversations, setConversations] = useState<ConversationItem[]>(initialConversations);
-  const [selectedId, setSelectedId] = useState(initialConversations[0].key);
+  const [conversations, setConversations] = useState<ConversationItem[]>([]);
+  const [selectedId, setSelectedId] = useState<string>('');
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const bubbleListRef = useRef<HTMLDivElement>(null);
   const [hasStarted, setHasStarted] = useState(false);
@@ -159,6 +193,32 @@ const ChatPage: React.FC = () => {
   // 检索模式与深度思考
   const [searchMode, setSearchMode] = useState<null | "web" | "kb">(null);
   const [deepThinking, setDeepThinking] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // 加载会话列表
+  const loadSessionList = async () => {
+    try {
+      setLoading(true);
+      const sessions = await getSessionList();
+      const conversationItems = sessions.map(convertSessionToConversation);
+      setConversations(conversationItems);
+      
+      // 如果有会话且当前没有选中的会话，选中第一个
+      if (conversationItems.length > 0 && !selectedId) {
+        setSelectedId(conversationItems[0].key);
+      }
+    } catch (error) {
+      console.error('加载会话列表失败:', error);
+      antdMessage.error('加载会话列表失败: ' + (error instanceof Error ? error.message : '未知错误'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 组件挂载时加载会话列表
+  useEffect(() => {
+    loadSessionList();
+  }, []);
 
   // 自动滚动到底部的函数
   const scrollToBottom = () => {
@@ -288,6 +348,7 @@ const ChatPage: React.FC = () => {
         '三天前': 2,
         '一周前': 3,
         '一个月前': 4,
+        '更早': 5,
       };
       
       const orderA = groupOrder[a] !== undefined ? groupOrder[a] : Infinity;
@@ -308,24 +369,26 @@ const ChatPage: React.FC = () => {
       ),
   };
 
-  // 新建对话逻辑：直接添加一条新对话
+  // 新建对话逻辑：创建新会话并刷新列表
   const handleAddConversation = async () => {
-    // 不再创建新会话，只切换界面布局
-    const newId = Date.now().toString();
-    setConversations([
-      ...conversations,
-      {
-        key: newId,
-        label: `新对话${conversations.length + 1}`,
-        icon: "💬",
-        group: "今天",
-      },
-    ]);
-    setSelectedId(newId);
-    antdMessage.success("已新建对话");
-    setHasStarted(true); // 切换到Sender在底部的布局
-    setSessionId(null); // 清除之前的sessionId
-    setMessages([]); // 清空消息
+    try {
+      // 创建新会话
+      const newSessionId = await createSession();
+      
+      // 刷新会话列表以获取最新数据
+      await loadSessionList();
+      
+      // 选中新创建的会话
+      setSelectedId(newSessionId);
+      setHasStarted(false);
+      setSessionId(newSessionId);
+      setMessages([]);
+      
+      antdMessage.success('新会话已创建');
+    } catch (error) {
+      console.error('创建会话失败:', error);
+      antdMessage.error('创建会话失败');
+    }
   };
 
   // 发送消息
@@ -575,19 +638,32 @@ const ChatPage: React.FC = () => {
                 padding: 8,
               }}
             >
-              <Conversations
-                style={{ width: "100%", color: "#222" }}
-                items={conversations}
-                activeKey={selectedId}
-                onActiveChange={(key) => {
-                  setSelectedId(key);
-                  setHasStarted(false);
-                  setSessionId(null); // 切换会话时重置sessionId
-                  setMessages([]); // 清空消息
-                }}
-                menu={conversationMenu}
-                groupable={groupable}
-              />
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Spin size="small" />
+                  <div style={{ marginTop: '8px', color: '#666' }}>加载中...</div>
+                </div>
+              ) : conversations.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999' }}>
+                  <CommentOutlined style={{ fontSize: '32px', marginBottom: '12px', display: 'block' }} />
+                  <div style={{ fontSize: '14px', marginBottom: '8px' }}>暂无会话</div>
+                  <div style={{ fontSize: '12px' }}>点击上方 + 按钮创建新会话</div>
+                </div>
+              ) : (
+                <Conversations
+                  style={{ width: "100%", color: "#222" }}
+                  items={conversations}
+                  activeKey={selectedId}
+                  onActiveChange={(key) => {
+                    setSelectedId(key);
+                    setHasStarted(false);
+                    setSessionId(key); // 切换会话时设置sessionId为选中的会话ID
+                    setMessages([]); // 清空消息
+                  }}
+                  menu={conversationMenu}
+                  groupable={groupable}
+                />
+              )}
             </div>
             <div
               style={{
