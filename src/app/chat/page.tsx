@@ -7,7 +7,7 @@ import {
   ConversationsProps,
   Bubble
 } from "@ant-design/x";
-import type { BubbleProps } from "@ant-design/x";
+
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css';
@@ -44,6 +44,13 @@ import {
 } from "antd";
 import { createSession, chatStream, ChatRequest } from "@/api/conversations";
 
+// 样式常量
+const ICON_SIZE = 15;
+const BUTTON_SIZE = 18;
+const BOLD_BUTTON_STYLE = { fontWeight: "bold", fontSize: BUTTON_SIZE };
+const USER_AVATAR_STYLE = { backgroundColor: '#1890ff', color: 'white' };
+const ASSISTANT_AVATAR_STYLE = { backgroundColor: '#f0f0f0', color: 'black' };
+
 // 初始化 markdown-it
 const md = new MarkdownIt({
   html: true,        // 启用HTML标签
@@ -65,7 +72,7 @@ const md = new MarkdownIt({
 });
 
 // Markdown渲染函数，参考官案
-const renderMarkdown: BubbleProps['messageRender'] = (content) => {
+const renderMarkdown = (content: string): React.ReactNode => {
   // 如果内容不是字符串，直接返回
   if (typeof content !== 'string') {
     return content as React.ReactNode;
@@ -77,7 +84,8 @@ const renderMarkdown: BubbleProps['messageRender'] = (content) => {
   }
   
   try {
-    // 直接使用原始内容渲染，不进行额外的预处理
+    // 无论是否在流式更新，都进行Markdown渲染
+    // 这样可以实现一边接收数据一边渲染markdown格式的效果
     const htmlContent = md.render(content);
     
     // 检查渲染后的HTML是否有效
@@ -448,7 +456,7 @@ const ChatPage: React.FC = () => {
                 fullContent += data;
               }
               
-              // 直接更新消息内容
+              // 流式更新消息内容
               setMessages(prev => {
                 const newMessages = [...prev];
                 newMessages[messageIndex] = {
@@ -478,9 +486,7 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  // 主区域对齐：未开始时居中，开始后拉伸填满
-  const mainAlignItems = hasStarted ? "stretch" : "center";
-  const mainJustify = hasStarted ? "flex-start" : "center";
+
 
 
   return (
@@ -546,7 +552,7 @@ const ChatPage: React.FC = () => {
                 <Button
                   type="text"
                   icon={<PlusOutlined />}
-                  style={{ fontWeight: "bold", fontSize: 18 }}
+                  style={BOLD_BUTTON_STYLE}
                   onClick={handleAddConversation}
                 >
                   新建对话
@@ -554,7 +560,7 @@ const ChatPage: React.FC = () => {
                 <Button
                   type="text"
                   icon={<SettingOutlined />}
-                  style={{ fontWeight: "bold", fontSize: 18 }}
+                  style={BOLD_BUTTON_STYLE}
                   onClick={() => antdMessage.info("设置功能开发中")}
                 >
                   设置
@@ -670,16 +676,16 @@ const ChatPage: React.FC = () => {
                             type="text"
                             icon={
                               <SearchOutlined
-                                style={{
-                                  color: searchMode
-                                    ? token.colorPrimary
-                                    : token.colorText,
-                                  fontSize: 15,
-                                }}
+                              style={{
+                                color: searchMode
+                                  ? token.colorPrimary
+                                  : token.colorText,
+                                fontSize: ICON_SIZE,
+                              }}
                               />
                             }
                             style={{
-                              fontSize: 15,
+                              fontSize: ICON_SIZE,
                               color: searchMode
                                 ? token.colorPrimary
                                 : token.colorText,
@@ -694,20 +700,20 @@ const ChatPage: React.FC = () => {
                           type="text"
                           icon={
                             <ThunderboltOutlined
-                              style={{
-                                color: deepThinking
-                                  ? token.colorPrimary
-                                  : token.colorText,
-                                fontSize: 15,
-                              }}
+                                style={{
+                                  color: deepThinking
+                                    ? token.colorPrimary
+                                    : token.colorText,
+                                  fontSize: ICON_SIZE,
+                                }}
                             />
                           }
                           style={{
-                            fontSize: 15,
-                            color: deepThinking
-                              ? token.colorPrimary
-                              : token.colorText,
-                          }}
+                              fontSize: ICON_SIZE,
+                              color: deepThinking
+                                ? token.colorPrimary
+                                : token.colorText,
+                            }}
                           onClick={() => setDeepThinking((v) => !v)}
                         >
                           深度思考
@@ -726,14 +732,14 @@ const ChatPage: React.FC = () => {
                             type="text"
                             icon={
                               <UploadOutlined
-                                style={{ fontSize: 15 }}
+                                style={{ fontSize: ICON_SIZE }}
                               />
                             }
-                            style={{ fontSize: 18, color: token.colorText }}
+                            style={{ fontSize: BUTTON_SIZE, color: token.colorText }}
                           />
                         </Upload>
                         <Divider type="vertical" />
-                        <SpeechButton style={{ fontSize: 15, color: token.colorText }} />
+                        <SpeechButton style={{ fontSize: ICON_SIZE, color: token.colorText }} />
                         <Divider type="vertical" />
                         <SendButton type="primary" disabled={false} />
                       </Flex>
@@ -769,21 +775,15 @@ const ChatPage: React.FC = () => {
                       placement: 'end',
                       avatar: {
                         icon: <UserOutlined />,
-                        style: { 
-                          backgroundColor: '#1890ff',
-                          color: 'white',
-                        }
+                        style: USER_AVATAR_STYLE
                       },
                     },
                     assistant: {
                       placement: 'start',
-                      messageRender: renderMarkdown, // 为AI助手消息添加Markdown渲染
+                      messageRender: (content) => renderMarkdown(content as string),
                       avatar: {
                         icon: <RobotOutlined />,
-                        style: { 
-                          backgroundColor: '#f0f0f0',
-                          color: 'black',
-                        }
+                        style: ASSISTANT_AVATAR_STYLE
                       }
                     },
                   }}
@@ -828,20 +828,20 @@ const ChatPage: React.FC = () => {
                               type="text"
                               icon={
                                 <SearchOutlined
-                                  style={{
-                                    color: searchMode
-                                      ? token.colorPrimary
-                                      : token.colorText,
-                                    fontSize: 15,
-                                  }}
-                                />
-                              }
                               style={{
-                                fontSize: 15,
                                 color: searchMode
                                   ? token.colorPrimary
                                   : token.colorText,
+                                fontSize: ICON_SIZE,
                               }}
+                                />
+                              }
+                              style={{
+                              fontSize: ICON_SIZE,
+                              color: searchMode
+                                ? token.colorPrimary
+                                : token.colorText,
+                            }}
                             >
                               {modeLabel}
                             </Button>
@@ -855,12 +855,12 @@ const ChatPage: React.FC = () => {
                                   color: deepThinking
                                     ? token.colorPrimary
                                     : token.colorText,
-                                  fontSize: 15,
+                                  fontSize: ICON_SIZE,
                                 }}
                               />
                             }
                             style={{
-                              fontSize: 15,
+                              fontSize: ICON_SIZE,
                               color: deepThinking
                                 ? token.colorPrimary
                                 : token.colorText,
@@ -883,14 +883,14 @@ const ChatPage: React.FC = () => {
                               type="text"
                               icon={
                                 <UploadOutlined
-                                  style={{ fontSize: 15 }}
+                                  style={{ fontSize: ICON_SIZE }}
                                 />
                               }
-                              style={{ fontSize: 18, color: token.colorText }}
+                              style={{ fontSize: BUTTON_SIZE, color: token.colorText }}
                             />
                           </Upload>
                           <Divider type="vertical" />
-                          <SpeechButton style={{ fontSize: 15, color: token.colorText }} />
+                          <SpeechButton style={{ fontSize: ICON_SIZE, color: token.colorText }} />
                           <Divider type="vertical" />
                           <SendButton type="primary" disabled={false} />
                         </Flex>
