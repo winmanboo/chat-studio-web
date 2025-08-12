@@ -46,12 +46,12 @@ import {
 import { createSession, chatStream, ChatRequest } from "@/api/conversations";
 
 // 初始化 markdown-it
-const md: MarkdownItType = new MarkdownIt({
+const md = new MarkdownIt({
   html: true,        // 启用HTML标签
   linkify: true,     // 自动转换URL为链接
   typographer: false, // 禁用typographer以避免isSpace错误
   breaks: true,      // 转换\n为<br>
-  highlight: function (str: string, lang: string): string {
+  highlight: function (str, lang) {
     if (lang && hljs.getLanguage(lang)) {
       try {
         return `<pre><code class="language-${lang}">${hljs.highlight(str, { language: lang }).value}</code></pre>`;
