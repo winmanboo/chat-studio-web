@@ -1,8 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Bubble, Sender, Conversations, ConversationsProps } from "@ant-design/x";
+import React, { useState } from "react";
+import { 
+  Sender, 
+  Conversations, 
+  ConversationsProps,
+  Bubble
+} from "@ant-design/x";
+import type { BubbleProps } from "@ant-design/x";
 import MarkdownIt from 'markdown-it';
+import type MarkdownItType from 'markdown-it';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css';
 import {
@@ -18,6 +25,8 @@ import {
   EditOutlined,
   DeleteOutlined,
   CommentOutlined,
+  UserOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -32,23 +41,58 @@ import {
   Modal,
   Input,
   Space,
+  Typography,
 } from "antd";
+import { createSession, chatStream, ChatRequest } from "@/api/conversations";
 
 // 初始化 markdown-it
-const md = new MarkdownIt({
-  html: true,
-  linkify: true,
-  typographer: true,
-  breaks: true,
-  highlight: function (str, lang) {
+const md: MarkdownItType = new MarkdownIt({
+  html: true,        // 启用HTML标签
+  linkify: true,     // 自动转换URL为链接
+  typographer: false, // 禁用typographer以避免isSpace错误
+  breaks: true,      // 转换\n为<br>
+  highlight: function (str: string, lang: string): string {
     if (lang && hljs.getLanguage(lang)) {
       try {
-        return hljs.highlight(str, { language: lang }).value;
+        return `<pre><code class="language-${lang}">${hljs.highlight(str, { language: lang }).value}</code></pre>`;
       } catch (__) {}
     }
-    return ''; // 使用默认的转义
+    return `<pre><code>${md.utils.escapeHtml(str)}</code></pre>`; // 使用默认的转义
   }
 });
+
+// Markdown渲染函数，参考官案
+const renderMarkdown: BubbleProps['messageRender'] = (content) => {
+  // 如果内容不是字符串，直接返回
+  if (typeof content !== 'string') {
+    return content as React.ReactNode;
+  }
+  
+  // 如果内容为空，返回空字符串
+  if (!content) {
+    return '';
+  }
+  
+  try {
+    // 直接使用原始内容渲染，不进行额外的预处理
+    const htmlContent = md.render(content);
+    
+    // 检查渲染后的HTML是否有效
+    if (!htmlContent || htmlContent.trim() === '') {
+      return content;
+    }
+    
+    return (
+      <Typography>
+        <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+      </Typography>
+    );
+  } catch (error) {
+    // 如果渲染出错，直接显示原始内容
+    console.warn('Markdown渲染出错:', error);
+    return content;
+  }
+};
 
 const initialConversations = [
   { key: "1", label: "RAG开发", icon: "🤖", group: "今天" },
@@ -59,161 +103,47 @@ const initialConversations = [
   { key: "6", label: "测试对话", icon: "🧪", group: "今天" },
 ];
 
-// 定义消息类型
+// 聊天消息类型定义
 interface ChatMessage {
   content: string;
   role: "user" | "assistant";
   avatar?: string;
   isLoading?: boolean;
-  isTyping?: boolean;
-  displayContent?: string;
+  displayContent?: string; // 用于打字机效果的显示内容
 }
 
-// 定义基础会话项类型
-interface BaseConversationItem {
+// 定义会话项类型
+interface ConversationItem {
   key: string;
   label: string;
   icon: string;
   group: string;
 }
 
-// 定义会话项类型，继承基础类型
-interface ConversationItem extends BaseConversationItem {}
-
 const ChatPage: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [conversations, setConversations] = useState<
-    BaseConversationItem[]
-  >(initialConversations);
+  const [conversations, setConversations] = useState<ConversationItem[]>(initialConversations);
   const [selectedId, setSelectedId] = useState(initialConversations[0].key);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [hasStarted, setHasStarted] = useState(false);
   const [editingConversation, setEditingConversation] = useState<{key: string, label: string} | null>(null);
   const [newConversationName, setNewConversationName] = useState('');
-
-  // 打字机效果
-  const typewriterEffect = (messageIndex: number, fullContent: string) => {
-    let currentIndex = 0;
-    const interval = setInterval(() => {
-      setMessages(prev => 
-        prev.map((msg, idx) => 
-          idx === messageIndex 
-            ? { ...msg, displayContent: fullContent.slice(0, currentIndex + 1) }
-            : msg
-        )
-      );
-      currentIndex++;
-      if (currentIndex >= fullContent.length) {
-        clearInterval(interval);
-        setMessages(prev => 
-          prev.map((msg, idx) => 
-            idx === messageIndex 
-              ? { ...msg, isTyping: false, displayContent: fullContent }
-            : msg
-          )
-        );
-      }
-    }, 50); // 每50ms显示一个字符
-  };
-
-  // 新建对话逻辑：直接添加一条新对话
-  const handleAddConversation = () => {
-    const newId = Date.now().toString();
-    setConversations([
-      ...conversations,
-      {
-        key: newId,
-        label: `新对话${conversations.length + 1}`,
-        icon: "💬",
-        group: "今天",
-      },
-    ]);
-    setSelectedId(newId);
-    antdMessage.success("已新建对话");
-    setMessages([]);
-    setHasStarted(false);
-  };
-
-  // 发送消息
-  const handleSubmit = (message: string) => {
-    if (!hasStarted) setHasStarted(true);
-    const userMessage: ChatMessage = { content: message, role: "user", avatar: "👤" };
-    const aiMessage: ChatMessage = { 
-      content: `这是一个模拟的AI回复，支持**Markdown**格式。
-
-## 功能特性
-- 支持列表项
-- 支持代码高亮
-- 支持*斜体*和**粗体**
-- 支持链接：[GitHub](https://github.com)
-
-### 代码示例
-\`\`\`javascript
-function hello() {
-  console.log('Hello World!');
-  return 'Hello from AI';
-}
-\`\`\`
-
-\`\`\`python
-def greet(name):
-    return f"Hello, {name}!"
-\`\`\`
-
-### 表格示例
-| 功能 | 状态 | 说明 |
-|------|------|------|
-| Markdown | ✅ | 完全支持 |
-| 代码高亮 | ✅ | 语法高亮 |
-| 打字机效果 | ✅ | 逐字显示 |
-
-> 这是一个引用块，展示引用效果。
-
-\`行内代码\` 也可以正常显示。`, 
-      role: "assistant", 
-      avatar: "🤖",
-      isLoading: true,
-      isTyping: false,
-      displayContent: ""
-    };
-    
-    setMessages(prev => [...prev, userMessage, aiMessage]);
-    
-    // 模拟AI回复延迟
-    setTimeout(() => {
-      setMessages(prev => 
-        prev.map((msg, idx) => 
-          idx === prev.length - 1 
-            ? { ...msg, isLoading: false, isTyping: true }
-            : msg
-        )
-      );
-      
-      // 开始打字机效果
-      setTimeout(() => {
-        typewriterEffect(messages.length + 1, aiMessage.content);
-      }, 500);
-    }, 1500);
-  };
+  const [sessionId, setSessionId] = useState<string | null>(null); // 用于存储会话ID
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputValue, setInputValue] = useState(''); // 用于控制Sender输入框的值
 
   const { token } = theme.useToken();
-  const iconStyle = {
-    fontSize: 15,
-    color: token.colorText,
-  };
-  const smallIconStyle = {
-    fontSize: 18,
-    color: token.colorText,
-  };
   // 检索模式与深度思考
   const [searchMode, setSearchMode] = useState<null | "web" | "kb">(null);
   const [deepThinking, setDeepThinking] = useState<boolean>(false);
+  
   const modeLabel =
     searchMode === "web"
       ? "Web 搜索"
       : searchMode === "kb"
       ? "知识库"
       : "检索模式";
+  
+      
   // 检索模式菜单
   const searchMenu = (
     <Menu>
@@ -271,8 +201,9 @@ def greet(name):
     // 如果删除的是当前选中的会话，切换到第一个会话
     if (selectedId === key) {
       setSelectedId(newConversations[0].key);
-      setMessages([]);
       setHasStarted(false);
+      setSessionId(null); // 重置会话ID
+      setMessages([]); // 清空消息
     }
     
     antdMessage.success("会话已删除");
@@ -302,7 +233,6 @@ def greet(name):
       }
     },
   });
-
 
   // 分组排序和标题自定义
   const groupable: ConversationsProps['groupable'] = {
@@ -334,9 +264,188 @@ def greet(name):
       ),
   };
 
+  // 新建对话逻辑：直接添加一条新对话
+  const handleAddConversation = async () => {
+    // 不再创建新会话，只切换界面布局
+    const newId = Date.now().toString();
+    setConversations([
+      ...conversations,
+      {
+        key: newId,
+        label: `新对话${conversations.length + 1}`,
+        icon: "💬",
+        group: "今天",
+      },
+    ]);
+    setSelectedId(newId);
+    antdMessage.success("已新建对话");
+    setHasStarted(true); // 切换到Sender在底部的布局
+    setSessionId(null); // 清除之前的sessionId
+    setMessages([]); // 清空消息
+  };
+
+  // 发送消息
+  const handleSubmit = async (message: string) => {
+    // 如果还没有开始对话，设置为已开始状态
+    if (!hasStarted) {
+      setHasStarted(true);
+    }
+    
+    // 如果还没有会话ID，则创建一个新会话
+    let currentSessionId = sessionId;
+    if (!currentSessionId) {
+      try {
+        currentSessionId = await createSession();
+        setSessionId(currentSessionId);
+        // 注意：这里不再设置hasStarted，因为它应该在新建对话时就已经设置为true了
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "未知错误";
+        antdMessage.error("创建会话失败: " + errorMessage);
+        return;
+      }
+    }
+
+    const userMessage: ChatMessage = { content: message, role: "user", avatar: "👤" };
+    const aiMessage: ChatMessage = { 
+      content: "", 
+      role: "assistant", 
+      avatar: "🤖",
+      isLoading: true,
+      displayContent: ""
+    };
+    
+    // 添加用户消息和AI回复占位符
+    setMessages(prev => [...prev, userMessage, aiMessage]);
+    
+    try {
+      // 准备请求参数
+      const requestData: ChatRequest = {
+        sessionId: currentSessionId, // 直接使用currentSessionId，确保它是有效的
+        prompt: message,
+        searchEnabled: searchMode === "web",
+        thinkingEnabled: deepThinking,
+        ragEnabled: searchMode === "kb"
+      };
+
+      // 发起流式请求（现在在API层处理）
+      const reader = await chatStream(requestData);
+
+      const decoder = new TextDecoder();
+      
+      let fullContent = "";
+      const messageIndex = messages.length + 1; // AI消息的索引
+      
+      // 更新AI消息为加载状态
+      setMessages(prev => {
+        const newMessages = [...prev];
+        newMessages[messageIndex] = {
+          ...newMessages[messageIndex],
+          isLoading: false
+        };
+        return newMessages;
+      });
+      
+      let accumulatedData = ""; // 用于累积数据块
+      
+      // 使用流式数据更新内容
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          // 处理剩余的累积数据
+          if (accumulatedData.trim()) {
+            // 处理累积的数据，可能包含多个消息
+            const lines = accumulatedData.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('data:')) {
+                // 提取data:后面的内容
+                const data = line.slice(5).trim();
+                if (data !== '[DONE]') {
+                  try {
+                    // 尝试解析JSON数据
+                    const jsonData = JSON.parse(data);
+                    if (jsonData.content) {
+                      fullContent += jsonData.content;
+                    }
+                  } catch (e) {
+                    // 如果不是有效的JSON，直接使用原始数据
+                    fullContent += data;
+                  }
+                }
+              }
+            }
+            
+            setMessages(prev => {
+              const newMessages = [...prev];
+              newMessages[messageIndex] = {
+                ...newMessages[messageIndex],
+                content: fullContent,
+                displayContent: fullContent
+              };
+              return newMessages;
+            });
+          }
+          break;
+        }
+        
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedData += chunk;
+        
+        // 处理完整的行
+        let newlineIndex;
+        while ((newlineIndex = accumulatedData.indexOf("\n")) !== -1) {
+          const line = accumulatedData.substring(0, newlineIndex);
+          accumulatedData = accumulatedData.substring(newlineIndex + 1);
+          
+          // 处理每个消息行
+          if (line.startsWith('data:')) {
+            // 提取data:后面的内容
+            const data = line.slice(5).trim();
+            if (data !== '[DONE]') {
+              try {
+                // 尝试解析JSON数据
+                const jsonData = JSON.parse(data);
+                if (jsonData.content) {
+                  fullContent += jsonData.content;
+                }
+              } catch (e) {
+                // 如果不是有效的JSON，直接使用原始数据
+                fullContent += data;
+              }
+              
+              // 直接更新消息内容
+              setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages[messageIndex] = {
+                  ...newMessages[messageIndex],
+                  content: fullContent,
+                  displayContent: fullContent
+                };
+                return newMessages;
+              });
+            }
+          }
+        }
+      }
+      
+    } catch (error: unknown) {
+      console.error("消息发送失败:", error); // 在控制台输出详细错误信息
+      const errorMessage = error instanceof Error ? error.message : "未知错误";
+      antdMessage.error("消息发送失败: " + errorMessage);
+      // 更新AI消息状态为错误
+      setMessages(prev => 
+        prev.map((msg, idx) => 
+          idx === prev.length - 1 
+            ? { ...msg, isLoading: false, content: "抱歉，消息发送失败，请稍后重试。" }
+            : msg
+        )
+      );
+    }
+  };
+
   // 主区域对齐：未开始时居中，开始后拉伸填满
   const mainAlignItems = hasStarted ? "stretch" : "center";
   const mainJustify = hasStarted ? "flex-start" : "center";
+
 
   return (
     <div
@@ -411,7 +520,9 @@ def greet(name):
                   icon={<SettingOutlined />}
                   style={{ fontWeight: "bold", fontSize: 18 }}
                   onClick={() => antdMessage.info("设置功能开发中")}
-                />
+                >
+                  设置
+                </Button>
               </Flex>
             </div>
             <div
@@ -428,8 +539,9 @@ def greet(name):
                 activeKey={selectedId}
                 onActiveChange={(key) => {
                   setSelectedId(key);
-                  setMessages([]);
                   setHasStarted(false);
+                  setSessionId(null); // 切换会话时重置sessionId
+                  setMessages([]); // 清空消息
                 }}
                 menu={conversationMenu}
                 groupable={groupable}
@@ -462,8 +574,6 @@ def greet(name):
           display: "flex",
           flexDirection: "column",
           height: "100%",
-          justifyContent: mainJustify,
-          alignItems: mainAlignItems,
         }}
       >
         {!hasStarted ? (
@@ -474,6 +584,7 @@ def greet(name):
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
+              flex: 1,
             }}
           >
             <div
@@ -498,10 +609,15 @@ def greet(name):
               }}
             >
               <Sender
-                onSubmit={handleSubmit}
+                value={inputValue}
+                onChange={(val) => setInputValue(val)}
                 placeholder="请输入内容并回车..."
-                allowSpeech
+                allowSpeech={false}
                 actions={false}
+                onSubmit={(val) => {
+                  handleSubmit(val);
+                  setInputValue(''); // 提交后清空输入框
+                }}
                 footer={({ components }) => {
                   const { SendButton, SpeechButton } = components;
                   return (
@@ -521,16 +637,17 @@ def greet(name):
                                   color: searchMode
                                     ? token.colorPrimary
                                     : token.colorText,
-                                  fontSize: iconStyle.fontSize,
+                                  fontSize: 15,
                                 }}
                               />
                             }
                             style={{
-                              fontSize: iconStyle.fontSize,
+                              fontSize: 15,
                               color: searchMode
                                 ? token.colorPrimary
                                 : token.colorText,
                             }}
+                            onClick={() => {}}
                           >
                             {modeLabel}
                           </Button>
@@ -544,12 +661,12 @@ def greet(name):
                                 color: deepThinking
                                   ? token.colorPrimary
                                   : token.colorText,
-                                fontSize: iconStyle.fontSize,
+                                fontSize: 15,
                               }}
                             />
                           }
                           style={{
-                            fontSize: iconStyle.fontSize,
+                            fontSize: 15,
                             color: deepThinking
                               ? token.colorPrimary
                               : token.colorText,
@@ -572,14 +689,14 @@ def greet(name):
                             type="text"
                             icon={
                               <UploadOutlined
-                                style={{ fontSize: iconStyle.fontSize }}
+                                style={{ fontSize: 15 }}
                               />
                             }
-                            style={smallIconStyle}
+                            style={{ fontSize: 18, color: token.colorText }}
                           />
                         </Upload>
                         <Divider type="vertical" />
-                        <SpeechButton style={iconStyle} />
+                        <SpeechButton style={{ fontSize: 15, color: token.colorText }} />
                         <Divider type="vertical" />
                         <SendButton type="primary" disabled={false} />
                       </Flex>
@@ -593,105 +710,56 @@ def greet(name):
           <>
             <div
               style={{
-                height: 'calc(100vh - 200px)', // 固定高度，减去header和sender的高度
+                flex: 1,
                 padding: "4vh 0",
                 overflowY: "auto",
                 width: "80%",
                 margin: "0 auto",
               }}
-              className="chat-messages"
             >
-              {messages.map((item, index) => (
-                <div
-                  key={index}
-                  style={{
-                    display: 'flex',
-                    justifyContent: item.role === 'user' ? 'flex-end' : 'flex-start',
-                    marginBottom: 16,
-                    alignItems: 'flex-start',
-                    gap: 8,
-                  }}
-                >
-                  {item.role === 'assistant' && (
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: '50%',
-                        background: '#f0f0f0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 16,
-                        flexShrink: 0,
-                      }}
-                    >
-                      {item.avatar || '🤖'}
-                    </div>
-                  )}
-                  <div
-                    style={{
-                      maxWidth: '95%',
-                      background: item.role === 'user' ? '#1890ff' : '#f5f5f5',
-                      color: item.role === 'user' ? 'white' : '#333',
-                      padding: '12px 16px',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    {item.role === 'assistant' ? (
-                      <>
-                        {item.isLoading ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <Spin size="small" />
-                            <span>AI正在思考...</span>
-                          </div>
-                        ) : (
-                          <div
-                            dangerouslySetInnerHTML={{
-                              __html: md.render(item.displayContent || item.content)
-                            }}
-                            style={{
-                              lineHeight: '1.6',
-                            }}
-                            className="markdown-content"
-                          />
-                        )}
-                      </>
-                    ) : (
-                      <span>{item.content}</span>
-                    )}
-                  </div>
-                  {item.role === 'user' && (
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: '50%',
-                        background: '#1890ff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 16,
+              {/* 使用Bubble.List替换原来的手动实现 */}
+              <Bubble.List
+                items={messages.map((item) => ({
+                  content: item.displayContent !== undefined ? item.displayContent : item.content,
+                  role: item.role,
+                  loading: item.isLoading,
+                }))}
+                roles={{
+                  user: {
+                    placement: 'end',
+                    avatar: {
+                      icon: <UserOutlined />,
+                      style: { 
+                        backgroundColor: '#1890ff',
                         color: 'white',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {item.avatar || '👤'}
-                    </div>
-                  )}
-                </div>
-              ))}
+                      }
+                    },
+                  },
+                  assistant: {
+                    placement: 'start',
+                    messageRender: renderMarkdown, // 为AI助手消息添加Markdown渲染
+                    avatar: {
+                      icon: <RobotOutlined />,
+                      style: { 
+                        backgroundColor: '#f0f0f0',
+                        color: 'black',
+                      }
+                    }
+                  },
+                }}
+                autoScroll
+                style={{ width: '100%' }}
+              />
             </div>
             <div style={{ 
-              position: 'fixed', 
+              position: 'sticky', 
               bottom: 0, 
               left: collapsed ? 48 : 220, // 根据左侧Conversation的宽度调整
               right: 0,
               padding: "4vh 0",
               zIndex: 1000,
               transition: 'left 0.2s', // 与Conversation收缩动画保持一致
+              background: '#fff',
             }}>
               <div style={{ 
                 width: "80%", 
@@ -700,11 +768,15 @@ def greet(name):
                 justifyContent: "center",
               }}>
                 <Sender
-                  onSubmit={handleSubmit}
-                  allowSpeech
+                  value={inputValue}
+                  onChange={(val) => setInputValue(val)}
                   placeholder="请输入内容并回车..."
-                  actions={false}
-                  style={{ width: "100%" }}
+                  allowSpeech
+                  actions={false as const}
+                  onSubmit={(val) => {
+                    handleSubmit(val);
+                    setInputValue(''); // 提交后清空输入框
+                  }}
                   footer={({ components }) => {
                     const { SendButton, SpeechButton } = components;
                     return (
@@ -724,12 +796,12 @@ def greet(name):
                                     color: searchMode
                                       ? token.colorPrimary
                                       : token.colorText,
-                                    fontSize: iconStyle.fontSize,
+                                    fontSize: 15,
                                   }}
                                 />
                               }
                               style={{
-                                fontSize: iconStyle.fontSize,
+                                fontSize: 15,
                                 color: searchMode
                                   ? token.colorPrimary
                                   : token.colorText,
@@ -747,12 +819,12 @@ def greet(name):
                                   color: deepThinking
                                     ? token.colorPrimary
                                     : token.colorText,
-                                  fontSize: iconStyle.fontSize,
+                                  fontSize: 15,
                                 }}
                               />
                             }
                             style={{
-                              fontSize: iconStyle.fontSize,
+                              fontSize: 15,
                               color: deepThinking
                                 ? token.colorPrimary
                                 : token.colorText,
@@ -775,14 +847,14 @@ def greet(name):
                               type="text"
                               icon={
                                 <UploadOutlined
-                                  style={{ fontSize: iconStyle.fontSize }}
+                                  style={{ fontSize: 15 }}
                                 />
                               }
-                              style={smallIconStyle}
+                              style={{ fontSize: 18, color: token.colorText }}
                             />
                           </Upload>
                           <Divider type="vertical" />
-                          <SpeechButton style={iconStyle} />
+                          <SpeechButton style={{ fontSize: 15, color: token.colorText }} />
                           <Divider type="vertical" />
                           <SendButton type="primary" disabled={false} />
                         </Flex>

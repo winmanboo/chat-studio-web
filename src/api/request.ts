@@ -32,18 +32,30 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
   (response: AxiosResponse) => {
-    // 对响应数据做点什么
-    // 处理通用响应格式
-    const { code, msg, success, data } = response.data;
-    
-    // 检查响应是否成功
-    if (success === false || (code && code !== 'SUCCESS')) {
-      // 可以根据业务需要处理错误情况
-      return Promise.reject(new Error(msg || '请求失败'));
+    // 对于标记为跳过响应处理的请求，直接返回响应
+    if (response.config?.transformResponse === null) {
+      return response;
     }
     
-    // 返回data字段
-    return data;
+    // 检查响应数据是否包含标准字段
+    if (typeof response.data === 'object' && 
+        response.data !== null && 
+        ('code' in response.data || 'success' in response.data || 'data' in response.data)) {
+      // 处理通用响应格式
+      const { code, msg, success, data } = response.data;
+      
+      // 检查响应是否成功
+      if (success === false || (code && code !== 'SUCCESS')) {
+        // 可以根据业务需要处理错误情况
+        return Promise.reject(new Error(msg || '请求失败'));
+      }
+      
+      // 返回data字段
+      return data;
+    }
+    
+    // 对于不包含标准字段的响应（如流式响应），直接返回
+    return response.data;
   },
   (error: AxiosError) => {
     // 对响应错误做点什么
