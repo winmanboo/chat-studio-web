@@ -9,7 +9,6 @@ import {
 } from "@ant-design/x";
 import type { BubbleProps } from "@ant-design/x";
 import MarkdownIt from 'markdown-it';
-import type MarkdownItType from 'markdown-it';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css';
 import {
@@ -51,13 +50,17 @@ const md = new MarkdownIt({
   linkify: true,     // 自动转换URL为链接
   typographer: false, // 禁用typographer以避免isSpace错误
   breaks: true,      // 转换\n为<br>
-  highlight: function (str, lang) {
+  highlight: function (str: string, lang: string): string {
     if (lang && hljs.getLanguage(lang)) {
       try {
-        return `<pre><code class="language-${lang}">${hljs.highlight(str, { language: lang }).value}</code></pre>`;
-      } catch (__) {}
+        const highlighted = hljs.highlight(str, { language: lang });
+        return `<pre><code class="language-${lang}">${highlighted.value}</code></pre>`;
+      } catch (error) {
+        console.warn('代码高亮失败:', error);
+      }
     }
-    return `<pre><code>${md.utils.escapeHtml(str)}</code></pre>`; // 使用默认的转义
+    // 对于不支持的语言或高亮失败的情况，返回转义后的代码块
+    return `<pre><code class="language-${lang || 'text'}">${md.utils.escapeHtml(str)}</code></pre>`;
   }
 });
 
@@ -79,7 +82,12 @@ const renderMarkdown: BubbleProps['messageRender'] = (content) => {
     
     // 检查渲染后的HTML是否有效
     if (!htmlContent || htmlContent.trim() === '') {
-      return content;
+      // 即使内容为空，也尝试渲染，可能包含代码块等元素
+      return (
+        <Typography>
+          <div dangerouslySetInnerHTML={{ __html: htmlContent || '' }} />
+        </Typography>
+      );
     }
     
     return (
@@ -88,9 +96,15 @@ const renderMarkdown: BubbleProps['messageRender'] = (content) => {
       </Typography>
     );
   } catch (error) {
-    // 如果渲染出错，直接显示原始内容
+    // 如果渲染出错，显示原始内容并记录错误
     console.warn('Markdown渲染出错:', error);
-    return content;
+    console.warn('出错内容:', content);
+    // 即使出错也尝试渲染，将内容包装在基本的HTML标签中
+    return (
+      <Typography>
+        <div dangerouslySetInnerHTML={{ __html: md.utils.escapeHtml(content) }} />
+      </Typography>
+    );
   }
 };
 
@@ -450,7 +464,7 @@ const ChatPage: React.FC = () => {
   return (
     <div
       style={{
-        height: "100%",
+        height: "100vh",
         width: "100%",
         background: "#fff",
         display: "flex",
@@ -573,7 +587,7 @@ const ChatPage: React.FC = () => {
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          height: "100%",
+          height: "100vh",
         }}
       >
         {!hasStarted ? (
@@ -585,6 +599,7 @@ const ChatPage: React.FC = () => {
               alignItems: "center",
               justifyContent: "center",
               flex: 1,
+              height: "100vh",
             }}
           >
             <div
@@ -715,6 +730,7 @@ const ChatPage: React.FC = () => {
                 overflowY: "auto",
                 width: "80%",
                 margin: "0 auto",
+                height: "calc(100vh - 200px)", // 为输入区域留出空间
               }}
             >
               {/* 使用Bubble.List替换原来的手动实现 */}
@@ -760,6 +776,7 @@ const ChatPage: React.FC = () => {
               zIndex: 1000,
               transition: 'left 0.2s', // 与Conversation收缩动画保持一致
               background: '#fff',
+              flexShrink: 0, // 防止在flex布局中被压缩
             }}>
               <div style={{ 
                 width: "80%", 
