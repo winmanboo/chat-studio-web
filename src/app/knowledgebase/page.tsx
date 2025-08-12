@@ -90,8 +90,8 @@ const KnowledgeBasePage: React.FC = () => {
   ];
 
   return (
-    <div style={{ height: '100%', width: '100%', background: '#fff', color: '#222' }}>
-      <div style={{ marginBottom: 24, padding: 24 }}>
+    <div style={{ height: '100vh', width: '100%', background: '#fff', color: '#222', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: 24, flexShrink: 0 }}>
         <h2 style={{ marginBottom: 16, color: '#222' }}>知识库管理</h2>
         <Space style={{ marginBottom: 16 }}>
           <Upload>
@@ -107,20 +107,22 @@ const KnowledgeBasePage: React.FC = () => {
           />
         </Space>
       </div>
-      <Card style={{ borderRadius: 12, margin: 24, color: '#222' }}>
-        <Table
-          columns={columns}
-          dataSource={documents}
-          rowKey="id"
-          pagination={{
-            total: documents.length,
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-          }}
-          style={{ color: '#222' }}
-        />
-      </Card>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 24px' }}>
+        <Card style={{ borderRadius: 12, color: '#222' }}>
+          <Table
+            columns={columns}
+            dataSource={documents}
+            rowKey="id"
+            pagination={{
+              total: documents.length,
+              pageSize: 10,
+              showSizeChanger: true,
+              showQuickJumper: true,
+            }}
+            style={{ color: '#222' }}
+          />
+        </Card>
+      </div>
     </div>
   );
 };

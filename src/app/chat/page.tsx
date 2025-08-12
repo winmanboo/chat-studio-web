@@ -464,7 +464,7 @@ const ChatPage: React.FC = () => {
   return (
     <div
       style={{
-        height: "100vh",
+        height: "100%",
         width: "100%",
         background: "#fff",
         display: "flex",
@@ -587,7 +587,8 @@ const ChatPage: React.FC = () => {
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          height: "100vh",
+          height: "100%",
+          minHeight: 0,
         }}
       >
         {!hasStarted ? (
@@ -599,7 +600,6 @@ const ChatPage: React.FC = () => {
               alignItems: "center",
               justifyContent: "center",
               flex: 1,
-              height: "100vh",
             }}
           >
             <div
@@ -620,7 +620,7 @@ const ChatPage: React.FC = () => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "4vh 0",
+                padding: "2vh 0",
               }}
             >
               <Sender
@@ -726,57 +726,53 @@ const ChatPage: React.FC = () => {
             <div
               style={{
                 flex: 1,
-                padding: "4vh 0",
                 overflowY: "auto",
-                width: "80%",
-                margin: "0 auto",
-                height: "calc(100vh - 200px)", // 为输入区域留出空间
+                width: "100%",
+                minHeight: 0, // 确保flex子项可以收缩
+                maxHeight: "calc(100vh - 200px)", // 限制最大高度，为Sender留出空间
               }}
             >
               {/* 使用Bubble.List替换原来的手动实现 */}
-              <Bubble.List
-                items={messages.map((item) => ({
-                  content: item.displayContent !== undefined ? item.displayContent : item.content,
-                  role: item.role,
-                  loading: item.isLoading,
-                }))}
-                roles={{
-                  user: {
-                    placement: 'end',
-                    avatar: {
-                      icon: <UserOutlined />,
-                      style: { 
-                        backgroundColor: '#1890ff',
-                        color: 'white',
+              <div style={{ padding: "4vh 10% 2vh 10%" }}>
+                <Bubble.List
+                  items={messages.map((item) => ({
+                    content: item.displayContent !== undefined ? item.displayContent : item.content,
+                    role: item.role,
+                    loading: item.isLoading,
+                  }))}
+                  roles={{
+                    user: {
+                      placement: 'end',
+                      avatar: {
+                        icon: <UserOutlined />,
+                        style: { 
+                          backgroundColor: '#1890ff',
+                          color: 'white',
+                        }
+                      },
+                    },
+                    assistant: {
+                      placement: 'start',
+                      messageRender: renderMarkdown, // 为AI助手消息添加Markdown渲染
+                      avatar: {
+                        icon: <RobotOutlined />,
+                        style: { 
+                          backgroundColor: '#f0f0f0',
+                          color: 'black',
+                        }
                       }
                     },
-                  },
-                  assistant: {
-                    placement: 'start',
-                    messageRender: renderMarkdown, // 为AI助手消息添加Markdown渲染
-                    avatar: {
-                      icon: <RobotOutlined />,
-                      style: { 
-                        backgroundColor: '#f0f0f0',
-                        color: 'black',
-                      }
-                    }
-                  },
-                }}
-                autoScroll
-                style={{ width: '100%' }}
-              />
+                  }}
+                  autoScroll
+                  style={{ width: '100%' }}
+                />
+              </div>
             </div>
             <div style={{ 
-              position: 'sticky', 
-              bottom: 0, 
-              left: collapsed ? 48 : 220, // 根据左侧Conversation的宽度调整
-              right: 0,
-              padding: "4vh 0",
-              zIndex: 1000,
-              transition: 'left 0.2s', // 与Conversation收缩动画保持一致
-              background: '#fff',
               flexShrink: 0, // 防止在flex布局中被压缩
+              padding: "16px 0",
+              background: '#fff',
+              borderTop: '1px solid #f0f0f0', // 添加顶部边框分隔
             }}>
               <div style={{ 
                 width: "80%", 

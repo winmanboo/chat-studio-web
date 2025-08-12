@@ -52,8 +52,8 @@ const MarketPage: React.FC = () => {
   ];
 
   return (
-    <div style={{ height: '100%', width: '100%', background: '#fff', color: '#222' }}>
-      <div style={{ marginBottom: 24, padding: 24 }}>
+    <div style={{ height: '100vh', width: '100%', background: '#fff', color: '#222', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: 24, flexShrink: 0 }}>
         <h2 style={{ marginBottom: 16, color: '#222' }}>AI应用市场</h2>
         <Search
           placeholder="搜索应用..."
@@ -62,7 +62,8 @@ const MarketPage: React.FC = () => {
           onSearch={(value) => console.log('搜索:', value)}
         />
       </div>
-      <Row gutter={[16, 16]} style={{ margin: 0, padding: 24 }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 24px' }}>
+        <Row gutter={[16, 16]} style={{ margin: 0 }}>
         {applications.map(app => (
           <Col xs={24} sm={12} lg={8} xl={6} key={app.id}>
             <Card
@@ -118,7 +119,8 @@ const MarketPage: React.FC = () => {
             </Card>
           </Col>
         ))}
-      </Row>
+        </Row>
+      </div>
     </div>
   );
 };
