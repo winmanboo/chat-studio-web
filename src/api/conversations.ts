@@ -11,6 +11,15 @@ export interface SessionItem {
   createdAt: number;
 }
 
+// 会话消息类型
+export interface SessionMessage {
+  id: number;
+  sessionId: string;
+  message: string;
+  messageType: 'USER' | 'ASSISTANT';
+  parentId: number;
+}
+
 // 创建会话接口
 export const createSession = (): Promise<SessionId> => {
   return request.post<SessionId>('/chat/v1/session/create') as unknown as Promise<SessionId>;
@@ -19,6 +28,11 @@ export const createSession = (): Promise<SessionId> => {
 // 获取会话列表接口
 export const getSessionList = (): Promise<SessionItem[]> => {
   return request.get<SessionItem[]>('/chat/v1/sessions') as unknown as Promise<SessionItem[]>;
+};
+
+// 获取会话消息接口
+export const getSessionMessages = (sessionId: string): Promise<SessionMessage[]> => {
+  return request.get<SessionMessage[]>(`/chat/v1/messages/${sessionId}`) as unknown as Promise<SessionMessage[]>;
 };
 
 // 聊天接口参数类型

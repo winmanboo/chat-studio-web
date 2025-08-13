@@ -42,7 +42,7 @@ import {
   Space,
   Typography,
 } from "antd";
-import { createSession, chatStream, ChatRequest, getSessionList, SessionItem } from "@/api/conversations";
+import { createSession, chatStream, ChatRequest, getSessionList, SessionItem, getSessionMessages, SessionMessage } from "@/api/conversations";
 
 // 样式常量
 const ICON_SIZE = 15;
@@ -83,6 +83,28 @@ const convertSessionToConversation = (session: SessionItem): ConversationItem =>
     icon: '💬', // 默认图标
     group: getTimeGroup(session.createdAt)
   };
+};
+
+// 将API消息转换为组件消息格式
+const convertSessionMessageToChatMessage = (sessionMessage: SessionMessage): ChatMessage => {
+  return {
+    content: sessionMessage.message,
+    role: sessionMessage.messageType === 'USER' ? 'user' : 'assistant',
+    avatar: sessionMessage.messageType === 'USER' ? '👤' : '🤖'
+  };
+};
+
+// 加载会话消息
+const loadSessionMessages = async (sessionId: string): Promise<ChatMessage[]> => {
+  try {
+    const sessionMessages = await getSessionMessages(sessionId);
+    // 按照parentId关系排序消息，确保消息顺序正确
+    const sortedMessages = sessionMessages.sort((a, b) => a.id - b.id);
+    return sortedMessages.map(convertSessionMessageToChatMessage);
+  } catch (error) {
+    console.error('加载会话消息失败:', error);
+    throw error;
+  }
 };
 
 // 初始化 markdown-it
@@ -150,14 +172,7 @@ const renderMarkdown = (content: string): React.ReactNode => {
   }
 };
 
-const initialConversations = [
-  { key: "1", label: "RAG开发", icon: "🤖", group: "今天" },
-  { key: "2", label: "AI助手", icon: "🧑‍💻", group: "昨天" },
-  { key: "3", label: "市场咨询", icon: "🛒", group: "三天前" },
-  { key: "4", label: "产品反馈", icon: "💡", group: "一周前" },
-  { key: "5", label: "团队群聊", icon: "👥", group: "一个月前" },
-  { key: "6", label: "测试对话", icon: "🧪", group: "今天" },
-];
+
 
 // 聊天消息类型定义
 interface ChatMessage {
@@ -369,26 +384,17 @@ const ChatPage: React.FC = () => {
       ),
   };
 
-  // 新建对话逻辑：创建新会话并刷新列表
-  const handleAddConversation = async () => {
-    try {
-      // 创建新会话
-      const newSessionId = await createSession();
-      
-      // 刷新会话列表以获取最新数据
-      await loadSessionList();
-      
-      // 选中新创建的会话
-      setSelectedId(newSessionId);
-      setHasStarted(false);
-      setSessionId(newSessionId);
-      setMessages([]);
-      
-      antdMessage.success('新会话已创建');
-    } catch (error) {
-      console.error('创建会话失败:', error);
-      antdMessage.error('创建会话失败');
-    }
+  // 新建对话逻辑：切换到初始聊天状态
+  const handleAddConversation = () => {
+    // 清除当前选中的会话
+    setSelectedId('');
+    // 切换到初始状态（Sender在中间）
+    setHasStarted(false);
+    // 清除会话ID和消息
+    setSessionId(null);
+    setMessages([]);
+    
+    antdMessage.success('已准备新对话');
   };
 
   // 发送消息
@@ -398,12 +404,16 @@ const ChatPage: React.FC = () => {
       setHasStarted(true);
     }
     
+    // 标记是否是新创建的会话（用于决定是否需要刷新会话列表）
+    let isNewSession = false;
+    
     // 如果还没有会话ID，则创建一个新会话
     let currentSessionId = sessionId;
     if (!currentSessionId) {
       try {
         currentSessionId = await createSession();
         setSessionId(currentSessionId);
+        isNewSession = true;
         // 注意：这里不再设置hasStarted，因为它应该在新建对话时就已经设置为true了
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : "未知错误";
@@ -433,6 +443,17 @@ const ChatPage: React.FC = () => {
         thinkingEnabled: deepThinking,
         ragEnabled: searchMode === "kb"
       };
+
+      // 如果是新创建的会话，在开始流式聊天前刷新会话列表
+      if (isNewSession) {
+        try {
+          await loadSessionList();
+          // 选中新创建的会话
+          setSelectedId(currentSessionId);
+        } catch (error) {
+          console.warn('刷新会话列表失败:', error);
+        }
+      }
 
       // 发起流式请求（现在在API层处理）
       const reader = await chatStream(requestData);
@@ -491,6 +512,16 @@ const ChatPage: React.FC = () => {
               return newMessages;
             });
           }
+          
+          // 如果是新创建的会话，在SSE数据全部返回后再次刷新会话列表
+          if (isNewSession) {
+            try {
+              await loadSessionList();
+            } catch (error) {
+              console.warn('SSE完成后刷新会话列表失败:', error);
+            }
+          }
+          
           break;
         }
         
@@ -654,11 +685,23 @@ const ChatPage: React.FC = () => {
                   style={{ width: "100%", color: "#222" }}
                   items={conversations}
                   activeKey={selectedId}
-                  onActiveChange={(key) => {
-                    setSelectedId(key);
-                    setHasStarted(false);
-                    setSessionId(key); // 切换会话时设置sessionId为选中的会话ID
-                    setMessages([]); // 清空消息
+                  onActiveChange={async (key) => {
+                    try {
+                      setSelectedId(key);
+                      setSessionId(key); // 切换会话时设置sessionId为选中的会话ID
+                      setHasStarted(true);
+                      
+                      // 加载该会话的历史消息
+                      const historyMessages = await loadSessionMessages(key);
+                      setMessages(historyMessages);
+                      
+                      antdMessage.success('会话切换成功');
+                    } catch (error) {
+                      console.error('切换会话失败:', error);
+                      antdMessage.error('切换会话失败，请重试');
+                      setMessages([]); // 出错时清空消息
+                      setHasStarted(false);
+                    }
                   }}
                   menu={conversationMenu}
                   groupable={groupable}
