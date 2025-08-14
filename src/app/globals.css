@@ -154,11 +154,13 @@ a {
 
 /* Bubble message styles */
 .user-bubble .ant-bubble-content {
-  background-color: #f0f8ff !important;
+  background-color: #e6f3ff !important; /* 淡蓝色背景，用户消息 */
+  border: 1px solid #b3d9ff !important;
 }
 
 .assistant-bubble .ant-bubble-content {
-  background-color: #fafafa !important;
+  background-color: #f6f8fa !important; /* 淡灰色背景，AI消息 */
+  border: 1px solid #e1e4e8 !important;
 }
 
 @media (prefers-color-scheme: dark) {
