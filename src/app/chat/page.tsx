@@ -120,6 +120,8 @@ const md = new MarkdownIt({
         return `<pre><code class="language-${lang}">${highlighted.value}</code></pre>`;
       } catch (error) {
         console.warn('代码高亮失败:', error);
+        // 高亮失败时返回转义后的代码块
+        return `<pre><code class="language-${lang}">${md.utils.escapeHtml(str)}</code></pre>`;
       }
     }
     // 对于不支持的语言或高亮失败的情况，返回转义后的代码块
@@ -127,7 +129,7 @@ const md = new MarkdownIt({
   }
 });
 
-// Markdown渲染函数，参考官案
+// Markdown渲染函数，增强错误处理
 const renderMarkdown = (content: string): React.ReactNode => {
   // 如果内容不是字符串，直接返回
   if (typeof content !== 'string') {
@@ -140,33 +142,48 @@ const renderMarkdown = (content: string): React.ReactNode => {
   }
   
   try {
-    // 无论是否在流式更新，都进行Markdown渲染
-    // 这样可以实现一边接收数据一边渲染markdown格式的效果
-    const htmlContent = md.render(content);
+    // 预处理内容，确保代码块格式正确
+    let processedContent = content;
     
-    // 检查渲染后的HTML是否有效
-    if (!htmlContent || htmlContent.trim() === '') {
-      // 即使内容为空，也尝试渲染，可能包含代码块等元素
-      return (
-        <Typography>
-          <div dangerouslySetInnerHTML={{ __html: htmlContent || '' }} />
-        </Typography>
-      );
-    }
+    // 修复可能的代码块格式问题
+    // 确保代码块前后有足够的换行符
+    processedContent = processedContent.replace(/(```[\s\S]*?```)/g, (match) => {
+      return '\n' + match + '\n';
+    });
+    
+    // 渲染Markdown
+    const htmlContent = md.render(processedContent);
     
     return (
       <Typography>
-        <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+        <div 
+          dangerouslySetInnerHTML={{ __html: htmlContent }} 
+          className="markdown-content"
+        />
       </Typography>
     );
   } catch (error) {
-    // 如果渲染出错，显示原始内容并记录错误
+    // 如果渲染出错，记录错误但不在控制台显示用户内容（避免泄露敏感信息）
     console.warn('Markdown渲染出错:', error);
-    console.warn('出错内容:', content);
-    // 即使出错也尝试渲染，将内容包装在基本的HTML标签中
+    
+    // 降级处理：使用纯文本显示，保持基本的换行格式
+    const fallbackContent = content
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/\n/g, '<br/>');
+    
     return (
       <Typography>
-        <div dangerouslySetInnerHTML={{ __html: md.utils.escapeHtml(content) }} />
+        <div 
+          dangerouslySetInnerHTML={{ __html: fallbackContent }}
+          style={{
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word'
+          }}
+        />
       </Typography>
     );
   }
