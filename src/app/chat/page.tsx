@@ -281,24 +281,22 @@ const ChatPage: React.FC = () => {
   
       
   // 检索模式菜单
-  const searchMenu = (
-    <Menu>
-      <Menu.Item
-        key="web"
-        icon={<GlobalOutlined />}
-        onClick={() => setSearchMode("web")}
-      >
-        Web搜索
-      </Menu.Item>
-      <Menu.Item
-        key="kb"
-        icon={<DatabaseOutlined />}
-        onClick={() => setSearchMode("kb")}
-      >
-        知识库检索
-      </Menu.Item>
-    </Menu>
-  );
+  const searchMenu = {
+    items: [
+      {
+        key: "web",
+        icon: <GlobalOutlined />,
+        label: "Web搜索",
+        onClick: () => setSearchMode("web")
+      },
+      {
+        key: "kb",
+        icon: <DatabaseOutlined />,
+        label: "知识库检索",
+        onClick: () => setSearchMode("kb")
+      }
+    ]
+  };
 
   // 修改会话名称
   const handleEditConversation = (key: string, currentLabel: string) => {
@@ -814,7 +812,7 @@ const ChatPage: React.FC = () => {
                       {/* 左侧：检索模式 + 深度思考 */}
                       <Flex gap="small" align="center">
                         <Dropdown
-                          overlay={searchMenu}
+                          menu={searchMenu}
                           trigger={["click"]}
                           placement="topLeft"
                         >
@@ -968,7 +966,7 @@ const ChatPage: React.FC = () => {
                         {/* 左侧：检索模式 + 深度思考 */}
                         <Flex gap="small" align="center">
                           <Dropdown
-                            overlay={searchMenu}
+                            menu={searchMenu}
                             trigger={["click"]}
                             placement="topLeft"
                           >
@@ -1057,7 +1055,7 @@ const ChatPage: React.FC = () => {
         open={!!editingConversation}
         onOk={confirmEditConversation}
         onCancel={() => setEditingConversation(null)}
-        destroyOnClose
+        destroyOnHidden
       >
         <Input
           value={newConversationName}
