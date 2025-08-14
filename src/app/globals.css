@@ -82,6 +82,9 @@ body {
   overflow: auto;
   margin: 12px 0;
   border: 1px solid #e1e4e8;
+  tab-size: 4;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
 }
 
 .markdown-content pre code {
@@ -89,6 +92,9 @@ body {
   padding: 0;
   border-radius: 0;
   font-size: 0.9em;
+  tab-size: 4;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
 }
 
 .markdown-content table {
