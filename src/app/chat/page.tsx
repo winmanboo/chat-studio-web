@@ -686,18 +686,27 @@ const ChatPage: React.FC = () => {
                 padding: 8,
               }}
             >
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                  <Spin size="small" />
-                  <div style={{ marginTop: '8px', color: '#666' }}>加载中...</div>
-                </div>
-              ) : conversations.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999' }}>
-                  <CommentOutlined style={{ fontSize: '32px', marginBottom: '12px', display: 'block' }} />
-                  <div style={{ fontSize: '14px', marginBottom: '8px' }}>暂无会话</div>
-                  <div style={{ fontSize: '12px' }}>点击上方 + 按钮创建新会话</div>
-                </div>
-              ) : (
+              {(() => {
+                if (loading) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: '20px' }}>
+                      <Spin size="small" />
+                      <div style={{ marginTop: '8px', color: '#666' }}>加载中...</div>
+                    </div>
+                  );
+                }
+                
+                if (conversations.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999' }}>
+                      <CommentOutlined style={{ fontSize: '32px', marginBottom: '12px', display: 'block' }} />
+                      <div style={{ fontSize: '14px', marginBottom: '8px' }}>暂无会话</div>
+                      <div style={{ fontSize: '12px' }}>点击上方 + 按钮创建新会话</div>
+                    </div>
+                  );
+                }
+                
+                return (
                 <Conversations
                   style={{ width: "100%", color: "#222" }}
                   items={conversations}
@@ -723,7 +732,8 @@ const ChatPage: React.FC = () => {
                   menu={conversationMenu}
                   groupable={groupable}
                 />
-              )}
+                );
+              })()}
             </div>
             <div
               style={{
