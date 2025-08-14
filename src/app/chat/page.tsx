@@ -913,6 +913,7 @@ const ChatPage: React.FC = () => {
                         icon: <UserOutlined />,
                         style: USER_AVATAR_STYLE
                       },
+                      className: 'user-bubble'
                     },
                     assistant: {
                       placement: 'start',
@@ -920,7 +921,8 @@ const ChatPage: React.FC = () => {
                       avatar: {
                         icon: <RobotOutlined />,
                         style: ASSISTANT_AVATAR_STYLE
-                      }
+                      },
+                      className: 'assistant-bubble'
                     },
                   }}
                   style={{ width: '100%' }}

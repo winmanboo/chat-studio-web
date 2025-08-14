@@ -152,6 +152,15 @@ a {
   text-decoration: none;
 }
 
+/* Bubble message styles */
+.user-bubble .ant-bubble-content {
+  background-color: #f0f8ff !important;
+}
+
+.assistant-bubble .ant-bubble-content {
+  background-color: #fafafa !important;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
