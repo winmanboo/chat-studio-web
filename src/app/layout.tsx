@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import React from "react";
+import Script from "next/script";
 import AppMain from "./AppMain";
 
 const geistSans = Geist({
@@ -23,6 +24,18 @@ export const metadata: Metadata = {
 export default function RootLayout() {
   return (
     <html lang="zh-CN">
+      <head>
+        {/* 修复 markdown-it 在 Next.js + Turbopack 环境下的 isSpace 未定义错误 */}
+        <Script id="markdown-it-fix" strategy="beforeInteractive">
+          {`
+            if (typeof globalThis !== 'undefined' && typeof globalThis.isSpace === 'undefined') {
+              globalThis.isSpace = function(code) {
+                return code === 0x20 || code === 0x09 || code === 0x0A || code === 0x0B || code === 0x0C || code === 0x0D;
+              };
+            }
+          `}
+        </Script>
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`} style={{ background: '#f5f6fa', minHeight: '100vh' }}>
         <AppMain />
       </body>
