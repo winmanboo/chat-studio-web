@@ -1064,8 +1064,6 @@ const ChatPage: React.FC = () => {
             <div style={{ 
               flexShrink: 0, // 防止在flex布局中被压缩
               padding: "16px 0",
-              background: '#fff',
-              borderTop: '1px solid #f0f0f0', // 添加顶部边框分隔
             }}>
               <div style={{ 
                 width: "80%", 
