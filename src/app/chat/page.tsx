@@ -53,22 +53,29 @@ const ASSISTANT_AVATAR_STYLE = { backgroundColor: '#f0f0f0', color: 'black' };
 
 // 时间分组函数
 const getTimeGroup = (timestamp: number): string => {
-  const now = Date.now();
-  const diff = now - timestamp;
-  const oneDay = 24 * 60 * 60 * 1000;
-  const threeDays = 3 * oneDay;
-  const oneWeek = 7 * oneDay;
-  const oneMonth = 30 * oneDay;
+  const now = new Date();
+  const sessionDate = new Date(timestamp);
+  
+  // 获取今天0点的时间戳
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  // 获取昨天0点的时间戳
+  const yesterdayStart = todayStart - 24 * 60 * 60 * 1000;
+  // 获取三天前0点的时间戳
+  const threeDaysAgoStart = todayStart - 3 * 24 * 60 * 60 * 1000;
+  // 获取一周前0点的时间戳
+  const oneWeekAgoStart = todayStart - 7 * 24 * 60 * 60 * 1000;
+  // 获取一个月前0点的时间戳
+  const oneMonthAgoStart = todayStart - 30 * 24 * 60 * 60 * 1000;
 
-  if (diff < oneDay) {
+  if (timestamp >= todayStart) {
     return '今天';
-  } else if (diff < 2 * oneDay) {
+  } else if (timestamp >= yesterdayStart) {
     return '昨天';
-  } else if (diff < threeDays) {
+  } else if (timestamp >= threeDaysAgoStart) {
     return '三天前';
-  } else if (diff < oneWeek) {
+  } else if (timestamp >= oneWeekAgoStart) {
     return '一周前';
-  } else if (diff < oneMonth) {
+  } else if (timestamp >= oneMonthAgoStart) {
     return '一个月前';
   } else {
     return '更早';
