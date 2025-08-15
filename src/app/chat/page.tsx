@@ -11,6 +11,7 @@ import {
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css';
+import mermaid from 'mermaid';
 import {
   PlusOutlined,
   MenuFoldOutlined,
@@ -124,6 +125,12 @@ const md = new MarkdownIt({
     const languageLabel = lang || 'text';
     const displayLang = languageLabel === 'text' ? 'plain' : languageLabel;
     
+    // 处理Mermaid图表
+     if (lang === 'mermaid') {
+       const mermaidId = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9).replace(/[^a-zA-Z0-9]/g, '')}`;
+       return `<div class="mermaid-container"><div class="code-header"><span class="language-label">mermaid</span><button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button></div><div class="mermaid" id="${mermaidId}">${str}</div></div>`;
+     }
+    
     // 添加行号的函数
     const addLineNumbers = (code: string): string => {
         const lines = code.split('\n');
@@ -222,6 +229,94 @@ if (typeof window !== 'undefined') {
 }
 
 // Markdown渲染函数，增强错误处理
+// Mermaid渲染组件
+const MermaidRenderer: React.FC<{ content: string }> = React.memo(({ content }) => {
+  const [htmlContent, setHtmlContent] = React.useState('');
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const mermaidInitialized = React.useRef(false);
+  const lastContentRef = React.useRef<string>('');
+  const renderedHtmlRef = React.useRef<string>('');
+  
+  // 初始化Mermaid（只执行一次）
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && !mermaidInitialized.current) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'default',
+        securityLevel: 'loose',
+        fontFamily: 'inherit'
+      });
+      mermaidInitialized.current = true;
+    }
+  }, []);
+  
+  React.useEffect(() => {
+    // 只有当内容真正改变时才重新渲染
+    if (content !== lastContentRef.current) {
+      lastContentRef.current = content;
+      
+      // 预处理内容，确保代码块格式正确
+      let processedContent = content;
+      
+      // 修复可能的代码块格式问题
+      // 确保代码块前后有足够的换行符
+      processedContent = processedContent.replace(/(```[\s\S]*?```)/g, (match) => {
+        return '\n' + match + '\n';
+      });
+      
+      // 渲染Markdown
+      const rendered = md.render(processedContent);
+      
+      // 只有当渲染结果真正改变时才更新状态
+      if (rendered !== renderedHtmlRef.current) {
+        renderedHtmlRef.current = rendered;
+        setHtmlContent(rendered);
+      }
+    }
+  }, [content]);
+  
+  // 渲染Mermaid图表
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && htmlContent && containerRef.current) {
+      const container = containerRef.current;
+      
+      // 使用setTimeout确保DOM已经更新
+      setTimeout(() => {
+        // 查找容器内未处理的Mermaid图表
+        const mermaidElements = container.querySelectorAll('.mermaid:not([data-processed])');
+        
+        mermaidElements.forEach(async (element) => {
+          try {
+            const graphDefinition = element.textContent || '';
+            if (graphDefinition.trim()) {
+              const uniqueId = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9).replace(/[^a-zA-Z0-9]/g, '')}`;
+              const { svg } = await mermaid.render(uniqueId, graphDefinition);
+              element.innerHTML = svg;
+              element.setAttribute('data-processed', 'true');
+            }
+          } catch (error) {
+            console.warn('Mermaid渲染失败:', error);
+            element.innerHTML = `<pre style="color: red;">Mermaid图表渲染失败: ${error}</pre>`;
+            element.setAttribute('data-processed', 'true');
+          }
+        });
+      }, 0);
+    }
+  }, [htmlContent]);
+  
+  return (
+    <Typography>
+      <div 
+        ref={containerRef}
+        dangerouslySetInnerHTML={{ __html: htmlContent }} 
+        className="markdown-content"
+      />
+    </Typography>
+  );
+});
+
+MermaidRenderer.displayName = 'MermaidRenderer';
+
 const renderMarkdown = (content: string): React.ReactNode => {
   // 如果内容不是字符串，直接返回
   if (typeof content !== 'string') {
@@ -234,26 +329,7 @@ const renderMarkdown = (content: string): React.ReactNode => {
   }
   
   try {
-    // 预处理内容，确保代码块格式正确
-    let processedContent = content;
-    
-    // 修复可能的代码块格式问题
-    // 确保代码块前后有足够的换行符
-    processedContent = processedContent.replace(/(```[\s\S]*?```)/g, (match) => {
-      return '\n' + match + '\n';
-    });
-    
-    // 渲染Markdown
-    const htmlContent = md.render(processedContent);
-    
-    return (
-      <Typography>
-        <div 
-          dangerouslySetInnerHTML={{ __html: htmlContent }} 
-          className="markdown-content"
-        />
-      </Typography>
-    );
+    return <MermaidRenderer content={content} />;
   } catch (error) {
     // 如果渲染出错，记录错误但不在控制台显示用户内容（避免泄露敏感信息）
     console.warn('Markdown渲染出错:', error);

@@ -577,7 +577,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
@@ -902,5 +902,57 @@ a {
   
   .markdown-content table {
     page-break-inside: avoid;
+  }
+}
+
+/* Mermaid 图表样式 */
+.mermaid-container {
+  margin: 16px 0;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.mermaid-container .code-header {
+  background: #f6f8fa;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e1e4e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #586069;
+}
+
+.mermaid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: #fff;
+  min-height: 100px;
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 暗色主题下的 Mermaid 样式 */
+@media (prefers-color-scheme: dark) {
+  .mermaid-container {
+    background: #0d1117;
+    border-color: #30363d;
+  }
+  
+  .mermaid-container .code-header {
+    background: #161b22;
+    border-bottom-color: #30363d;
+    color: #8b949e;
+  }
+  
+  .mermaid {
+    background: #0d1117;
   }
 }
