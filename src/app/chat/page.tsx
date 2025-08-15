@@ -421,10 +421,17 @@ const ChatPage: React.FC = () => {
   }, []);
 
   // 自动滚动到底部的函数
-  const scrollToBottom = () => {
-    if (bubbleListRef.current && !isUserScrolling) {
+  const scrollToBottom = (force = false, smooth = false) => {
+    if (bubbleListRef.current && (!isUserScrolling || force)) {
       const container = bubbleListRef.current;
-      container.scrollTop = container.scrollHeight;
+      if (smooth) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth'
+        });
+      } else {
+        container.scrollTop = container.scrollHeight;
+      }
     }
   };
 
@@ -920,6 +927,16 @@ const ChatPage: React.FC = () => {
                       // 加载该会话的历史消息
                       const historyMessages = await loadSessionMessages(key);
                       setMessages(historyMessages);
+                      
+                      // 重置用户滚动状态，允许自动滚动
+                      setIsUserScrolling(false);
+                      
+                      // 使用requestAnimationFrame确保DOM更新后再滚动，避免闪烁
+                       requestAnimationFrame(() => {
+                         requestAnimationFrame(() => {
+                           scrollToBottom(true, true); // 使用平滑滚动
+                         });
+                       });
                     } catch (error) {
                       console.error('切换会话失败:', error);
                       antdMessage.error('切换会话失败，请重试');
