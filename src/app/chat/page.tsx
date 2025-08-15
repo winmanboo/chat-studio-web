@@ -42,7 +42,7 @@ import {
   Space,
   Typography,
 } from "antd";
-import { createSession, chatStream, ChatRequest, getSessionList, SessionItem, getSessionMessages, SessionMessage } from "@/api/conversations";
+import { createSession, chatStream, ChatRequest, getSessionList, SessionItem, getSessionMessages, SessionMessage, deleteSession } from "@/api/conversations";
 
 // 样式常量
 const ICON_SIZE = 15;
@@ -415,24 +415,58 @@ const ChatPage: React.FC = () => {
   };
 
   // 删除会话
-  const handleDeleteConversation = (key: string) => {
+  const handleDeleteConversation = async (key: string) => {
     if (conversations.length <= 1) {
       antdMessage.warning("至少需要保留一个会话");
       return;
     }
     
-    const newConversations = conversations.filter(conv => conv.key !== key);
-    setConversations(newConversations);
+    // 获取要删除的会话名称
+    const conversationToDelete = conversations.find(conv => conv.key === key);
+    const conversationName = conversationToDelete?.label || '该会话';
     
-    // 如果删除的是当前选中的会话，切换到第一个会话
-    if (selectedId === key) {
-      setSelectedId(newConversations[0].key);
-      setHasStarted(false);
-      setSessionId(null); // 重置会话ID
-      setMessages([]); // 清空消息
-    }
-    
-    antdMessage.success("会话已删除");
+    // 使用Ant Design的Modal.confirm
+    Modal.confirm({
+      title: '删除会话',
+      content: `确定要删除会话 "${conversationName}" 吗？删除后无法恢复。`,
+      okText: '确定删除',
+      cancelText: '取消',
+      okType: 'danger',
+      centered: true,
+      maskClosable: true,
+      width: 400,
+      style: {
+        top: '30%',
+      },
+      styles: {
+        body: {
+          padding: '24px',
+        },
+      },
+      onOk: async () => {
+        try {
+          // 调用删除会话API
+          await deleteSession(key);
+          
+          // 刷新会话列表
+          await loadSessionList();
+          
+          // 如果删除的是当前选中的会话，切换到新建会话状态
+          if (selectedId === key) {
+            // 重置到新建会话状态
+            setSelectedId('');
+            setSessionId(null);
+            setMessages([]);
+            setHasStarted(false);
+          }
+          
+          antdMessage.success("会话已删除");
+        } catch (error) {
+          console.error('删除会话失败:', error);
+          antdMessage.error('删除会话失败: ' + (error instanceof Error ? error.message : '未知错误'));
+        }
+      },
+    });
   };
 
   // 为Conversations组件创建菜单项

@@ -3,32 +3,31 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
-    "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@ant-design/x": "^1.6.0",
     "@types/highlight.js": "^9.12.4",
     "@types/markdown-it": "^14.1.2",
     "antd": "^5.26.7",
+    "axios": "^1.7.9",
     "highlight.js": "^11.11.1",
     "markdown-it": "^14.1.0",
-    "next": "15.4.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "axios": "^1.7.9"
+    "next": "14.2.31",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
     "eslint": "^9",
-    "eslint-config-next": "15.4.5",
+    "eslint-config-next": "14.2.31",
     "typescript": "^5"
   }
 }

@@ -1,19 +1,13 @@
-import '@ant-design/v5-patch-for-react-19';
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import React from "react";
 import Script from "next/script";
 import AppMain from "./AppMain";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -36,7 +30,7 @@ export default function RootLayout() {
           `}
         </Script>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable}`} style={{ background: '#f5f6fa', minHeight: '100vh' }}>
+      <body className={inter.variable} style={{ background: '#f5f6fa', minHeight: '100vh' }}>
         <AppMain />
       </body>
     </html>

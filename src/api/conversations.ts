@@ -35,6 +35,11 @@ export const getSessionMessages = (sessionId: string): Promise<SessionMessage[]>
   return request.get<SessionMessage[]>(`/chat/v1/messages/${sessionId}`) as unknown as Promise<SessionMessage[]>;
 };
 
+// 删除会话接口
+export const deleteSession = (sessionId: string): Promise<void> => {
+  return request.delete<void>(`/chat/v1/session/delete/${sessionId}`) as unknown as Promise<void>;
+};
+
 // 聊天接口参数类型
 export interface ChatRequest {
   sessionId: string;
