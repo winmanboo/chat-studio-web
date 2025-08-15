@@ -617,8 +617,6 @@ const ChatPage: React.FC = () => {
     // 清除会话ID和消息
     setSessionId(null);
     setMessages([]);
-    
-    antdMessage.success('已准备新对话');
   };
 
   // 发送消息
