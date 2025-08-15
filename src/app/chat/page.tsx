@@ -844,8 +844,6 @@ const ChatPage: React.FC = () => {
                       // 加载该会话的历史消息
                       const historyMessages = await loadSessionMessages(key);
                       setMessages(historyMessages);
-                      
-                      antdMessage.success('会话切换成功');
                     } catch (error) {
                       console.error('切换会话失败:', error);
                       antdMessage.error('切换会话失败，请重试');
