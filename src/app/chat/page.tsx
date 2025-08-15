@@ -114,20 +114,105 @@ const md = new MarkdownIt({
   typographer: false, // 禁用typographer以避免isSpace错误
   breaks: true,      // 转换\n为<br>
   highlight: function (str: string, lang: string): string {
+    const languageLabel = lang || 'text';
+    const displayLang = languageLabel === 'text' ? 'plain' : languageLabel;
+    
+    // 添加行号的函数
+    const addLineNumbers = (code: string): string => {
+        const lines = code.split('\n');
+        // 移除最后一个空行（如果存在）
+        if (lines.length > 0 && lines[lines.length - 1] === '') {
+          lines.pop();
+        }
+        
+        const lineNumbers = lines.map((_, index) => `<span class="line-number">${index + 1}</span>`).join('');
+        const codeLines = lines.map(line => `<span class="code-line">${line || ' '}</span>`).join('');
+        
+        return `<div class="line-numbers">${lineNumbers}</div><div class="code-content">${codeLines}</div>`;
+      };
+    
     if (lang && hljs.getLanguage(lang)) {
       try {
         const highlighted = hljs.highlight(str, { language: lang });
-        return `<pre><code class="language-${lang}">${highlighted.value}</code></pre>`;
+        const codeWithLines = addLineNumbers(highlighted.value);
+        return `<div class="code-block-container"><div class="code-header"><span class="language-label">${displayLang}</span><button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button></div><pre><code class="language-${lang}">${codeWithLines}</code></pre></div>`;
       } catch (error) {
         console.warn('代码高亮失败:', error);
         // 高亮失败时返回转义后的代码块
-        return `<pre><code class="language-${lang}">${md.utils.escapeHtml(str)}</code></pre>`;
+        const escapedCode = md.utils.escapeHtml(str);
+        const codeWithLines = addLineNumbers(escapedCode);
+        return `<div class="code-block-container"><div class="code-header"><span class="language-label">${displayLang}</span><button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button></div><pre><code class="language-${lang}">${codeWithLines}</code></pre></div>`;
       }
     }
     // 对于不支持的语言或高亮失败的情况，返回转义后的代码块
-    return `<pre><code class="language-${lang || 'text'}">${md.utils.escapeHtml(str)}</code></pre>`;
+    const escapedCode = md.utils.escapeHtml(str);
+    const codeWithLines = addLineNumbers(escapedCode);
+    return `<div class="code-block-container"><div class="code-header"><span class="language-label">${displayLang}</span><button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button></div><pre><code class="language-${languageLabel}">${codeWithLines}</code></pre></div>`;
   }
 });
+
+// 扩展Window接口以支持复制函数
+declare global {
+  interface Window {
+    copyCodeToClipboard: (button: HTMLButtonElement) => void;
+  }
+}
+
+// 复制代码到剪贴板的全局函数
+if (typeof window !== 'undefined') {
+  window.copyCodeToClipboard = function(button: HTMLButtonElement) {
+    const container = button.closest('.code-block-container');
+    if (!container) return;
+    
+    const codeContent = container.querySelector('.code-content');
+    let text = '';
+    
+    if (!codeContent) {
+      // 降级处理：如果没有找到.code-content，使用整个code元素
+      const code = container.querySelector('code');
+      if (!code) return;
+      text = code.textContent || '';
+    } else {
+      // 只获取代码内容，不包含行号
+      text = codeContent.textContent || '';
+    }
+    
+    navigator.clipboard.writeText(text).then(() => {
+      // 显示复制成功状态
+      button.classList.add('copied');
+      const originalText = button.textContent;
+      button.textContent = '已复制';
+      
+      // 2秒后恢复原状态
+      setTimeout(() => {
+        button.classList.remove('copied');
+        button.textContent = originalText;
+      }, 2000);
+    }).catch(err => {
+      console.error('复制失败:', err);
+      // 降级处理：使用旧的复制方法
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        button.classList.add('copied');
+        const originalText = button.textContent;
+        button.textContent = '已复制';
+        
+        setTimeout(() => {
+          button.classList.remove('copied');
+          button.textContent = originalText;
+        }, 2000);
+      } catch (fallbackErr) {
+        console.error('降级复制也失败:', fallbackErr);
+      }
+    });
+  };
+}
 
 // Markdown渲染函数，增强错误处理
 const renderMarkdown = (content: string): React.ReactNode => {

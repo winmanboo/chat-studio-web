@@ -29,107 +29,549 @@ body {
 }
 
 /* Markdown 内容样式 */
+.markdown-content {
+  line-height: 1.6;
+  color: #24292f;
+  font-size: 14px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 渐变背景装饰 */
+.markdown-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -10px;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.markdown-content:hover::before {
+  opacity: 0.6;
+}
+
 .markdown-content h1,
 .markdown-content h2,
 .markdown-content h3,
 .markdown-content h4,
 .markdown-content h5,
 .markdown-content h6 {
-  margin-top: 16px;
-  margin-bottom: 8px;
+  margin-top: 24px;
+  margin-bottom: 16px;
   font-weight: 600;
   line-height: 1.25;
+  color: #1f2328;
 }
 
-.markdown-content h1 { font-size: 1.5em; }
-.markdown-content h2 { font-size: 1.3em; }
-.markdown-content h3 { font-size: 1.1em; }
+.markdown-content h1:first-child,
+.markdown-content h2:first-child,
+.markdown-content h3:first-child,
+.markdown-content h4:first-child,
+.markdown-content h5:first-child,
+.markdown-content h6:first-child {
+  margin-top: 0;
+}
+
+.markdown-content h1 { 
+  font-size: 2em; 
+  border-bottom: 3px solid transparent;
+  background: linear-gradient(90deg, #667eea, #764ba2) bottom / 100% 3px no-repeat;
+  padding-bottom: 10px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.markdown-content h1:hover {
+  background-size: 100% 4px;
+  transform: translateX(5px);
+}
+
+.markdown-content h2 { 
+  font-size: 1.5em; 
+  border-bottom: 2px solid transparent;
+  background: linear-gradient(90deg, #f093fb, #f5576c) bottom / 100% 2px no-repeat;
+  padding-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.markdown-content h2:hover {
+  background-size: 100% 3px;
+  transform: translateX(3px);
+}
+
+.markdown-content h3 { 
+  font-size: 1.25em;
+  position: relative;
+  padding-left: 15px;
+}
+
+.markdown-content h3::before {
+  content: '▶';
+  position: absolute;
+  left: 0;
+  color: #667eea;
+  font-size: 0.8em;
+  transition: transform 0.3s ease;
+}
+
+.markdown-content h3:hover::before {
+  transform: translateX(3px);
+}
+
+.markdown-content h4 { 
+  font-size: 1em;
+  color: #667eea;
+  font-weight: 600;
+}
+.markdown-content h5 { 
+  font-size: 0.875em;
+  color: #764ba2;
+  font-weight: 600;
+}
+.markdown-content h6 { 
+  font-size: 0.85em; 
+  color: #656d76;
+  font-style: italic;
+}
 
 .markdown-content p {
-  margin: 8px 0;
+  margin: 16px 0;
 }
 
 .markdown-content ul,
 .markdown-content ol {
-  margin: 8px 0;
-  padding-left: 24px;
+  margin: 16px 0;
+  padding-left: 32px;
+  position: relative;
 }
 
-.markdown-content li {
-  margin: 4px 0;
+.markdown-content ul {
+  list-style: none;
+}
+
+.markdown-content ul li {
+  position: relative;
+  margin: 8px 0;
+  line-height: 1.5;
+  padding-left: 20px;
+  transition: all 0.2s ease;
+}
+
+.markdown-content ul li::before {
+  content: '✨';
+  position: absolute;
+  left: -5px;
+  color: #667eea;
+  font-size: 0.9em;
+  transition: all 0.3s ease;
+}
+
+.markdown-content ul li:hover {
+  transform: translateX(5px);
+  color: #667eea;
+}
+
+.markdown-content ul li:hover::before {
+  transform: scale(1.2) rotate(20deg);
+}
+
+.markdown-content ol li {
+  margin: 8px 0;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+  padding-left: 8px;
+}
+
+.markdown-content ol li:hover {
+  transform: translateX(3px);
+  color: #764ba2;
+}
+
+.markdown-content li > p {
+  margin: 8px 0;
 }
 
 .markdown-content blockquote {
-  margin: 12px 0;
-  padding: 8px 12px;
-  border-left: 4px solid #1890ff;
-  background: #f6f8fa;
-  border-radius: 4px;
+  margin: 16px 0;
+  padding: 16px 20px;
+  border-left: 4px solid transparent;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  border-radius: 0 12px 12px 0;
+  color: #656d76;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.markdown-content blockquote::before {
+  content: '💡';
+  position: absolute;
+  top: 12px;
+  left: -2px;
+  font-size: 18px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.markdown-content blockquote:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+  border-left-color: #667eea;
+}
+
+.markdown-content blockquote p {
+  margin: 8px 0;
+  font-style: italic;
 }
 
 .markdown-content code {
-  background: #f6f8fa;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 0.9em;
-  font-family: Consolas, Monaco, "Courier New", monospace;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(240, 147, 251, 0.1));
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  color: #667eea;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  font-weight: 600;
+  position: relative;
+}
+
+.markdown-content .code-block-container {
+  border: 2px solid transparent;
+  border-radius: 12px;
+  margin: 20px 0;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .markdown-content pre {
-  background: #f6f8fa;
-  padding: 12px;
-  border-radius: 6px;
+  background: linear-gradient(135deg, #f6f8fa 0%, #ffffff 50%, #f0f3ff 100%);
+  padding: 16px 20px;
+  border-radius: 0 0 8px 8px;
   overflow: auto;
-  margin: 12px 0;
-  border: 1px solid #e1e4e8;
+  margin: 0;
+  border: none;
+  background-clip: padding-box;
   tab-size: 4;
   -moz-tab-size: 4;
   -o-tab-size: 4;
+  position: relative;
+  font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .markdown-content pre code {
   background: transparent;
   padding: 0;
   border-radius: 0;
-  font-size: 0.9em;
+  font-size: 16px;
   tab-size: 4;
   -moz-tab-size: 4;
   -o-tab-size: 4;
+  border: none;
+  color: #24292f;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  font-weight: 400;
+  display: flex;
 }
 
+/* 行号样式 */
+.markdown-content .line-numbers {
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0 12px 0 12px;
+  margin-right: 16px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  min-width: 40px;
+  text-align: right;
+}
+
+.markdown-content .line-number {
+  color: #656d76;
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  font-weight: 400;
+  display: block;
+  pointer-events: none;
+}
+
+/* 代码内容样式 */
+.markdown-content .code-content {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: visible;
+  min-width: 0;
+  width: 100%;
+}
+
+.markdown-content .code-line {
+  display: block;
+  line-height: 1.5;
+}
+
+/* 代码块增强样式 */
+.markdown-content pre {
+  position: relative;
+}
+
+
+
+/* 代码块工具栏 */
+.markdown-content pre {
+  position: relative;
+}
+
+.markdown-content .code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(248, 250, 252, 0.8);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px 8px 0 0;
+  backdrop-filter: blur(8px);
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.markdown-content .language-label {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: #1e40af;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.markdown-content .copy-button {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #374151;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  transition: all 0.2s ease;
+}
+
+.markdown-content .copy-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.markdown-content .copy-button.copied {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #16a34a;
+}
+
+.markdown-content .copy-button.copied::before {
+  content: "✓";
+  margin-right: 4px;
+}
+
+/* 行内代码增强 */
+.markdown-content p code,
+.markdown-content li code,
+.markdown-content td code {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 代码块禁用滚动条 */
+.markdown-content pre {
+  overflow: visible;
+}
+
+.markdown-content pre code {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* 禁用代码选中时的背景色 */
+.markdown-content pre code::selection,
+.markdown-content code::selection {
+  background: transparent;
+}
+
+.markdown-content pre code::-moz-selection,
+.markdown-content code::-moz-selection {
+  background: transparent;
+}
+
+/* 水平分割线 */
+.markdown-content hr {
+  height: 2px;
+  background: #d1d9e0;
+  border: none;
+  margin: 24px 0;
+  border-radius: 1px;
+}
+
+/* 表格样式 */
 .markdown-content table {
   border-collapse: collapse;
   width: 100%;
-  margin: 12px 0;
+  margin: 20px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: linear-gradient(135deg, #ffffff, #f8faff);
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.markdown-content table::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #667eea, #764ba2, #f093fb);
+  border-radius: 14px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.markdown-content table:hover::before {
+  opacity: 0.3;
+}
+
+.markdown-content table:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
 }
 
 .markdown-content th,
 .markdown-content td {
-  border: 1px solid #e1e4e8;
-  padding: 8px 12px;
+  border: 1px solid #d1d9e0;
+  padding: 12px 16px;
   text-align: left;
+  vertical-align: top;
 }
 
 .markdown-content th {
   background: #f6f8fa;
   font-weight: 600;
+  color: #1f2328;
+  border-bottom: 2px solid #d1d9e0;
 }
 
+.markdown-content tr:nth-child(even) {
+  background: rgba(175, 184, 193, 0.1);
+}
+
+.markdown-content tr:hover {
+  background: rgba(175, 184, 193, 0.2);
+}
+
+/* 链接样式 */
 .markdown-content a {
-  color: #1890ff;
+  color: #667eea;
   text-decoration: none;
+  font-weight: 500;
+  position: relative;
+  transition: all 0.3s ease;
+  background: linear-gradient(90deg, #667eea, #764ba2) bottom / 0% 2px no-repeat;
 }
 
 .markdown-content a:hover {
-  text-decoration: underline;
+  color: #764ba2;
+  background-size: 100% 2px;
+  transform: translateY(-1px);
 }
 
+.markdown-content a:visited {
+  color: #8250df;
+}
+
+.markdown-content a::after {
+  content: '🔗';
+  font-size: 0.8em;
+  margin-left: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.markdown-content a:hover::after {
+  opacity: 0.7;
+}
+
+/* 文本样式 */
 .markdown-content strong {
   font-weight: 600;
+  color: #1f2328;
 }
 
 .markdown-content em {
   font-style: italic;
+}
+
+.markdown-content del {
+  text-decoration: line-through;
+  color: #656d76;
+}
+
+/* 任务列表 */
+.markdown-content input[type="checkbox"] {
+  margin-right: 8px;
+  transform: scale(1.1);
+}
+
+.markdown-content .task-list-item {
+  list-style: none;
+  margin-left: -24px;
+}
+
+/* 图片样式 */
+.markdown-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 键盘按键样式 */
+.markdown-content kbd {
+  background: #f6f8fa;
+  border: 1px solid #d1d9e0;
+  border-bottom: 2px solid #afb8c1;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 85%;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  color: #1f2328;
+  box-shadow: inset 0 -1px 0 #d1d9e0;
 }
 
 body {
@@ -163,8 +605,302 @@ a {
   border: 1px solid #e1e4e8 !important;
 }
 
+/* 暗色模式支持 */
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
+  }
+  
+  .markdown-content {
+    color: #e6edf3;
+  }
+  
+  .markdown-content h1,
+  .markdown-content h2,
+  .markdown-content h3,
+  .markdown-content h4,
+  .markdown-content h5,
+  .markdown-content h6 {
+    color: #f0f6fc;
+  }
+  
+  .markdown-content h1 {
+    background: linear-gradient(90deg, #58a6ff, #bc8cff) bottom / 100% 3px no-repeat;
+  }
+  
+  .markdown-content h2 {
+    background: linear-gradient(90deg, #bc8cff, #f85149) bottom / 100% 2px no-repeat;
+  }
+  
+  .markdown-content h3::before {
+    color: #58a6ff;
+  }
+  
+  .markdown-content h4 {
+    color: #58a6ff;
+  }
+  
+  .markdown-content h5 {
+    color: #bc8cff;
+  }
+  
+  .markdown-content h6 {
+    color: #8b949e;
+  }
+  
+  .markdown-content ul li::before {
+    color: #58a6ff;
+  }
+  
+  .markdown-content ul li:hover {
+    color: #58a6ff;
+  }
+  
+  .markdown-content ol li:hover {
+    color: #bc8cff;
+  }
+  
+  .markdown-content blockquote {
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(188, 140, 255, 0.1));
+    color: #8b949e;
+    box-shadow: 0 2px 8px rgba(88, 166, 255, 0.1);
+  }
+  
+  .markdown-content blockquote:hover {
+    box-shadow: 0 4px 16px rgba(88, 166, 255, 0.2);
+    border-left-color: #58a6ff;
+  }
+  
+  .markdown-content code {
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(188, 140, 255, 0.1));
+    color: #58a6ff;
+    border-color: rgba(88, 166, 255, 0.3);
+  }
+  
+
+  
+  .markdown-content pre {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 50%, #1c2128 100%);
+    box-shadow: 0 4px 20px rgba(88, 166, 255, 0.1);
+  }
+  
+  .markdown-content pre code {
+    color: #e6edf3;
+    font-weight: 400;
+  }
+  
+  .markdown-content .line-numbers {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .markdown-content .line-number {
+    color: #7d8590;
+  }
+  
+  .markdown-content .code-block-container {
+    border-color: #30363d;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .markdown-content .code-header {
+    background: rgba(22, 27, 34, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .markdown-content .language-label {
+    background: rgba(88, 166, 255, 0.15);
+    border: 1px solid rgba(88, 166, 255, 0.3);
+    color: #58a6ff;
+  }
+
+  .markdown-content .copy-button {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e6edf3;
+  }
+
+  .markdown-content .copy-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .markdown-content .copy-button.copied {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+  }
+
+  .markdown-content .copy-button.copied::before {
+    content: "✓";
+  }
+  
+  /* 暗色模式下禁用代码选中时的背景色 */
+  .markdown-content pre code::selection,
+  .markdown-content code::selection {
+    background: transparent;
+  }
+  
+  .markdown-content pre code::-moz-selection,
+  .markdown-content code::-moz-selection {
+    background: transparent;
+  }
+  
+  .markdown-content hr {
+    background: #30363d;
+  }
+  
+  .markdown-content table {
+    background: linear-gradient(135deg, #0d1117, #161b22);
+    box-shadow: 0 8px 32px rgba(88, 166, 255, 0.1);
+  }
+  
+  .markdown-content table::before {
+    background: linear-gradient(45deg, #58a6ff, #bc8cff, #f85149);
+  }
+  
+  .markdown-content table:hover {
+    box-shadow: 0 12px 40px rgba(88, 166, 255, 0.15);
+  }
+  
+  .markdown-content th,
+  .markdown-content td {
+    border-color: #30363d;
+  }
+  
+  .markdown-content th {
+    background: #161b22;
+    color: #f0f6fc;
+    border-bottom-color: #30363d;
+  }
+  
+  .markdown-content tr:nth-child(even) {
+    background: rgba(110, 118, 129, 0.1);
+  }
+  
+  .markdown-content tr:hover {
+    background: rgba(110, 118, 129, 0.2);
+  }
+  
+  .markdown-content a {
+    color: #58a6ff;
+    background: linear-gradient(90deg, #58a6ff, #bc8cff) bottom / 0% 2px no-repeat;
+  }
+  
+  .markdown-content a:hover {
+    color: #79c0ff;
+    background-size: 100% 2px;
+  }
+  
+  .markdown-content a:visited {
+    color: #bc8cff;
+  }
+  
+  .markdown-content strong {
+    color: #f0f6fc;
+  }
+  
+  .markdown-content del {
+    color: #8b949e;
+  }
+  
+  .markdown-content img {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .markdown-content kbd {
+    background: #161b22;
+    border-color: #30363d;
+    border-bottom-color: #6e7681;
+    color: #f0f6fc;
+    box-shadow: inset 0 -1px 0 #30363d;
+  }
+  
+  .user-bubble .ant-bubble-content {
+    background-color: #1c2128 !important;
+    border-color: #30363d !important;
+  }
+  
+  .assistant-bubble .ant-bubble-content {
+    background-color: #0d1117 !important;
+    border-color: #21262d !important;
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .markdown-content {
+    font-size: 14px;
+  }
+  
+  .markdown-content h1 {
+    font-size: 1.75em;
+  }
+  
+  .markdown-content h2 {
+    font-size: 1.4em;
+  }
+  
+  .markdown-content h3 {
+    font-size: 1.2em;
+  }
+  
+  .markdown-content pre {
+    padding: 12px;
+    margin: 12px 0;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  
+  .markdown-content pre[class*="language-"]::before {
+    font-size: 10px;
+    padding: 2px 6px;
+    top: 6px;
+    right: 8px;
+  }
+  
+  .markdown-content table {
+    font-size: 13px;
+  }
+  
+  .markdown-content th,
+  .markdown-content td {
+    padding: 8px 12px;
+  }
+  
+  .markdown-content ul,
+  .markdown-content ol {
+    padding-left: 24px;
+  }
+  
+  .markdown-content blockquote {
+    padding: 0 12px;
+    margin: 12px 0;
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .markdown-content {
+    color: #000 !important;
+    background: #fff !important;
+  }
+  
+  .markdown-content pre {
+    background: #f8f8f8 !important;
+    border: 1px solid #ddd !important;
+    page-break-inside: avoid;
+  }
+  
+  .markdown-content blockquote {
+    background: #f8f8f8 !important;
+    border-left-color: #666 !important;
+  }
+  
+  .markdown-content a {
+    color: #0066cc !important;
+  }
+  
+  .markdown-content table {
+    page-break-inside: avoid;
   }
 }
