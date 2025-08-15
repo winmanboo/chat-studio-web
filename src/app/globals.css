@@ -326,11 +326,12 @@ body {
 }
 
 .markdown-content .code-line {
-  display: block;
   line-height: 1.5;
   height: 24px;
-  display: flex;
-  align-items: center;
+  white-space: pre;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  margin: 0;
+  padding: 0;
 }
 
 /* 代码块增强样式 */

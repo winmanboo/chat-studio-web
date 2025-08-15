@@ -140,7 +140,7 @@ const md = new MarkdownIt({
         }
         
         const lineNumbers = lines.map((_, index) => `<span class="line-number">${index + 1}</span>`).join('');
-        const codeLines = lines.map(line => `<span class="code-line">${line || ' '}</span>`).join('');
+        const codeLines = lines.map(line => `<div class="code-line">${line || ' '}</div>`).join('');
         
         return `<div class="line-numbers">${lineNumbers}</div><div class="code-content">${codeLines}</div>`;
       };
