@@ -963,3 +963,23 @@ a {
     background: #0d1117;
   }
 }
+
+/* Modal 弹窗居中样式 */
+.ant-modal {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin: 0 auto !important;
+  position: fixed !important;
+}
+
+.ant-modal-wrap {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.ant-modal-centered {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
