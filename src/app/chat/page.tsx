@@ -187,8 +187,19 @@ if (typeof window !== 'undefined') {
       if (!code) return;
       text = code.textContent || '';
     } else {
-      // 只获取代码内容，不包含行号
-      text = codeContent.textContent || '';
+      // 从.code-line元素中重建原始代码，保留换行符
+      const codeLines = codeContent.querySelectorAll('.code-line');
+      const lines: string[] = [];
+      
+      codeLines.forEach(line => {
+        // 获取每行的文本内容，如果是空行则保留为空字符串
+        const lineText = line.textContent || '';
+        // 如果行内容只是一个空格（用于显示空行），则转换为空字符串
+        lines.push(lineText === ' ' ? '' : lineText);
+      });
+      
+      // 用换行符连接所有行
+      text = lines.join('\n');
     }
     
     navigator.clipboard.writeText(text).then(() => {
