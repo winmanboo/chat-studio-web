@@ -309,12 +309,16 @@ body {
 
 .markdown-content .line-number {
   color: #656d76;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
   font-weight: 400;
   display: block;
   pointer-events: none;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 /* 代码内容样式 */
@@ -329,6 +333,9 @@ body {
 .markdown-content .code-line {
   display: block;
   line-height: 1.5;
+  height: 24px;
+  display: flex;
+  align-items: center;
 }
 
 /* 代码块增强样式 */
