@@ -622,6 +622,7 @@ a {
   border: none !important; /* 移除边框 */
   max-width: calc(100vw - 300px) !important; /* 限制最大宽度，避免挤出屏幕 */
   overflow: hidden !important; /* 防止内容溢出 */
+  width: 100% !important; /* 内容填充满整个Bubble宽度 */
 }
 
 .user-bubble .ant-bubble-content {
