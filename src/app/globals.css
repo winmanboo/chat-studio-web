@@ -612,8 +612,9 @@ a {
 
 /* Bubble message styles */
 .user-bubble .ant-bubble-content {
-  background-color: transparent !important; /* 移除背景色 */
+  background-color: #f5f5f5 !important; /* 更易阅读的灰色背景 */
   border: none !important; /* 移除边框 */
+  border-radius: 20px !important; /* 更多圆角 */
 }
 
 .assistant-bubble .ant-bubble-content {
