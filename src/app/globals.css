@@ -604,13 +604,13 @@ a {
 
 /* Bubble message styles */
 .user-bubble .ant-bubble-content {
-  background-color: #e6f3ff !important; /* 淡蓝色背景，用户消息 */
-  border: 1px solid #b3d9ff !important;
+  background-color: transparent !important; /* 移除背景色 */
+  border: none !important; /* 移除边框 */
 }
 
 .assistant-bubble .ant-bubble-content {
-  background-color: #f6f8fa !important; /* 淡灰色背景，AI消息 */
-  border: 1px solid #e1e4e8 !important;
+  background-color: transparent !important; /* 移除背景色 */
+  border: none !important; /* 移除边框 */
   max-width: calc(100vw - 300px) !important; /* 限制最大宽度，避免挤出屏幕 */
   overflow: hidden !important; /* 防止内容溢出 */
 }
