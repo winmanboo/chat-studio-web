@@ -185,6 +185,7 @@ const UserModal: React.FC<UserModalProps> = ({
       open={open}
       onCancel={onCancel}
       footer={null}
+      centered
       title={
         <Space>
           {isLogin ? <SettingOutlined /> : <UserOutlined />}

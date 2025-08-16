@@ -529,9 +529,6 @@ const ChatPage: React.FC = () => {
       centered: true,
       maskClosable: true,
       width: 400,
-      style: {
-        top: '30%',
-      },
       styles: {
         body: {
           padding: '24px',
@@ -1280,6 +1277,7 @@ const ChatPage: React.FC = () => {
         onOk={confirmEditConversation}
         onCancel={() => setEditingConversation(null)}
         destroyOnHidden
+        centered
       >
         <Input
           value={newConversationName}
