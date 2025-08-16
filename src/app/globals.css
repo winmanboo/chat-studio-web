@@ -197,7 +197,7 @@ body {
 
 .markdown-content blockquote {
   margin: 16px 0;
-  padding: 16px 20px;
+  padding: 0;
   border-left: 4px solid transparent;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
   border-radius: 0 12px 12px 0;
@@ -245,19 +245,27 @@ body {
 }
 
 .markdown-content .code-block-container {
-  border: 2px solid transparent;
+  border: 1px solid #e1e4e8;
   border-radius: 12px;
-  margin: 20px 0;
+  margin: 4px 0;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  background: transparent;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.markdown-content .code-block-container:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  border-color: #d1d9e0;
 }
 
 .markdown-content pre {
-  background: linear-gradient(135deg, #f6f8fa 0%, #ffffff 50%, #f0f3ff 100%);
-  padding: 16px 20px;
+  background: transparent;
+  padding: 0;
   border-radius: 0 0 8px 8px;
   overflow-x: auto;
   overflow-y: hidden;
