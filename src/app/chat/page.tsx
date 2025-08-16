@@ -1133,7 +1133,7 @@ const ChatPage: React.FC = () => {
               }}
             >
               {/* 使用Bubble.List替换原来的手动实现 */}
-              <div style={{ padding: "1vh 10% 1vh 10%" }}>
+              <div style={{ padding: "4vh 10% 1vh 10%" }}>
                 <Bubble.List
                   items={messages.map((item) => ({
                     content: item.displayContent !== undefined ? item.displayContent : item.content,
