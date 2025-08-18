@@ -34,7 +34,6 @@ import {
   Flex,
   theme,
   Dropdown,
-  Menu,
   Upload,
   message as antdMessage,
   Spin,
@@ -55,7 +54,6 @@ const ASSISTANT_AVATAR_STYLE = { backgroundColor: '#f0f0f0', color: 'black' };
 // 时间分组函数
 const getTimeGroup = (timestamp: number): string => {
   const now = new Date();
-  const sessionDate = new Date(timestamp);
   
   // 获取今天0点的时间戳
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -399,6 +397,9 @@ const ChatPage: React.FC = () => {
   const [sessionId, setSessionId] = useState<string | null>(null); // 用于存储会话ID
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState(''); // 用于控制Sender输入框的值
+  const senderRef = useRef<HTMLDivElement>(null);
+  const [senderHeight, setSenderHeight] = useState(100); // 跟踪Sender高度
+
 
   const { token } = theme.useToken();
   // 检索模式与深度思考
@@ -431,6 +432,23 @@ const ChatPage: React.FC = () => {
     loadSessionList();
   }, []);
 
+  // 监听Sender高度变化
+  useEffect(() => {
+    if (!senderRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setSenderHeight(entry.contentRect.height);
+      }
+    });
+
+    resizeObserver.observe(senderRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [hasStarted]);
+
   // 自动滚动到底部的函数
   const scrollToBottom = (force = false, smooth = false) => {
     if (bubbleListRef.current && (!isUserScrolling || force)) {
@@ -450,6 +468,8 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+
 
   // 监听用户滚动行为
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -724,7 +744,7 @@ const ChatPage: React.FC = () => {
                     if (jsonData.content) {
                       fullContent += jsonData.content;
                     }
-                  } catch (e) {
+                  } catch {
                     // 如果不是有效的JSON，直接使用原始数据
                     fullContent += data;
                   }
@@ -775,7 +795,7 @@ const ChatPage: React.FC = () => {
                 if (jsonData.content) {
                   fullContent += jsonData.content;
                 }
-              } catch (e) {
+              } catch {
                 // 如果不是有效的JSON，直接使用原始数据
                 fullContent += data;
               }
@@ -809,9 +829,6 @@ const ChatPage: React.FC = () => {
       );
     }
   };
-
-
-
 
   return (
     <div
@@ -983,7 +1000,7 @@ const ChatPage: React.FC = () => {
           display: "flex",
           flexDirection: "column",
           height: "100%",
-          minHeight: 0,
+          minHeight: 0
         }}
       >
         {!hasStarted ? (
@@ -1117,53 +1134,77 @@ const ChatPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <>
+          <div
+            style={{
+              position: "relative",
+              height: "100%",
+              overflow: "hidden",
+            }}
+          >
+            {/* BubbleList 区域 */}
             <div
               ref={bubbleListRef}
               onScroll={handleScroll}
               style={{
-                flex: 1,
-                overflowY: "auto",
-                width: "100%",
-                minHeight: 0, // 确保flex子项可以收缩
-                maxHeight: "calc(100vh - 200px)", // 限制最大高度，为Sender留出空间
+                position: "absolute",
+                top: "30px", // 增加顶部间距
+                left: 0,
+                right: 0,
+                bottom: `${senderHeight + 30}px`, // 动态调整为Sender的实际高度并增加底部间距
+                overflow: "auto",
+                padding: "0 10%", // 使用padding控制内容宽度，与Sender的80%宽度对应
               }}
             >
-              {/* 使用Bubble.List替换原来的手动实现 */}
-              <div style={{ padding: "4vh 10% 1vh 10%" }}>
-                <Bubble.List
-                  items={messages.map((item) => ({
-                    content: item.displayContent !== undefined ? item.displayContent : item.content,
-                    role: item.role,
-                    loading: item.isLoading,
-                  }))}
-                  roles={{
-                    user: {
-                      placement: 'end',
-                      avatar: {
-                        icon: <UserOutlined />,
-                        style: USER_AVATAR_STYLE
-                      },
-                      className: 'user-bubble'
+              <Bubble.List
+                items={messages.map((msg, index) => ({
+                  key: index,
+                  content: msg.displayContent || msg.content,
+                  role: msg.role,
+                  avatar: msg.role === 'user' ? 
+                    { icon: <UserOutlined />, style: USER_AVATAR_STYLE } : 
+                    { icon: <RobotOutlined />, style: ASSISTANT_AVATAR_STYLE },
+                  loading: msg.isLoading,
+                  variant: msg.role === 'user' ? 'filled' : 'outlined',
+                }))}
+                roles={{
+                  user: {
+                    placement: 'end',
+                    avatar: {
+                      icon: <UserOutlined />,
+                      style: USER_AVATAR_STYLE
                     },
-                    assistant: {
-                      placement: 'start',
-                      messageRender: (content) => renderMarkdown(content as string),
-                      avatar: {
-                        icon: <RobotOutlined />,
-                        style: ASSISTANT_AVATAR_STYLE
-                      },
-                      className: 'assistant-bubble'
+                    className: 'user-bubble'
+                  },
+                  assistant: {
+                    placement: 'start',
+                    messageRender: (content) => renderMarkdown(content as string),
+                    avatar: {
+                      icon: <RobotOutlined />,
+                      style: ASSISTANT_AVATAR_STYLE
                     },
-                  }}
-                  style={{ width: '100%' }}
-                />
-              </div>
+                    className: 'assistant-bubble'
+                  },
+                }}
+                style={{
+                  width: "100%",
+                  minHeight: "100%",
+                }}
+              />
             </div>
-            <div style={{ 
-              flexShrink: 0, // 防止在flex布局中被压缩
-              padding: "16px 0",
-            }}>
+            {/* Sender 组件 - 绝对定位固定在底部 */}
+            <div
+              ref={senderRef}
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                padding: "20px",
+                display: "flex",
+                justifyContent: "center",
+                zIndex: 10,
+              }}
+            >
               <div style={{ 
                 width: "80%", 
                 margin: "0 auto",
@@ -1195,20 +1236,21 @@ const ChatPage: React.FC = () => {
                               type="text"
                               icon={
                                 <SearchOutlined
-                              style={{
-                                color: searchMode
-                                  ? token.colorPrimary
-                                  : token.colorText,
-                                fontSize: ICON_SIZE,
-                              }}
+                                style={{
+                                  color: searchMode
+                                    ? token.colorPrimary
+                                    : token.colorText,
+                                  fontSize: ICON_SIZE,
+                                }}
                                 />
                               }
                               style={{
-                              fontSize: ICON_SIZE,
-                              color: searchMode
-                                ? token.colorPrimary
-                                : token.colorText,
-                            }}
+                                fontSize: ICON_SIZE,
+                                color: searchMode
+                                  ? token.colorPrimary
+                                  : token.colorText,
+                              }}
+                              onClick={() => {}}
                             >
                               {modeLabel}
                             </Button>
@@ -1218,20 +1260,20 @@ const ChatPage: React.FC = () => {
                             type="text"
                             icon={
                               <ThunderboltOutlined
-                                style={{
-                                  color: deepThinking
-                                    ? token.colorPrimary
-                                    : token.colorText,
-                                  fontSize: ICON_SIZE,
-                                }}
+                                  style={{
+                                    color: deepThinking
+                                      ? token.colorPrimary
+                                      : token.colorText,
+                                    fontSize: ICON_SIZE,
+                                  }}
                               />
                             }
                             style={{
-                              fontSize: ICON_SIZE,
-                              color: deepThinking
-                                ? token.colorPrimary
-                                : token.colorText,
-                            }}
+                                fontSize: ICON_SIZE,
+                                color: deepThinking
+                                  ? token.colorPrimary
+                                  : token.colorText,
+                              }}
                             onClick={() => setDeepThinking((v) => !v)}
                           >
                             深度思考
@@ -1267,7 +1309,7 @@ const ChatPage: React.FC = () => {
                 />
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
       {/* 编辑会话名称的模态框 */}
