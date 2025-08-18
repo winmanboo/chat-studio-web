@@ -5,14 +5,15 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['antd']
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:8080/:path*',
-      },
-    ];
-  },
+  // 移除rewrites，改用API路由处理代理以支持流式传输
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/api/:path*',
+  //       destination: 'http://localhost:8080/:path*',
+  //     },
+  //   ];
+  // },
 };
 
 module.exports = nextConfig;
