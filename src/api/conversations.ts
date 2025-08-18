@@ -1,5 +1,4 @@
 import request from './request';
-import { AxiosResponseTransformer } from 'axios';
 
 // 创建会话接口返回的sessionId类型
 export type SessionId = string;
@@ -36,8 +35,10 @@ export const getSessionMessages = (sessionId: string): Promise<SessionMessage[]>
 };
 
 // 删除会话接口
-export const deleteSession = (sessionId: string): Promise<void> => {
-  return request.delete<void>(`/chat/v1/session/delete/${sessionId}`) as unknown as Promise<void>;
+export const deleteSession = (sessionIds: string[]): Promise<void> => {
+  return request.delete<void>('/chat/v1/session/delete', {
+    params: { sessionIds }
+  }) as unknown as Promise<void>;
 };
 
 // 聊天接口参数类型

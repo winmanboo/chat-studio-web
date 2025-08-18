@@ -556,8 +556,8 @@ const ChatPage: React.FC = () => {
       },
       onOk: async () => {
         try {
-          // 调用删除会话API
-          await deleteSession(key);
+          // 调用删除会话API，传递sessionIds数组
+          await deleteSession([key]);
           
           // 刷新会话列表
           await loadSessionList();
