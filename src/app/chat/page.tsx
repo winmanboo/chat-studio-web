@@ -43,6 +43,7 @@ import {
   Typography,
 } from "antd";
 import { createSession, chatStream, ChatRequest, getSessionList, SessionItem, getSessionMessages, SessionMessage, deleteSession } from "@/api/conversations";
+import SessionManageModal from "../../../components/SessionManageModal";
 
 // 样式常量
 const ICON_SIZE = 15;
@@ -406,6 +407,7 @@ const ChatPage: React.FC = () => {
   const [searchMode, setSearchMode] = useState<null | "web" | "kb">(null);
   const [deepThinking, setDeepThinking] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [sessionManageModalVisible, setSessionManageModalVisible] = useState<boolean>(false);
 
   // 加载会话列表
   const loadSessionList = async () => {
@@ -902,7 +904,7 @@ const ChatPage: React.FC = () => {
                   type="text"
                   icon={<SettingOutlined />}
                   style={BOLD_BUTTON_STYLE}
-                  onClick={() => antdMessage.info("设置功能开发中")}
+                  onClick={() => setSessionManageModalVisible(true)}
                 >
                   设置
                 </Button>
@@ -1328,6 +1330,13 @@ const ChatPage: React.FC = () => {
           placeholder="请输入会话名称"
         />
       </Modal>
+      
+      {/* 会话管理模态框 */}
+      <SessionManageModal
+        open={sessionManageModalVisible}
+        onCancel={() => setSessionManageModalVisible(false)}
+        onSessionsChange={loadSessionList}
+      />
     </div>
   );
 };
