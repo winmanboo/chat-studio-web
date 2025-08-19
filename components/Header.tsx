@@ -1,6 +1,6 @@
 import React from 'react';
-import { Layout, Avatar, Button } from 'antd';
-import { UserOutlined } from '@ant-design/icons';
+import { Layout, Avatar, Button, Dropdown, Menu } from 'antd';
+import { UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
 
 const { Header } = Layout;
 
@@ -8,9 +8,12 @@ interface HeaderProps {
   selectedTab: string;
   onTabChange: (tab: string) => void;
   onUserClick: () => void;
+  onSettingsClick: () => void;
+  isLogin: boolean;
+  onLogout: () => void;
 }
 
-const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onTabChange, onUserClick }) => {
+const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onTabChange, onUserClick, onSettingsClick, isLogin, onLogout }) => {
   const capsuleTabs = [
     { key: 'chat', icon: '💬', label: '聊天' },
     { key: 'kb', icon: '📚', label: '知识库' },
@@ -89,15 +92,45 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onTabChange, onUs
 
       {/* 右上角用户按钮 */}
       <div>
-        <Avatar
-          size={40}
-          icon={<UserOutlined />}
-          style={{ cursor: 'pointer', background: '#e6f4ff', color: '#1677ff' }}
-          onClick={onUserClick}
-        />
+        {isLogin ? (
+          <Dropdown
+            overlay={
+              <Menu style={{ width: 200 }}>
+                <Menu.Item key="settings" icon={<SettingOutlined />} onClick={onSettingsClick}>
+                  设置
+                </Menu.Item>
+                <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={onLogout}>
+                  登出
+                </Menu.Item>
+                <Menu.Divider />
+                <Menu.Item key="online" disabled>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 8, height: 8, backgroundColor: '#52c41a', borderRadius: '50%' }}></div>
+                    当前在线用户: 1
+                  </div>
+                </Menu.Item>
+              </Menu>
+            }
+            trigger={['click']}
+            placement="bottomRight"
+          >
+            <Avatar
+              size={40}
+              icon={<UserOutlined />}
+              style={{ cursor: 'pointer', background: '#e6f4ff', color: '#1677ff' }}
+            />
+          </Dropdown>
+        ) : (
+          <Avatar
+            size={40}
+            icon={<UserOutlined />}
+            style={{ cursor: 'pointer', background: '#e6f4ff', color: '#1677ff' }}
+            onClick={onUserClick}
+          />
+        )}
       </div>
     </Header>
   );
 };
 
-export default HeaderComponent; 
+export default HeaderComponent;

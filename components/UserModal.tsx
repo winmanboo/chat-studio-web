@@ -1,43 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Input, Switch, Divider, Space, Tabs, message } from 'antd';
-import { UserOutlined, SettingOutlined, LogoutOutlined, MailOutlined, LockOutlined, GiftOutlined, SendOutlined } from '@ant-design/icons';
-import { login, register, logout, sendCode, LoginRequest, RegisterRequest, AuthResponse, UserInfo } from '../src/api';
+import React, { useState } from 'react';
+import { Modal, Button, Form, Input, Space, Tabs, message } from 'antd';
+import { UserOutlined, MailOutlined, LockOutlined, GiftOutlined, SendOutlined } from '@ant-design/icons';
+import { login, register, sendCode, LoginRequest, RegisterRequest, AuthResponse } from '../src/api';
 
 interface UserModalProps {
   open: boolean;
   onCancel: () => void;
-  isLogin: boolean;
   onLogin: () => void;
-  onLogout: () => void;
 }
 
 const UserModal: React.FC<UserModalProps> = ({ 
   open, 
   onCancel, 
-  isLogin, 
-  onLogin, 
-  onLogout 
+  onLogin 
 }) => {
   const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState('login');
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
-  // 从localStorage获取用户信息
-  useEffect(() => {
-    if (isLogin && typeof window !== 'undefined') {
-      const storedUserInfo = localStorage.getItem('userInfo');
-      if (storedUserInfo) {
-        try {
-          setUserInfo(JSON.parse(storedUserInfo));
-        } catch (e) {
-          console.error('解析用户信息失败', e);
-        }
-      }
-    }
-  }, [isLogin]);
 
   // 倒计时逻辑
   const startCountdown = () => {
@@ -96,7 +78,6 @@ const UserModal: React.FC<UserModalProps> = ({
       if (typeof window !== 'undefined') {
         localStorage.setItem('authToken', (res as unknown as AuthResponse).tokenValue);
         localStorage.setItem('userInfo', JSON.stringify((res as unknown as AuthResponse).userInfo));
-        setUserInfo((res as unknown as AuthResponse).userInfo);
       }
       
       messageApi.success('登录成功');
@@ -137,42 +118,9 @@ const UserModal: React.FC<UserModalProps> = ({
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      setLoading(true);
-      // 调用登出接口
-      await logout();
-      
-      // 清除localStorage中的认证信息
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userInfo');
-      }
-      
-      // 更新应用状态
-      setUserInfo(null);
-      onLogout();
-      onCancel();
-      
-      messageApi.success('登出成功');
-    } catch (error) {
-      // 即使接口调用失败，也要清除本地认证信息
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userInfo');
-      }
-      
-      setUserInfo(null);
-      onLogout();
-      onCancel();
-      
-      messageApi.error('登出失败: ' + (error as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const onFinish = (values: unknown) => {
+
+  const onFinish = () => {
     if (activeTab === 'login') {
       handleLogin();
     } else {
@@ -188,55 +136,14 @@ const UserModal: React.FC<UserModalProps> = ({
       centered
       title={
         <Space>
-          {isLogin ? <SettingOutlined /> : <UserOutlined />}
-          {isLogin ? '设置' : activeTab === 'login' ? '登录' : '注册'}
+          <UserOutlined />
+          {activeTab === 'login' ? '登录' : '注册'}
         </Space>
       }
       width={400}
     >
       {contextHolder}
-      {isLogin ? (
-        <div>
-          <div style={{ marginBottom: 16 }}>
-            <h4>用户信息</h4>
-            <p>用户名: {userInfo?.nickName || 'Chat Studio User'}</p>
-            <p>邮箱: {userInfo?.email || 'user@chatstudio.com'}</p>
-          </div>
-          
-          <Divider />
-          
-          <div style={{ marginBottom: 16 }}>
-            <h4>应用设置</h4>
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>消息通知</span>
-                <Switch defaultChecked />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>自动保存对话</span>
-                <Switch defaultChecked />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>深色模式</span>
-                <Switch />
-              </div>
-            </Space>
-          </div>
-          
-          <Divider />
-          
-          <Button 
-            type="primary" 
-            danger 
-            icon={<LogoutOutlined />} 
-            onClick={handleLogout}
-            loading={loading}
-            block
-          >
-            退出登录
-          </Button>
-        </div>
-      ) : (
+      <div>
         <div>
           <Tabs 
             activeKey={activeTab} 
@@ -366,7 +273,7 @@ const UserModal: React.FC<UserModalProps> = ({
             )}
           </Form>
         </div>
-      )}
+      </div>
     </Modal>
   );
 };
