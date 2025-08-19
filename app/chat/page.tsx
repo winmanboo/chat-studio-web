@@ -246,6 +246,8 @@ const MermaidRenderer: React.FC<{ content: string }> = React.memo(({ content }) 
   const mermaidInitialized = React.useRef(false);
   const lastContentRef = React.useRef<string>('');
   const renderedHtmlRef = React.useRef<string>('');
+  const processingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const processedTablesRef = React.useRef<Set<Element>>(new Set());
   
   // 初始化Mermaid（只执行一次）
   React.useEffect(() => {
@@ -281,17 +283,25 @@ const MermaidRenderer: React.FC<{ content: string }> = React.memo(({ content }) 
       if (rendered !== renderedHtmlRef.current) {
         renderedHtmlRef.current = rendered;
         setHtmlContent(rendered);
+        // 重置已处理的表格集合，因为HTML内容已更新
+        processedTablesRef.current.clear();
       }
     }
   }, [content]);
   
-  // 渲染Mermaid图表和处理表格滚动
+  // 渲染Mermaid图表和处理表格滚动（带防抖）
   React.useEffect(() => {
     if (typeof window !== 'undefined' && htmlContent && containerRef.current) {
-      const container = containerRef.current;
+      // 清除之前的定时器
+      if (processingTimeoutRef.current) {
+        clearTimeout(processingTimeoutRef.current);
+      }
       
-      // 使用setTimeout确保DOM已经更新
-      setTimeout(() => {
+      // 使用防抖机制，减少频繁的DOM操作
+      processingTimeoutRef.current = setTimeout(() => {
+        const container = containerRef.current;
+        if (!container) return;
+        
         // 查找容器内未处理的Mermaid图表
         const mermaidElements = container.querySelectorAll('.mermaid:not([data-processed])');
         
@@ -311,12 +321,13 @@ const MermaidRenderer: React.FC<{ content: string }> = React.memo(({ content }) 
           }
         });
         
-        // 为表格添加滚动容器
-        const tables = container.querySelectorAll('table:not([data-scroll-wrapped])');
+        // 处理表格样式（不添加滚动容器）
+        const tables = container.querySelectorAll('table:not([data-processed])');
         tables.forEach((table) => {
-          // 创建滚动容器
-          const scrollContainer = document.createElement('div');
-          scrollContainer.className = 'table-container';
+          // 检查是否已经处理过这个表格
+          if (processedTablesRef.current.has(table)) {
+            return;
+          }
           
           // 检测表格是否包含长文本内容
           const cells = table.querySelectorAll('th, td');
@@ -332,19 +343,22 @@ const MermaidRenderer: React.FC<{ content: string }> = React.memo(({ content }) 
           
           // 如果包含长内容，添加wrap-content类允许换行
           if (hasLongContent) {
-            scrollContainer.classList.add('wrap-content');
+            table.classList.add('wrap-content');
           }
           
-          // 将表格包装在滚动容器中
-          const parent = table.parentNode;
-          if (parent) {
-            parent.insertBefore(scrollContainer, table);
-            scrollContainer.appendChild(table);
-            table.setAttribute('data-scroll-wrapped', 'true');
-          }
+          // 标记表格已处理
+          table.setAttribute('data-processed', 'true');
+          processedTablesRef.current.add(table);
         });
-      }, 0);
+      }, 100); // 100ms防抖延迟
     }
+    
+    // 清理函数
+    return () => {
+      if (processingTimeoutRef.current) {
+        clearTimeout(processingTimeoutRef.current);
+      }
+    };
   }, [htmlContent]);
   
   return (
