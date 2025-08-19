@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import HeaderComponent from "../../components/Header";
 import UserModal from "../../components/UserModal";
 import SettingsModal from "../../components/SettingsModal";
+import { logout } from "../api";
 
 const ChatPage = dynamic(() => import("./chat/page"), { ssr: false });
 const KnowledgeBasePage = dynamic(() => import("./knowledgebase/page"), { ssr: false });
@@ -47,13 +48,20 @@ const AppMain: React.FC = () => {
   const handleUserModalClose = () => setUserModalOpen(false);
   const handleSettingsModalClose = () => setSettingsModalOpen(false);
   const handleLogin = () => setIsLogin(true);
-  const handleLogout = () => {
-    // 登出时清除localStorage中的认证信息
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userInfo');
+  const handleLogout = async () => {
+    try {
+      // 调用登出接口
+      await logout();
+    } catch (error) {
+      console.error('登出接口调用失败:', error);
+    } finally {
+      // 无论接口调用成功与否，都要清除本地认证信息
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userInfo');
+      }
+      setIsLogin(false);
     }
-    setIsLogin(false);
   };
 
   let MainContent = null;
