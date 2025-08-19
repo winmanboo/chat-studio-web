@@ -285,7 +285,7 @@ const MermaidRenderer: React.FC<{ content: string }> = React.memo(({ content }) 
     }
   }, [content]);
   
-  // 渲染Mermaid图表
+  // 渲染Mermaid图表和处理表格滚动
   React.useEffect(() => {
     if (typeof window !== 'undefined' && htmlContent && containerRef.current) {
       const container = containerRef.current;
@@ -308,6 +308,39 @@ const MermaidRenderer: React.FC<{ content: string }> = React.memo(({ content }) 
             console.warn('Mermaid渲染失败:', error);
             element.innerHTML = `<pre style="color: red;">Mermaid图表渲染失败: ${error}</pre>`;
             element.setAttribute('data-processed', 'true');
+          }
+        });
+        
+        // 为表格添加滚动容器
+        const tables = container.querySelectorAll('table:not([data-scroll-wrapped])');
+        tables.forEach((table) => {
+          // 创建滚动容器
+          const scrollContainer = document.createElement('div');
+          scrollContainer.className = 'table-container';
+          
+          // 检测表格是否包含长文本内容
+          const cells = table.querySelectorAll('th, td');
+          let hasLongContent = false;
+          
+          cells.forEach((cell) => {
+            const text = cell.textContent || '';
+            // 如果单元格文本长度超过30个字符，或包含长URL，则认为是长内容
+            if (text.length > 30 || text.includes('http')) {
+              hasLongContent = true;
+            }
+          });
+          
+          // 如果包含长内容，添加wrap-content类允许换行
+          if (hasLongContent) {
+            scrollContainer.classList.add('wrap-content');
+          }
+          
+          // 将表格包装在滚动容器中
+          const parent = table.parentNode;
+          if (parent) {
+            parent.insertBefore(scrollContainer, table);
+            scrollContainer.appendChild(table);
+            table.setAttribute('data-scroll-wrapped', 'true');
           }
         });
       }, 0);

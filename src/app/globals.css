@@ -454,6 +454,7 @@ body {
 .markdown-content table {
   border-collapse: collapse;
   width: 100%;
+  min-width: 600px; /* 设置最小宽度，防止过度压缩 */
   margin: 20px 0;
   border-radius: 12px;
   overflow: hidden;
@@ -462,6 +463,48 @@ body {
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
   position: relative;
   transition: all 0.3s ease;
+}
+
+/* 表格容器，支持水平滚动 */
+.markdown-content .table-container {
+  overflow-x: auto;
+  margin: 20px 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.08);
+}
+
+.markdown-content .table-container table {
+  margin: 0; /* 移除表格自身的margin，由容器控制 */
+}
+
+/* 滚动条样式 */
+.markdown-content .table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.markdown-content .table-container::-webkit-scrollbar-track {
+  background: #f1f3f4;
+  border-radius: 4px;
+}
+
+.markdown-content .table-container::-webkit-scrollbar-thumb {
+  background: #c1c8cd;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.markdown-content .table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8b1b8;
+}
+
+/* 允许表格单元格内容换行的样式 */
+.markdown-content .table-container.wrap-content th,
+.markdown-content .table-container.wrap-content td {
+  white-space: normal; /* 允许文本换行 */
+  word-wrap: break-word; /* 长单词自动换行 */
+  word-break: break-all; /* 在任意字符间换行 */
+  min-width: 100px; /* 减小最小宽度 */
+  max-width: 300px; /* 设置最大宽度 */
 }
 
 .markdown-content table::before {
@@ -493,6 +536,10 @@ body {
   padding: 12px 16px;
   text-align: left;
   vertical-align: top;
+  min-width: 120px; /* 设置最小宽度，防止文本被过度压缩 */
+  white-space: nowrap; /* 防止文本换行，保持表格结构 */
+  overflow: hidden;
+  text-overflow: ellipsis; /* 超长文本显示省略号 */
 }
 
 .markdown-content th {
