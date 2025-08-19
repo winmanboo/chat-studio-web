@@ -42,8 +42,8 @@ import {
   Space,
   Typography,
 } from "antd";
-import { createSession, chatStream, ChatRequest, getSessionList, SessionItem, getSessionMessages, SessionMessage, deleteSession } from "@/api/conversations";
-import SessionManageModal from "../../../components/SessionManageModal";
+import { createSession, chatStream, ChatRequest, getSessionList, SessionItem, getSessionMessages, SessionMessage, deleteSession } from "@/lib/api/conversations";
+import SessionManageModal from "@/components/SessionManageModal";
 
 // 样式常量
 const ICON_SIZE = 15;

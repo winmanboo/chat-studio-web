@@ -1,14 +1,14 @@
 "use client";
 import React, { useEffect } from "react";
 import dynamic from "next/dynamic";
-import HeaderComponent from "../../components/Header";
-import UserModal from "../../components/UserModal";
-import SettingsModal from "../../components/SettingsModal";
-import { logout } from "../api";
+import HeaderComponent from "./Header";
+import UserModal from "./UserModal";
+import SettingsModal from "./SettingsModal";
+import { logout } from "../lib/api";
 
-const ChatPage = dynamic(() => import("./chat/page"), { ssr: false });
-const KnowledgeBasePage = dynamic(() => import("./knowledgebase/page"), { ssr: false });
-const MarketPage = dynamic(() => import("./market/page"), { ssr: false });
+const ChatPage = dynamic(() => import("../app/chat/page"), { ssr: false });
+const KnowledgeBasePage = dynamic(() => import("../app/knowledgebase/page"), { ssr: false });
+const MarketPage = dynamic(() => import("../app/market/page"), { ssr: false });
 
 const AppMain: React.FC = () => {
   const [selectedTab, setSelectedTab] = React.useState("chat");

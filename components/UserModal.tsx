@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form, Input, Space, Tabs, message } from 'antd';
 import { UserOutlined, MailOutlined, LockOutlined, GiftOutlined, SendOutlined } from '@ant-design/icons';
-import { login, register, sendCode, LoginRequest, RegisterRequest, AuthResponse } from '../src/api';
+import { login, register, sendCode, LoginRequest, RegisterRequest, AuthResponse } from '@/lib/api';
 
 interface UserModalProps {
   open: boolean;

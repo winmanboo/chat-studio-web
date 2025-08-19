@@ -18,7 +18,7 @@ import {
   CheckOutlined,
   CloseOutlined,
 } from '@ant-design/icons';
-import { SessionItem, getSessionList, deleteSession } from '@/api/conversations';
+import { SessionItem, getSessionList, deleteSession } from '@/lib/api/conversations';
 import type { ColumnsType } from 'antd/es/table';
 
 const { Search } = Input;

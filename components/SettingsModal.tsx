@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Switch, Divider, Space } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
-import { UserInfo } from '../src/api';
+import { UserInfo } from '../lib/api';
 
 interface SettingsModalProps {
   open: boolean;
