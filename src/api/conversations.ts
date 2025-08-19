@@ -37,7 +37,7 @@ export const getSessionMessages = (sessionId: string): Promise<SessionMessage[]>
 // 删除会话接口
 export const deleteSession = (sessionIds: string[]): Promise<void> => {
   return request.delete<void>('/chat/v1/session/delete', {
-    params: { sessionIds }
+    data: sessionIds // 直接发送数组，匹配后端 List<String> 参数
   }) as unknown as Promise<void>;
 };
 
