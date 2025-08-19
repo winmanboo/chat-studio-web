@@ -20,6 +20,7 @@ export interface UserInfo {
   inviteCode: string;
   capacity: number;
   profileAvatarUrl: string;
+  userRole: 'ADMIN' | 'ORDINARY';
 }
 
 export interface AuthResponse {

@@ -51,6 +51,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           <h4>用户信息</h4>
           <p>用户名: {userInfo?.nickName || 'Chat Studio User'}</p>
           <p>邮箱: {userInfo?.email || 'user@chatstudio.com'}</p>
+          <p>角色: {userInfo?.userRole === 'ADMIN' ? '管理员' : '普通用户'}</p>
         </div>
         
         <Divider />
