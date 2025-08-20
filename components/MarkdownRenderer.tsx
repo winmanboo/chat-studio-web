@@ -22,18 +22,15 @@ const md = new MarkdownIt({
 
     // 处理其他代码块
     const codeLines = str.split('\n');
-    const lineNumbers = codeLines.map((_, index) => `<span class="line-number">${index + 1}</span>`).join('');
+    const lineNumbers = codeLines.map((_, index) => `<span class="line-number">${index + 1}</span>`).join('\n');
     const codeContent = codeLines.map(line => `<span class="code-line">${line}</span>`).join('\n');
     
-    return `<div class="code-container">
+    return `<div class="code-block-container">
       <div class="code-header">
         <span class="language-label">${displayLang}</span>
         <button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button>
       </div>
-      <div class="code-body">
-        <div class="line-numbers">${lineNumbers}</div>
-        <div class="code-content">${codeContent}</div>
-      </div>
+      <pre><code><div class="line-numbers">${lineNumbers}</div><div class="code-content">${codeContent}</div></code></pre>
     </div>`;
   }
 });
@@ -41,7 +38,7 @@ const md = new MarkdownIt({
 // 添加复制功能到全局
 if (typeof window !== 'undefined') {
   (window as typeof window & { copyCodeToClipboard: (button: HTMLButtonElement) => void }).copyCodeToClipboard = function(button: HTMLButtonElement) {
-    const codeContainer = button.closest('.code-container, .mermaid-container');
+    const codeContainer = button.closest('.code-block-container, .mermaid-container');
     if (!codeContainer) return;
     
     let textToCopy = '';
@@ -123,17 +120,8 @@ const MermaidRenderer: React.FC<{ content: string }> = React.memo(({ content }) 
     if (content !== lastContentRef.current) {
       lastContentRef.current = content;
       
-      // 预处理内容，确保代码块格式正确
-      let processedContent = content;
-      
-      // 修复可能的代码块格式问题
-      // 确保代码块前后有足够的换行符
-      processedContent = processedContent.replace(/(```[\s\S]*?```)/g, (match) => {
-        return '\n' + match + '\n';
-      });
-      
-      // 渲染Markdown
-      const rendered = md.render(processedContent);
+      // 直接渲染Markdown，避免额外的预处理
+      const rendered = md.render(content);
       
       // 只有当渲染结果真正改变时才更新状态
       if (rendered !== renderedHtmlRef.current) {

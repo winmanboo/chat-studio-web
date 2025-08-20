@@ -346,18 +346,7 @@ body {
   padding: 0;
 }
 
-/* 代码块增强样式 */
-.markdown-content pre {
-  position: relative;
-}
-
-
-
 /* 代码块工具栏 */
-.markdown-content pre {
-  position: relative;
-}
-
 .markdown-content .code-header {
   display: flex;
   justify-content: space-between;
@@ -454,7 +443,7 @@ body {
 .markdown-content table {
   border-collapse: collapse;
   width: 100%;
-  max-width: 100%; /* 确保表格不会超出容器宽度 */
+  min-width: 600px; /* 设置最小宽度，防止过度压缩 */
   margin: 20px 0;
   border-radius: 12px;
   overflow: hidden;
@@ -462,15 +451,44 @@ body {
   background: linear-gradient(135deg, #ffffff, #f8faff);
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
   position: relative;
-  table-layout: auto; /* 允许表格自动调整列宽 */
-  /* 移除transition以减少闪烁 */
+  transition: all 0.3s ease;
 }
 
-/* 移除表格容器相关样式，表格直接渲染 */
+/* 表格容器，支持水平滚动 */
+.markdown-content .table-container {
+  overflow-x: auto;
+  margin: 20px 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.08);
+}
+
+.markdown-content .table-container table {
+  margin: 0; /* 移除表格自身的margin，由容器控制 */
+}
+
+/* 滚动条样式 */
+.markdown-content .table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.markdown-content .table-container::-webkit-scrollbar-track {
+  background: #f1f3f4;
+  border-radius: 4px;
+}
+
+.markdown-content .table-container::-webkit-scrollbar-thumb {
+  background: #c1c8cd;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.markdown-content .table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8b1b8;
+}
 
 /* 允许表格单元格内容换行的样式 */
-.markdown-content table.wrap-content th,
-.markdown-content table.wrap-content td {
+.markdown-content .table-container.wrap-content th,
+.markdown-content .table-container.wrap-content td {
   white-space: normal; /* 允许文本换行 */
   word-wrap: break-word; /* 长单词自动换行 */
   word-break: break-all; /* 在任意字符间换行 */
@@ -478,7 +496,6 @@ body {
   max-width: 300px; /* 设置最大宽度 */
 }
 
-/* 简化表格hover效果，减少动画 */
 .markdown-content table::before {
   content: '';
   position: absolute;
@@ -490,16 +507,16 @@ body {
   border-radius: 14px;
   z-index: -1;
   opacity: 0;
-  /* 移除transition以减少闪烁 */
+  transition: opacity 0.3s ease;
 }
 
 .markdown-content table:hover::before {
-  opacity: 0.2; /* 降低透明度 */
+  opacity: 0.3;
 }
 
 .markdown-content table:hover {
-  /* 移除transform动画以减少闪烁 */
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
 }
 
 .markdown-content th,
@@ -508,6 +525,7 @@ body {
   padding: 12px 16px;
   text-align: left;
   vertical-align: top;
+  min-width: 120px; /* 设置最小宽度，防止文本被过度压缩 */
   white-space: nowrap; /* 防止文本换行，保持表格结构 */
   overflow: hidden;
   text-overflow: ellipsis; /* 超长文本显示省略号 */
@@ -524,9 +542,8 @@ body {
   background: rgba(175, 184, 193, 0.1);
 }
 
-/* 简化行hover效果 */
 .markdown-content tr:hover {
-  background: rgba(175, 184, 193, 0.15);
+  background: rgba(175, 184, 193, 0.2);
 }
 
 /* 链接样式 */
@@ -609,6 +626,40 @@ body {
   box-shadow: inset 0 -1px 0 #d1d9e0;
 }
 
+/* Mermaid 图表样式 */
+.mermaid-container {
+  margin: 16px 0;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.mermaid-container .code-header {
+  background: #f6f8fa;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e1e4e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #586069;
+}
+
+.mermaid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: #fff;
+  min-height: 100px;
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
@@ -648,8 +699,6 @@ a {
   max-width: calc(100vw - 300px) !important; /* 限制最大宽度，避免挤出屏幕 */
   overflow: hidden !important; /* 防止内容溢出 */
 }
-
-
 
 /* Bubble组件宽度控制 */
 .ant-bubble {
@@ -746,38 +795,4 @@ a {
   .markdown-content table {
     page-break-inside: avoid;
   }
-}
-
-/* Mermaid 图表样式 */
-.mermaid-container {
-  margin: 16px 0;
-  border: 1px solid #e1e4e8;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #fff;
-}
-
-.mermaid-container .code-header {
-  background: #f6f8fa;
-  padding: 8px 12px;
-  border-bottom: 1px solid #e1e4e8;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: #586069;
-}
-
-.mermaid {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  background: #fff;
-  min-height: 100px;
-}
-
-.mermaid svg {
-  max-width: 100%;
-  height: auto;
 }
