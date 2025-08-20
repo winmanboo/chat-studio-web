@@ -3,6 +3,7 @@ import React from 'react';
 import { Typography } from 'antd';
 import MarkdownIt from 'markdown-it';
 import mermaid from 'mermaid';
+import hljs from 'highlight.js';
 
 // 初始化 markdown-it
 const md = new MarkdownIt({
@@ -21,17 +22,29 @@ const md = new MarkdownIt({
      }
 
     // 处理其他代码块
-    const codeLines = str.split('\n');
+    const trimmedStr = str.trim(); // 去除前后空白
+    let highlightedCode = '';
+    
+    // 使用highlight.js进行语法高亮
+    if (lang && lang !== 'text' && hljs.getLanguage(lang)) {
+      try {
+        const result = hljs.highlight(trimmedStr, { language: lang });
+        highlightedCode = result.value;
+      } catch (err) {
+        console.warn('Highlight.js error:', err);
+        highlightedCode = hljs.highlightAuto(trimmedStr).value;
+      }
+    } else {
+      // 如果没有指定语言或语言不支持，使用自动检测
+      highlightedCode = hljs.highlightAuto(trimmedStr).value;
+    }
+    
+    // 分割高亮后的代码为行
+    const codeLines = highlightedCode.split('\n');
     const lineNumbers = codeLines.map((_, index) => `<span class="line-number">${index + 1}</span>`).join('\n');
     const codeContent = codeLines.map(line => `<span class="code-line">${line}</span>`).join('\n');
     
-    return `<div class="code-block-container">
-      <div class="code-header">
-        <span class="language-label">${displayLang}</span>
-        <button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button>
-      </div>
-      <pre><code><div class="line-numbers">${lineNumbers}</div><div class="code-content">${codeContent}</div></code></pre>
-    </div>`;
+    return `<div class="code-block-container"><div class="code-header"><span class="language-label">${displayLang}</span><button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button></div><pre><code><div class="line-numbers">${lineNumbers}</div><div class="code-content">${codeContent}</div></code></pre></div>`;
   }
 });
 

@@ -247,7 +247,7 @@ body {
 .markdown-content .code-block-container {
   border: 1px solid #e1e4e8;
   border-radius: 12px;
-  margin: 4px 0;
+  margin: 0;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
   background: transparent;
@@ -266,7 +266,7 @@ body {
 .markdown-content pre {
   background: transparent;
   padding: 0;
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 12px 12px;
   overflow-x: auto;
   overflow-y: hidden;
   margin: 0;
@@ -276,7 +276,7 @@ body {
   -moz-tab-size: 4;
   -o-tab-size: 4;
   position: relative;
-  font-size: 16px;
+  font-size: 14px;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -287,7 +287,7 @@ body {
   background: transparent;
   padding: 0;
   border-radius: 0;
-  font-size: 16px;
+  font-size: 14px;
   tab-size: 4;
   -moz-tab-size: 4;
   -o-tab-size: 4;
@@ -296,6 +296,7 @@ body {
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
   font-weight: 400;
   display: flex;
+  align-items: stretch;
 }
 
 /* 行号样式 */
@@ -303,28 +304,32 @@ body {
   display: flex;
   flex-direction: column;
   background: rgba(0, 0, 0, 0.05);
-  padding: 0 12px 0 12px;
-  margin-right: 16px;
+  padding: 0 8px;
+  margin-right: 0;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  min-width: 40px;
+  min-width: 50px;
   text-align: right;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  justify-content: flex-start;
+  height: 100%;
+  align-self: stretch;
 }
 
 .markdown-content .line-number {
   color: #656d76;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.5;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
   font-weight: 400;
   display: block;
   pointer-events: none;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  margin: 0;
+  padding: 0;
+  text-align: right;
+  min-height: 21px;
 }
 
 /* 代码内容样式 */
@@ -335,15 +340,60 @@ body {
   min-width: 0;
   width: 100%;
   max-width: 100%;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .markdown-content .code-line {
   line-height: 1.5;
-  height: 24px;
   white-space: pre;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 14px;
   margin: 0;
   padding: 0;
+  display: block;
+  min-height: 21px;
+}
+
+/* Highlight.js 语法高亮样式支持 */
+.markdown-content .code-line .hljs-keyword,
+.markdown-content .code-line .hljs-selector-tag,
+.markdown-content .code-line .hljs-literal,
+.markdown-content .code-line .hljs-section,
+.markdown-content .code-line .hljs-link {
+  font-weight: bold;
+}
+
+.markdown-content .code-line .hljs-string,
+.markdown-content .code-line .hljs-title,
+.markdown-content .code-line .hljs-name,
+.markdown-content .code-line .hljs-type,
+.markdown-content .code-line .hljs-attribute,
+.markdown-content .code-line .hljs-symbol,
+.markdown-content .code-line .hljs-bullet,
+.markdown-content .code-line .hljs-built_in,
+.markdown-content .code-line .hljs-addition,
+.markdown-content .code-line .hljs-variable,
+.markdown-content .code-line .hljs-template-tag,
+.markdown-content .code-line .hljs-template-variable {
+  /* 继承highlight.js主题的颜色 */
+}
+
+.markdown-content .code-line .hljs-comment,
+.markdown-content .code-line .hljs-quote,
+.markdown-content .code-line .hljs-deletion,
+.markdown-content .code-line .hljs-meta {
+  font-style: italic;
+}
+
+.markdown-content .code-line .hljs-emphasis {
+  font-style: italic;
+}
+
+.markdown-content .code-line .hljs-strong {
+  font-weight: bold;
 }
 
 /* 代码块工具栏 */
@@ -353,12 +403,13 @@ body {
   align-items: center;
   background: rgba(248, 250, 252, 0.8);
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 4px 8px;
-  border-radius: 8px 8px 0 0;
+  padding: 6px 12px;
+  border-radius: 12px 12px 0 0;
   backdrop-filter: blur(8px);
-  gap: 6px;
+  gap: 8px;
   width: 100%;
   box-sizing: border-box;
+  margin: 0;
 }
 
 .markdown-content .language-label {

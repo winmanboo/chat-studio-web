@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "../styles/globals.css";
+import "highlight.js/styles/github.css";
 import React from "react";
 import Script from "next/script";
 const inter = Inter({
