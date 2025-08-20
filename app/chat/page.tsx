@@ -938,6 +938,15 @@ const ChatPage: React.FC = () => {
                 roles={{
                   user: {
                     placement: 'end',
+                    messageRender: (content) => (
+                      <div style={{
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        lineHeight: '1.5'
+                      }}>
+                        {content as string}
+                      </div>
+                    ),
                     avatar: {
                       icon: <UserOutlined />,
                       style: USER_AVATAR_STYLE
