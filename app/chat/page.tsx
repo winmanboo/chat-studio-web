@@ -8,10 +8,7 @@ import {
   Bubble
 } from "@ant-design/x";
 
-import MarkdownIt from 'markdown-it';
-import hljs from 'highlight.js';
-import 'highlight.js/styles/github.css';
-import mermaid from 'mermaid';
+import { renderMarkdown } from '@/components/MarkdownRenderer';
 import {
   PlusOutlined,
   MenuFoldOutlined,
@@ -40,7 +37,6 @@ import {
   Modal,
   Input,
   Space,
-  Typography,
 } from "antd";
 import { createSession, chatStream, ChatRequest, getSessionList, SessionItem, getSessionMessages, SessionMessage, deleteSession } from "@/lib/api/conversations";
 import SessionManageModal from "@/components/SessionManageModal";
@@ -51,6 +47,58 @@ const BUTTON_SIZE = 18;
 const BOLD_BUTTON_STYLE = { fontWeight: "bold", fontSize: BUTTON_SIZE };
 const USER_AVATAR_STYLE = { backgroundColor: '#1890ff', color: 'white' };
 const ASSISTANT_AVATAR_STYLE = { backgroundColor: '#f0f0f0', color: 'black' };
+
+// Sender容器3D样式常量
+const SENDER_CONTAINER_STYLE = {
+  borderRadius: "16px",
+  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+  border: "1px solid rgba(255, 255, 255, 0.8)",
+  backdropFilter: "blur(10px)",
+  transition: "all 0.3s ease",
+};
+
+// Chat Studio标题样式
+const CHAT_STUDIO_TITLE_STYLE = {
+  position: "absolute" as const,
+  top: "38%",
+  fontSize: 40,
+  fontWeight: 700,
+  color: "#222",
+  letterSpacing: 2,
+  textAlign: "center" as const,
+};
+
+// 中心容器样式
+const CENTER_CONTAINER_STYLE = {
+  width: "100%",
+  display: "flex",
+  flexDirection: "column" as const,
+  alignItems: "center",
+  justifyContent: "center",
+  flex: 1,
+  position: "relative" as const,
+};
+
+// 中间Sender容器样式
+const MIDDLE_SENDER_CONTAINER_STYLE = {
+  width: "54%",
+  display: "flex",
+  flexDirection: "column" as const,
+  alignItems: "center",
+  justifyContent: "center",
+  ...SENDER_CONTAINER_STYLE,
+};
+
+// 底部Sender容器样式
+const BOTTOM_SENDER_CONTAINER_STYLE = {
+  width: "80%", 
+  margin: "0 auto",
+  display: "flex",
+  justifyContent: "center",
+  ...SENDER_CONTAINER_STYLE,
+};
+
+
 
 // 时间分组函数
 const getTimeGroup = (timestamp: number): string => {
@@ -113,308 +161,6 @@ const loadSessionMessages = async (sessionId: string): Promise<ChatMessage[]> =>
     throw error;
   }
 };
-
-// 初始化 markdown-it
-const md = new MarkdownIt({
-  html: true,        // 启用HTML标签
-  linkify: true,     // 自动转换URL为链接
-  typographer: false, // 禁用typographer以避免isSpace错误
-  breaks: true,      // 转换\n为<br>
-  highlight: function (str: string, lang: string): string {
-    const languageLabel = lang || 'text';
-    const displayLang = languageLabel === 'text' ? 'plain' : languageLabel;
-    
-    // 处理Mermaid图表
-     if (lang === 'mermaid') {
-       const mermaidId = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9).replace(/[^a-zA-Z0-9]/g, '')}`;
-       return `<div class="mermaid-container"><div class="code-header"><span class="language-label">mermaid</span><button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button></div><div class="mermaid" id="${mermaidId}">${str}</div></div>`;
-     }
-    
-    // 添加行号的函数
-    const addLineNumbers = (code: string): string => {
-        const lines = code.split('\n');
-        // 移除最后一个空行（如果存在）
-        if (lines.length > 0 && lines[lines.length - 1] === '') {
-          lines.pop();
-        }
-        
-        const lineNumbers = lines.map((_, index) => `<span class="line-number">${index + 1}</span>`).join('');
-        const codeLines = lines.map(line => `<div class="code-line">${line || ' '}</div>`).join('');
-        
-        return `<div class="line-numbers">${lineNumbers}</div><div class="code-content">${codeLines}</div>`;
-      };
-    
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        const highlighted = hljs.highlight(str, { language: lang });
-        const codeWithLines = addLineNumbers(highlighted.value);
-        return `<div class="code-block-container"><div class="code-header"><span class="language-label">${displayLang}</span><button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button></div><pre><code class="language-${lang}">${codeWithLines}</code></pre></div>`;
-      } catch (error) {
-        console.warn('代码高亮失败:', error);
-        // 高亮失败时返回转义后的代码块
-        const escapedCode = md.utils.escapeHtml(str);
-        const codeWithLines = addLineNumbers(escapedCode);
-        return `<div class="code-block-container"><div class="code-header"><span class="language-label">${displayLang}</span><button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button></div><pre><code class="language-${lang}">${codeWithLines}</code></pre></div>`;
-      }
-    }
-    // 对于不支持的语言或高亮失败的情况，返回转义后的代码块
-    const escapedCode = md.utils.escapeHtml(str);
-    const codeWithLines = addLineNumbers(escapedCode);
-    return `<div class="code-block-container"><div class="code-header"><span class="language-label">${displayLang}</span><button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button></div><pre><code class="language-${languageLabel}">${codeWithLines}</code></pre></div>`;
-  }
-});
-
-// 扩展Window接口以支持复制函数
-declare global {
-  interface Window {
-    copyCodeToClipboard: (button: HTMLButtonElement) => void;
-  }
-}
-
-// 复制代码到剪贴板的全局函数
-if (typeof window !== 'undefined') {
-  window.copyCodeToClipboard = function(button: HTMLButtonElement) {
-    const container = button.closest('.code-block-container');
-    if (!container) return;
-    
-    const codeContent = container.querySelector('.code-content');
-    let text = '';
-    
-    if (!codeContent) {
-      // 降级处理：如果没有找到.code-content，使用整个code元素
-      const code = container.querySelector('code');
-      if (!code) return;
-      text = code.textContent || '';
-    } else {
-      // 从.code-line元素中重建原始代码，保留换行符
-      const codeLines = codeContent.querySelectorAll('.code-line');
-      const lines: string[] = [];
-      
-      codeLines.forEach(line => {
-        // 获取每行的文本内容，如果是空行则保留为空字符串
-        const lineText = line.textContent || '';
-        // 如果行内容只是一个空格（用于显示空行），则转换为空字符串
-        lines.push(lineText === ' ' ? '' : lineText);
-      });
-      
-      // 用换行符连接所有行
-      text = lines.join('\n');
-    }
-    
-    navigator.clipboard.writeText(text).then(() => {
-      // 显示复制成功状态
-      button.classList.add('copied');
-      const originalText = button.textContent;
-      button.textContent = '已复制';
-      
-      // 2秒后恢复原状态
-      setTimeout(() => {
-        button.classList.remove('copied');
-        button.textContent = originalText;
-      }, 2000);
-    }).catch(err => {
-      console.error('复制失败:', err);
-      // 降级处理：使用旧的复制方法
-      try {
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        button.classList.add('copied');
-        const originalText = button.textContent;
-        button.textContent = '已复制';
-        
-        setTimeout(() => {
-          button.classList.remove('copied');
-          button.textContent = originalText;
-        }, 2000);
-      } catch (fallbackErr) {
-        console.error('降级复制也失败:', fallbackErr);
-      }
-    });
-  };
-}
-
-// Markdown渲染函数，增强错误处理
-// Mermaid渲染组件
-const MermaidRenderer: React.FC<{ content: string }> = React.memo(({ content }) => {
-  const [htmlContent, setHtmlContent] = React.useState('');
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const mermaidInitialized = React.useRef(false);
-  const lastContentRef = React.useRef<string>('');
-  const renderedHtmlRef = React.useRef<string>('');
-  const processingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-  const processedTablesRef = React.useRef<Set<Element>>(new Set());
-  
-  // 初始化Mermaid（只执行一次）
-  React.useEffect(() => {
-    if (typeof window !== 'undefined' && !mermaidInitialized.current) {
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: 'default',
-        securityLevel: 'loose',
-        fontFamily: 'inherit'
-      });
-      mermaidInitialized.current = true;
-    }
-  }, []);
-  
-  React.useEffect(() => {
-    // 只有当内容真正改变时才重新渲染
-    if (content !== lastContentRef.current) {
-      lastContentRef.current = content;
-      
-      // 预处理内容，确保代码块格式正确
-      let processedContent = content;
-      
-      // 修复可能的代码块格式问题
-      // 确保代码块前后有足够的换行符
-      processedContent = processedContent.replace(/(```[\s\S]*?```)/g, (match) => {
-        return '\n' + match + '\n';
-      });
-      
-      // 渲染Markdown
-      const rendered = md.render(processedContent);
-      
-      // 只有当渲染结果真正改变时才更新状态
-      if (rendered !== renderedHtmlRef.current) {
-        renderedHtmlRef.current = rendered;
-        setHtmlContent(rendered);
-        // 重置已处理的表格集合，因为HTML内容已更新
-        processedTablesRef.current.clear();
-      }
-    }
-  }, [content]);
-  
-  // 渲染Mermaid图表和处理表格滚动（带防抖）
-  React.useEffect(() => {
-    if (typeof window !== 'undefined' && htmlContent && containerRef.current) {
-      // 清除之前的定时器
-      if (processingTimeoutRef.current) {
-        clearTimeout(processingTimeoutRef.current);
-      }
-      
-      // 使用防抖机制，减少频繁的DOM操作
-      processingTimeoutRef.current = setTimeout(() => {
-        const container = containerRef.current;
-        if (!container) return;
-        
-        // 查找容器内未处理的Mermaid图表
-        const mermaidElements = container.querySelectorAll('.mermaid:not([data-processed])');
-        
-        mermaidElements.forEach(async (element) => {
-          try {
-            const graphDefinition = element.textContent || '';
-            if (graphDefinition.trim()) {
-              const uniqueId = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9).replace(/[^a-zA-Z0-9]/g, '')}`;
-              const { svg } = await mermaid.render(uniqueId, graphDefinition);
-              element.innerHTML = svg;
-              element.setAttribute('data-processed', 'true');
-            }
-          } catch (error) {
-            console.warn('Mermaid渲染失败:', error);
-            element.innerHTML = `<pre style="color: red;">Mermaid图表渲染失败: ${error}</pre>`;
-            element.setAttribute('data-processed', 'true');
-          }
-        });
-        
-        // 处理表格样式（不添加滚动容器）
-        const tables = container.querySelectorAll('table:not([data-processed])');
-        tables.forEach((table) => {
-          // 检查是否已经处理过这个表格
-          if (processedTablesRef.current.has(table)) {
-            return;
-          }
-          
-          // 检测表格是否包含长文本内容
-          const cells = table.querySelectorAll('th, td');
-          let hasLongContent = false;
-          
-          cells.forEach((cell) => {
-            const text = cell.textContent || '';
-            // 如果单元格文本长度超过30个字符，或包含长URL，则认为是长内容
-            if (text.length > 30 || text.includes('http')) {
-              hasLongContent = true;
-            }
-          });
-          
-          // 如果包含长内容，添加wrap-content类允许换行
-          if (hasLongContent) {
-            table.classList.add('wrap-content');
-          }
-          
-          // 标记表格已处理
-          table.setAttribute('data-processed', 'true');
-          processedTablesRef.current.add(table);
-        });
-      }, 100); // 100ms防抖延迟
-    }
-    
-    // 清理函数
-    return () => {
-      if (processingTimeoutRef.current) {
-        clearTimeout(processingTimeoutRef.current);
-      }
-    };
-  }, [htmlContent]);
-  
-  return (
-    <Typography>
-      <div 
-        ref={containerRef}
-        dangerouslySetInnerHTML={{ __html: htmlContent }} 
-        className="markdown-content"
-      />
-    </Typography>
-  );
-});
-
-MermaidRenderer.displayName = 'MermaidRenderer';
-
-const renderMarkdown = (content: string): React.ReactNode => {
-  // 如果内容不是字符串，直接返回
-  if (typeof content !== 'string') {
-    return content as React.ReactNode;
-  }
-  
-  // 如果内容为空，返回空字符串
-  if (!content) {
-    return '';
-  }
-  
-  try {
-    return <MermaidRenderer content={content} />;
-  } catch (error) {
-    // 如果渲染出错，记录错误但不在控制台显示用户内容（避免泄露敏感信息）
-    console.warn('Markdown渲染出错:', error);
-    
-    // 降级处理：使用纯文本显示，保持基本的换行格式
-    const fallbackContent = content
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
-      .replace(/\n/g, '<br/>');
-    
-    return (
-      <Typography>
-        <div 
-          dangerouslySetInnerHTML={{ __html: fallbackContent }}
-          style={{
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word'
-          }}
-        />
-      </Typography>
-    );
-  }
-};
-
-
 
 // 聊天消息类型定义
 interface ChatMessage {
@@ -1053,44 +799,11 @@ const ChatPage: React.FC = () => {
         }}
       >
         {!hasStarted ? (
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              flex: 1,
-              position: "relative",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                top: "38%",
-                fontSize: 40,
-                fontWeight: 700,
-                color: "#222",
-                letterSpacing: 2,
-                textAlign: "center",
-              }}
-            >
+          <div style={CENTER_CONTAINER_STYLE}>
+            <div style={CHAT_STUDIO_TITLE_STYLE}>
               Chat Studio
             </div>
-            <div
-              style={{
-                width: "54%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "16px",
-                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
-                border: "1px solid rgba(255, 255, 255, 0.8)",
-                backdropFilter: "blur(10px)",
-                transition: "all 0.3s ease",
-              }}
-            >
+            <div style={MIDDLE_SENDER_CONTAINER_STYLE}>
               <Sender
                 value={inputValue}
                 onChange={(val) => setInputValue(val)}
@@ -1261,17 +974,7 @@ const ChatPage: React.FC = () => {
                 zIndex: 10,
               }}
             >
-              <div style={{ 
-                width: "80%", 
-                margin: "0 auto",
-                display: "flex",
-                justifyContent: "center",
-                borderRadius: "16px",
-                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
-                border: "1px solid rgba(255, 255, 255, 0.8)",
-                backdropFilter: "blur(10px)",
-                transition: "all 0.3s ease",
-              }}>
+              <div style={BOTTOM_SENDER_CONTAINER_STYLE}>
                 <Sender
                   value={inputValue}
                   onChange={(val) => setInputValue(val)}
