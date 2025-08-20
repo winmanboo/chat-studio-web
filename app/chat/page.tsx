@@ -1061,15 +1061,18 @@ const ChatPage: React.FC = () => {
               alignItems: "center",
               justifyContent: "center",
               flex: 1,
+              position: "relative",
             }}
           >
             <div
               style={{
+                position: "absolute",
+                top: "38%",
                 fontSize: 40,
                 fontWeight: 700,
-                marginBottom: 24,
                 color: "#222",
                 letterSpacing: 2,
+                textAlign: "center",
               }}
             >
               Chat Studio
@@ -1081,7 +1084,6 @@ const ChatPage: React.FC = () => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "2vh 0",
               }}
             >
               <Sender
