@@ -5,6 +5,11 @@ import MarkdownIt from 'markdown-it';
 import mermaid from 'mermaid';
 import hljs from 'highlight.js';
 
+interface CustomWindow extends Window {
+  copyCodeToClipboard: (button: HTMLButtonElement) => void;
+  handleMermaidZoom: (element: HTMLElement) => void;
+}
+
 // 初始化 markdown-it
 const md = new MarkdownIt({
   html: true,        // 启用HTML标签
@@ -18,7 +23,7 @@ const md = new MarkdownIt({
     // 处理Mermaid图表
      if (lang === 'mermaid') {
        const mermaidId = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9).replace(/[^a-zA-Z0-9]/g, '')}`;
-       return `<div class="mermaid-container"><div class="code-header"><span class="language-label">mermaid</span><button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button></div><div class="mermaid" id="${mermaidId}">${str}</div></div>`;
+       return `<div class="mermaid-container"><div class="code-header"><span class="language-label">mermaid</span><button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button></div><div class="mermaid" id="${mermaidId}" onclick="handleMermaidZoom(this)">${str}</div></div>`;
      }
 
     // 处理其他代码块
@@ -115,6 +120,40 @@ const MermaidRenderer: React.FC<{ content: string }> = React.memo(({ content }) 
   const processingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const processedTablesRef = React.useRef<Set<Element>>(new Set());
   
+  // 初始化Mermaid并添加全局缩放处理
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as unknown as CustomWindow).handleMermaidZoom = (element: HTMLElement) => {
+        const svg = element.querySelector('svg');
+        if (!svg) return;
+        
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.zIndex = '9999';
+        modal.onclick = () => document.body.removeChild(modal);
+        
+        const clonedSvg = svg.cloneNode(true) as SVGElement;
+        clonedSvg.style.maxWidth = '90vw';
+clonedSvg.style.maxHeight = '90vh';
+clonedSvg.style.background = '#fff';
+clonedSvg.style.padding = '20px';
+clonedSvg.style.borderRadius = '8px';
+clonedSvg.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+clonedSvg.style.cursor = 'zoom-out';
+        modal.appendChild(clonedSvg);
+        document.body.appendChild(modal);
+      };
+    }
+  }, []);
+
   // 初始化Mermaid（只执行一次）
   React.useEffect(() => {
     if (typeof window !== 'undefined' && !mermaidInitialized.current) {
