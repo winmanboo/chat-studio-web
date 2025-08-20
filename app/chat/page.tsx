@@ -1084,6 +1084,11 @@ const ChatPage: React.FC = () => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
+                borderRadius: "16px",
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+                border: "1px solid rgba(255, 255, 255, 0.8)",
+                backdropFilter: "blur(10px)",
+                transition: "all 0.3s ease",
               }}
             >
               <Sender
@@ -1261,6 +1266,11 @@ const ChatPage: React.FC = () => {
                 margin: "0 auto",
                 display: "flex",
                 justifyContent: "center",
+                borderRadius: "16px",
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
+                border: "1px solid rgba(255, 255, 255, 0.8)",
+                backdropFilter: "blur(10px)",
+                transition: "all 0.3s ease",
               }}>
                 <Sender
                   value={inputValue}
