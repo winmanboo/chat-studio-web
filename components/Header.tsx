@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Avatar, Button, Dropdown, Menu } from 'antd';
+import { Layout, Avatar, Button, Dropdown, Menu, message } from 'antd';
 import { UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
 
 const { Header } = Layout;
@@ -17,8 +17,15 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onTabChange, onUs
   const capsuleTabs = [
     { key: 'chat', icon: '💬', label: '聊天' },
     { key: 'kb', icon: '📚', label: '知识库' },
+    { key: 'agent', icon: '🤖', label: '智能体' },
+    { key: 'mcp', icon: '🔗', label: 'MCP' },
+    { key: 'workflow', icon: '⚡', label: '工作流' },
     { key: 'market', icon: '🛒', label: '市场' },
   ];
+
+  const handleNewFeatureClick = (featureName: string) => {
+    message.info(`${featureName}功能正在开发中`);
+  };
 
   return (
     <Header 
@@ -69,25 +76,34 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onTabChange, onUs
         padding: '4px 8px',
         zIndex: 10,
       }}>
-        {capsuleTabs.map((tab, idx) => (
-          <Button
-            key={tab.key}
-            type={selectedTab === tab.key ? 'primary' : 'text'}
-            style={{
-              borderRadius: 32,
-              marginLeft: idx === 0 ? 0 : 4,
-              marginRight: idx === capsuleTabs.length - 1 ? 0 : 4,
-              fontWeight: selectedTab === tab.key ? 'bold' : undefined,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4
-            }}
-            onClick={() => onTabChange(tab.key)}
-          >
-            <span>{tab.icon}</span>
-            {tab.label}
-          </Button>
-        ))}
+        {capsuleTabs.map((tab, idx) => {
+          const isNewFeature = ['agent', 'mcp', 'workflow'].includes(tab.key);
+          return (
+            <Button
+              key={tab.key}
+              type={selectedTab === tab.key ? 'primary' : 'text'}
+              style={{
+                borderRadius: 32,
+                marginLeft: idx === 0 ? 0 : 4,
+                marginRight: idx === capsuleTabs.length - 1 ? 0 : 4,
+                fontWeight: selectedTab === tab.key ? 'bold' : undefined,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4
+              }}
+              onClick={() => {
+                if (isNewFeature) {
+                  handleNewFeatureClick(tab.label);
+                } else {
+                  onTabChange(tab.key);
+                }
+              }}
+            >
+              <span>{tab.icon}</span>
+              {tab.label}
+            </Button>
+          );
+        })}
       </div>
 
       {/* 右上角用户按钮 */}
