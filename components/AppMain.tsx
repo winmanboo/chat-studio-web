@@ -1,20 +1,28 @@
 "use client";
 import React, { useEffect } from "react";
-import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import HeaderComponent from "./Header";
 import UserModal from "./UserModal";
 import SettingsModal from "./SettingsModal";
 import { logout } from "../lib/api";
 
-const ChatPage = dynamic(() => import("../app/chat/page"), { ssr: false });
-const KnowledgeBasePage = dynamic(() => import("../app/knowledgebase/page"), { ssr: false });
-const MarketPage = dynamic(() => import("../app/market/page"), { ssr: false });
+interface AppMainProps {
+  children: React.ReactNode;
+}
 
-const AppMain: React.FC = () => {
-  const [selectedTab, setSelectedTab] = React.useState("chat");
+const AppMain: React.FC<AppMainProps> = ({ children }) => {
+  const pathname = usePathname();
   const [userModalOpen, setUserModalOpen] = React.useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
   const [isLogin, setIsLogin] = React.useState(false);
+
+  // 根据当前路径确定选中的tab
+  const getSelectedTab = () => {
+    if (pathname.startsWith('/chat')) return 'chat';
+    if (pathname.startsWith('/knowledgebase')) return 'kb';
+    if (pathname.startsWith('/market')) return 'market';
+    return 'chat'; // 默认选中chat
+  };
 
   // 检查localStorage中的登录状态
   useEffect(() => {
@@ -42,7 +50,7 @@ const AppMain: React.FC = () => {
     }
   }, []);
 
-  const handleTabChange = (tab: string) => setSelectedTab(tab);
+
   const handleUserClick = () => setUserModalOpen(true);
   const handleSettingsClick = () => setSettingsModalOpen(true);
   const handleUserModalClose = () => setUserModalOpen(false);
@@ -64,16 +72,10 @@ const AppMain: React.FC = () => {
     }
   };
 
-  let MainContent = null;
-  if (selectedTab === "chat") MainContent = <ChatPage />;
-  else if (selectedTab === "kb") MainContent = <KnowledgeBasePage />;
-  else if (selectedTab === "market") MainContent = <MarketPage />;
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
       <HeaderComponent 
-        selectedTab={selectedTab} 
-        onTabChange={handleTabChange} 
+        selectedTab={getSelectedTab()} 
         onUserClick={handleUserClick}
         onSettingsClick={handleSettingsClick}
         isLogin={isLogin}
@@ -81,7 +83,7 @@ const AppMain: React.FC = () => {
       />
       <main style={{ flex: 1, width: '100%', alignSelf: 'stretch', display: 'flex' }}>
         <div style={{ flex: 1, display: 'flex' }}>
-          {MainContent}
+          {children}
         </div>
       </main>
       <UserModal

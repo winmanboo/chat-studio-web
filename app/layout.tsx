@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import "highlight.js/styles/github.css";
 import React from "react";
 import Script from "next/script";
+import AppMain from "../components/AppMain";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -35,7 +36,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={inter.variable} style={{ background: '#f5f6fa', minHeight: '100vh' }}>
-        {children}
+        <AppMain>{children}</AppMain>
       </body>
     </html>
   );

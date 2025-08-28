@@ -1,19 +1,20 @@
 import React from 'react';
 import { Layout, Avatar, Button, Dropdown, Menu, message } from 'antd';
 import { UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
+import { useRouter } from 'next/navigation';
 
 const { Header } = Layout;
 
 interface HeaderProps {
   selectedTab: string;
-  onTabChange: (tab: string) => void;
   onUserClick: () => void;
   onSettingsClick: () => void;
   isLogin: boolean;
   onLogout: () => void;
 }
 
-const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onTabChange, onUserClick, onSettingsClick, isLogin, onLogout }) => {
+const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSettingsClick, isLogin, onLogout }) => {
+  const router = useRouter();
   const capsuleTabs = [
     { key: 'chat', icon: '💬', label: '聊天' },
     { key: 'kb', icon: '📚', label: '知识库' },
@@ -25,6 +26,18 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onTabChange, onUs
 
   const handleNewFeatureClick = (featureName: string) => {
     message.info(`${featureName}功能正在开发中`);
+  };
+
+  const handleTabChange = (tab: string) => {
+    const routeMap: Record<string, string> = {
+      'chat': '/chat',
+      'kb': '/knowledgebase', 
+      'market': '/market'
+    };
+    const route = routeMap[tab];
+    if (route) {
+      router.push(route);
+    }
   };
 
   return (
@@ -95,7 +108,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onTabChange, onUs
                 if (isNewFeature) {
                   handleNewFeatureClick(tab.label);
                 } else {
-                  onTabChange(tab.key);
+                  handleTabChange(tab.key);
                 }
               }}
             >
