@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Tag, Space, Dropdown, Modal, message, Spin, Form, Select, Slider, Switch } from 'antd';
-import { PlusOutlined, MoreOutlined, FileTextOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { PlusOutlined, MoreOutlined, FileTextOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { getKnowledgeBasePage, deleteKnowledgeBase, createKnowledgeBase, getDictItems, getKnowledgeBaseTags, type KnowledgeBase, type CreateKnowledgeBaseParams, type DictItem, type TagItem } from '@/lib/api';
 
@@ -113,20 +113,6 @@ const KnowledgeBasePage: React.FC = () => {
   // 菜单操作
   const handleMenuClick = (key: string, knowledgeBase: KnowledgeBase) => {
     switch (key) {
-      case 'detail':
-        Modal.info({
-          title: '知识库详情',
-          content: (
-            <div>
-              <p><strong>名称:</strong> {knowledgeBase.name}</p>
-              <p><strong>更新时间:</strong> {knowledgeBase.updatedTime}</p>
-              <p><strong>文档数:</strong> {knowledgeBase.docCount}</p>
-              <p><strong>描述:</strong> {knowledgeBase.description}</p>
-              <p><strong>标签:</strong> {knowledgeBase.tags.join(', ')}</p>
-            </div>
-          ),
-        });
-        break;
       case 'edit':
         message.info('编辑功能开发中...');
         break;
@@ -152,12 +138,6 @@ const KnowledgeBasePage: React.FC = () => {
   };
 
   const getMenuItems = (knowledgeBase: KnowledgeBase): MenuProps['items'] => [
-    {
-      key: 'detail',
-      label: '详情',
-      icon: <EyeOutlined />,
-      onClick: () => handleMenuClick('detail', knowledgeBase),
-    },
     {
       key: 'edit',
       label: '修改',
