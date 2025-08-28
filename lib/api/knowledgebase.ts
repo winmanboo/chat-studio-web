@@ -9,6 +9,10 @@ export interface KnowledgeBase {
   updatedTime: string;
   docCount: number;
   tags: Array<{ id: number; name: string }>;
+  retrievalMode?: string;
+  splitStrategy?: string;
+  topK?: number;
+  rerankEnabled?: boolean;
 }
 
 // 分页响应类型
@@ -67,6 +71,11 @@ export const getKnowledgeBasePage = async (params: PageParams): Promise<PageResp
   });
 };
 
+// 获取知识库详情
+export const getKnowledgeBaseInfo = async (id: number): Promise<KnowledgeBase> => {
+  return await request.get(`/kb/info/${id}`);
+};
+
 // 删除知识库
 export const deleteKnowledgeBase = async (id: number): Promise<void> => {
   await request.delete(`/kb/${id}`);
@@ -87,6 +96,6 @@ export const createKnowledgeBase = async (data: CreateKnowledgeBaseParams): Prom
 };
 
 // 更新知识库
-export const updateKnowledgeBase = async (id: number, data: Partial<Omit<KnowledgeBase, 'id' | 'createdTime' | 'updatedTime' | 'docCount'>>): Promise<KnowledgeBase> => {
+export const updateKnowledgeBase = async (id: number, data: CreateKnowledgeBaseParams): Promise<KnowledgeBase> => {
   return await request.put(`/kb/${id}`, data);
 };

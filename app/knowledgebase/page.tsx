@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Tag, Space, Dropdown, Modal, message, Spin, Form, Select, Slider, Switch } from 'antd';
 import { PlusOutlined, MoreOutlined, FileTextOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { getKnowledgeBasePage, deleteKnowledgeBase, createKnowledgeBase, getDictItems, getKnowledgeBaseTags, type KnowledgeBase, type CreateKnowledgeBaseParams, type DictItem, type TagItem } from '@/lib/api';
+import { getKnowledgeBasePage, deleteKnowledgeBase, createKnowledgeBase, updateKnowledgeBase, getKnowledgeBaseInfo, getDictItems, getKnowledgeBaseTags, type KnowledgeBase, type CreateKnowledgeBaseParams, type DictItem, type TagItem } from '@/lib/api';
 
 const { Search } = Input;
 
@@ -20,6 +20,8 @@ const KnowledgeBasePage: React.FC = () => {
   const [retrievalModes, setRetrievalModes] = useState<DictItem[]>([]);
   const [splitStrategies, setSplitStrategies] = useState<DictItem[]>([]);
   const [availableTags, setAvailableTags] = useState<TagItem[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingKnowledgeBase, setEditingKnowledgeBase] = useState<KnowledgeBase | null>(null);
   const [form] = Form.useForm();
 
   // 获取知识库数据
@@ -114,7 +116,7 @@ const KnowledgeBasePage: React.FC = () => {
   const handleMenuClick = (key: string, knowledgeBase: KnowledgeBase) => {
     switch (key) {
       case 'edit':
-        message.info('编辑功能开发中...');
+        handleEditKnowledgeBase(knowledgeBase.id);
         break;
       case 'delete':
         Modal.confirm({
@@ -158,6 +160,8 @@ const KnowledgeBasePage: React.FC = () => {
     // 获取字典数据
     await fetchDictData();
     
+    setIsEditMode(false);
+    setEditingKnowledgeBase(null);
     setCreateModalVisible(true);
     form.resetFields();
     // 设置默认值
@@ -168,7 +172,37 @@ const KnowledgeBasePage: React.FC = () => {
     });
   };
 
-  // 提交新增知识库
+  // 编辑知识库
+  const handleEditKnowledgeBase = async (id: number) => {
+    try {
+      // 获取字典数据
+      await fetchDictData();
+      
+      // 获取知识库详情
+      const knowledgeBaseInfo = await getKnowledgeBaseInfo(id);
+      
+      setIsEditMode(true);
+      setEditingKnowledgeBase(knowledgeBaseInfo);
+      setCreateModalVisible(true);
+      
+      // 回显数据到表单
+      const tagsForForm = knowledgeBaseInfo.tags.map(tag => JSON.stringify(tag));
+      form.setFieldsValue({
+        name: knowledgeBaseInfo.name,
+        description: knowledgeBaseInfo.description,
+        retrievalMode: knowledgeBaseInfo.retrievalMode,
+        splitStrategy: knowledgeBaseInfo.splitStrategy,
+        topK: knowledgeBaseInfo.topK,
+        rerankEnabled: knowledgeBaseInfo.rerankEnabled,
+        tags: tagsForForm
+      });
+    } catch (error) {
+      console.error('Failed to fetch knowledge base info:', error);
+      message.error('获取知识库信息失败');
+    }
+  };
+
+  // 提交新增/编辑知识库
   const handleCreateSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -195,14 +229,22 @@ const KnowledgeBasePage: React.FC = () => {
         tags: processedTags
       };
       
-      await createKnowledgeBase(params);
-      message.success('知识库创建成功');
+      if (isEditMode && editingKnowledgeBase) {
+        await updateKnowledgeBase(editingKnowledgeBase.id, params);
+        message.success('知识库更新成功');
+      } else {
+        await createKnowledgeBase(params);
+        message.success('知识库创建成功');
+      }
+      
       setCreateModalVisible(false);
       form.resetFields();
+      setIsEditMode(false);
+      setEditingKnowledgeBase(null);
       fetchKnowledgeBases(); // 刷新列表
     } catch (error) {
-      console.error('Failed to create knowledge base:', error);
-      message.error('创建知识库失败');
+      console.error('Failed to save knowledge base:', error);
+      message.error(isEditMode ? '更新知识库失败' : '创建知识库失败');
     } finally {
       setCreateLoading(false);
     }
@@ -448,8 +490,12 @@ const KnowledgeBasePage: React.FC = () => {
               fontWeight: 600,
               color: '#262626'
             }}>
-              <FileTextOutlined style={{ color: '#1890ff' }} />
-              新增知识库
+              {isEditMode ? (
+                <EditOutlined style={{ color: '#1890ff' }} />
+              ) : (
+                <FileTextOutlined style={{ color: '#1890ff' }} />
+              )}
+              {isEditMode ? '编辑知识库' : '新增知识库'}
             </div>
           }
           open={createModalVisible}
