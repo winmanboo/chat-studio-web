@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Input, Tag, Space, Dropdown, Pagination, Modal, message, Spin } from 'antd';
+import { Card, Button, Input, Tag, Space, Dropdown, Pagination, Modal, message, Spin, Form, Select, Slider, Switch } from 'antd';
 import { PlusOutlined, MoreOutlined, FileTextOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { getKnowledgeBasePage, deleteKnowledgeBase, type KnowledgeBase } from '@/lib/api';
+import { getKnowledgeBasePage, deleteKnowledgeBase, createKnowledgeBase, getDictItems, getKnowledgeBaseTags, type KnowledgeBase, type CreateKnowledgeBaseParams, type DictItem, type TagItem } from '@/lib/api';
 
 const { Search } = Input;
 
@@ -15,6 +15,12 @@ const KnowledgeBasePage: React.FC = () => {
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [retrievalModes, setRetrievalModes] = useState<DictItem[]>([]);
+  const [splitStrategies, setSplitStrategies] = useState<DictItem[]>([]);
+  const [availableTags, setAvailableTags] = useState<TagItem[]>([]);
+  const [form] = Form.useForm();
 
   // 获取知识库数据
   const fetchKnowledgeBases = async () => {
@@ -32,6 +38,23 @@ const KnowledgeBasePage: React.FC = () => {
       console.error('Failed to fetch knowledge bases:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 获取字典数据
+  const fetchDictData = async () => {
+    try {
+      const [retrievalData, splitData, tagsData] = await Promise.all([
+        getDictItems('retrieval_mode'),
+        getDictItems('split_strategy'),
+        getKnowledgeBaseTags()
+      ]);
+      setRetrievalModes(retrievalData);
+      setSplitStrategies(splitData);
+      setAvailableTags(tagsData);
+    } catch (error) {
+      console.error('Failed to fetch dict data:', error);
+      message.error('获取字典数据失败');
     }
   };
 
@@ -118,8 +141,64 @@ const KnowledgeBasePage: React.FC = () => {
   ];
 
   // 添加知识库
-  const handleAddKnowledgeBase = () => {
-    message.info('添加知识库功能开发中...');
+  const handleAddKnowledgeBase = async () => {
+    // 获取字典数据
+    await fetchDictData();
+    
+    setCreateModalVisible(true);
+    form.resetFields();
+    // 设置默认值
+    form.setFieldsValue({
+      topK: 5,
+      rerankEnabled: false,
+      tags: []
+    });
+  };
+
+  // 提交新增知识库
+  const handleCreateSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      setCreateLoading(true);
+      
+      // 处理标签数据格式
+      const processedTags = values.tags?.map((tag: string) => {
+        try {
+          // 尝试解析为已有标签
+          return JSON.parse(tag);
+        } catch {
+          // 如果解析失败，说明是新输入的标签
+          return { name: tag };
+        }
+      }) || [];
+      
+      const params: CreateKnowledgeBaseParams = {
+        name: values.name,
+        description: values.description,
+        retrievalMode: values.retrievalMode,
+        splitStrategy: values.splitStrategy,
+        topK: values.topK,
+        rerankEnabled: values.rerankEnabled,
+        tags: processedTags
+      };
+      
+      await createKnowledgeBase(params);
+      message.success('知识库创建成功');
+      setCreateModalVisible(false);
+      form.resetFields();
+      fetchKnowledgeBases(); // 刷新列表
+    } catch (error) {
+      console.error('Failed to create knowledge base:', error);
+      message.error('创建知识库失败');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  // 取消新增
+  const handleCreateCancel = () => {
+    setCreateModalVisible(false);
+    form.resetFields();
   };
 
   return (
@@ -243,6 +322,128 @@ const KnowledgeBasePage: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* 新增知识库模态框 */}
+      <Modal
+          title="新增知识库"
+          open={createModalVisible}
+          onOk={handleCreateSubmit}
+          onCancel={handleCreateCancel}
+          confirmLoading={createLoading}
+          width={600}
+          destroyOnHidden
+          okText="保存"
+          cancelText="关闭"
+        >
+        <Form
+           form={form}
+           layout="horizontal"
+           labelCol={{ span: 6 }}
+           wrapperCol={{ span: 18 }}
+           requiredMark={false}
+         >
+          <Form.Item
+             label="知识库名称"
+             name="name"
+             rules={[
+               { required: true, message: '请输入知识库名称' },
+               { max: 50, message: '知识库名称不能超过50个字符' }
+             ]}
+           >
+             <Input placeholder="请输入知识库名称" />
+           </Form.Item>
+
+           <Form.Item
+             label="检索模式"
+             name="retrievalMode"
+             rules={[{ required: true, message: '请选择检索模式' }]}
+           >
+             <Select placeholder="请选择检索模式">
+               {retrievalModes.map(item => (
+                 <Select.Option key={item.code} value={item.code}>
+                   {item.name}
+                 </Select.Option>
+               ))}
+             </Select>
+           </Form.Item>
+
+           <Form.Item
+             label="分块策略"
+             name="splitStrategy"
+             rules={[{ required: true, message: '请选择分块策略' }]}
+           >
+             <Select placeholder="请选择分块策略">
+               {splitStrategies.map(item => (
+                 <Select.Option key={item.code} value={item.code}>
+                   {item.name}
+                 </Select.Option>
+               ))}
+             </Select>
+           </Form.Item>
+
+           <Form.Item
+             label="TopK"
+             name="topK"
+             rules={[{ required: true, message: '请设置TopK值' }]}
+           >
+             <Slider
+               min={1}
+               max={20}
+               marks={{
+                 1: '1',
+                 5: '5',
+                 10: '10',
+                 15: '15',
+                 20: '20'
+               }}
+               tooltip={{ formatter: (value) => `${value}` }}
+             />
+           </Form.Item>
+
+           <Form.Item
+             label="启用Rerank"
+             name="rerankEnabled"
+             valuePropName="checked"
+             rules={[{ required: true, message: '请选择是否启用Rerank' }]}
+           >
+             <Switch />
+           </Form.Item>
+
+           <Form.Item
+             label="标签"
+             name="tags"
+           >
+             <Select
+               mode="tags"
+               placeholder="请选择已有标签或输入新标签"
+               tokenSeparators={[',', ' ']}
+               maxTagCount={5}
+               options={availableTags.map(tag => ({
+                 label: tag.name,
+                 value: JSON.stringify({ id: tag.id, name: tag.name })
+               }))}
+               filterOption={(input, option) =>
+                 option?.label?.toLowerCase().includes(input.toLowerCase()) ?? false
+               }
+             />
+           </Form.Item>
+
+           <Form.Item
+             label="描述"
+             name="description"
+             rules={[
+               { max: 200, message: '描述不能超过200个字符' }
+             ]}
+           >
+             <Input.TextArea 
+               placeholder="请输入知识库描述（可选）" 
+               rows={3}
+               showCount
+               maxLength={200}
+             />
+           </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
