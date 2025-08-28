@@ -45,12 +45,12 @@ const KnowledgeBasePage: React.FC = () => {
       
       let newKnowledgeBases;
       if (isLoadMore) {
-        newKnowledgeBases = [...knowledgeBases, ...response.records];
+        newKnowledgeBases = [...knowledgeBases, ...(response.records || [])];
         setKnowledgeBases(newKnowledgeBases);
         // 加载更多时，使用请求的页码更新状态
         setCurrentPage(currentPageNum);
       } else {
-        newKnowledgeBases = response.records;
+        newKnowledgeBases = response.records || [];
         setKnowledgeBases(newKnowledgeBases);
         // 首次加载时，重置为第1页
         setCurrentPage(1);
@@ -65,6 +65,7 @@ const KnowledgeBasePage: React.FC = () => {
       // 如果是加载更多时出错，不要重置hasMore状态，允许用户重试
       if (!isLoadMore) {
         setHasMore(false);
+        setKnowledgeBases([]);
       }
     } finally {
       setLoading(false);
@@ -316,7 +317,7 @@ const KnowledgeBasePage: React.FC = () => {
           </Card>
 
           {/* 知识库卡片 */}
-           {knowledgeBases.map((kb) => (
+           {knowledgeBases?.map((kb) => (
              <Card
                key={kb.id}
                hoverable
@@ -470,8 +471,23 @@ const KnowledgeBasePage: React.FC = () => {
           </div>
         </Spin>
         
+        {/* 空状态占位符 */}
+        {!loading && knowledgeBases?.length === 0 && (
+          <div style={{
+            textAlign: 'center',
+            padding: '60px 20px',
+            color: '#8c8c8c'
+          }}>
+            <FileTextOutlined style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }} />
+            <div style={{ fontSize: 16, marginBottom: 8, color: '#595959' }}>暂无知识库</div>
+            <div style={{ fontSize: 14 }}>
+              {searchValue ? '没有找到相关的知识库，请尝试其他关键词' : '还没有创建任何知识库，点击上方按钮开始创建'}
+            </div>
+          </div>
+        )}
+        
         {/* 加载更多提示 */}
-        {hasMore && !loading && knowledgeBases.length > 0 && (
+        {hasMore && !loading && knowledgeBases?.length > 0 && (
           <div style={{ 
             padding: '16px 0 24px', 
             textAlign: 'center',
@@ -482,7 +498,7 @@ const KnowledgeBasePage: React.FC = () => {
           </div>
         )}
         
-        {!hasMore && knowledgeBases.length > 0 && (
+        {!hasMore && knowledgeBases?.length > 0 && (
           <div style={{ 
             padding: '16px 0 24px', 
             textAlign: 'center',
