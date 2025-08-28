@@ -30,22 +30,6 @@ body {
   font-size: 14px;
 }
 
-/* 渐变背景装饰 */
-.markdown-content::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -10px;
-  width: 4px;
-  height: 100%;
-  background: linear-gradient(45deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  border-radius: 2px;
-  opacity: 0;
-}
-
-.markdown-content:hover::before {
-  opacity: 0.6;
-}
 
 .markdown-content h1,
 .markdown-content h2,
@@ -717,6 +701,8 @@ a {
   overflow: hidden !important; /* 防止内容溢出 */
   width: 100% !important; /* 内容填充满整个Bubble宽度 */
 }
+
+
 
 .user-bubble .ant-bubble-content {
   max-width: calc(100vw - 300px) !important; /* 限制最大宽度，避免挤出屏幕 */
