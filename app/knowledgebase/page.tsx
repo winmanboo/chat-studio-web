@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Input, Tag, Space, Dropdown, Pagination, Modal, message, Spin, Form, Select, Slider, Switch } from 'antd';
+import { Card, Button, Input, Tag, Space, Dropdown, Modal, message, Spin, Form, Select, Slider, Switch } from 'antd';
 import { PlusOutlined, MoreOutlined, FileTextOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { getKnowledgeBasePage, deleteKnowledgeBase, createKnowledgeBase, getDictItems, getKnowledgeBaseTags, type KnowledgeBase, type CreateKnowledgeBaseParams, type DictItem, type TagItem } from '@/lib/api';
@@ -10,11 +10,11 @@ const { Search } = Input;
 
 const KnowledgeBasePage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
   const [searchValue, setSearchValue] = useState('');
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
   const [loading, setLoading] = useState(false);
-  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [retrievalModes, setRetrievalModes] = useState<DictItem[]>([]);
@@ -23,16 +23,26 @@ const KnowledgeBasePage: React.FC = () => {
   const [form] = Form.useForm();
 
   // 获取知识库数据
-  const fetchKnowledgeBases = async () => {
+  const fetchKnowledgeBases = async (isLoadMore = false) => {
     try {
       setLoading(true);
       const response = await getKnowledgeBasePage({
-        pageNum: currentPage,
+        pageNum: isLoadMore ? currentPage : 1,
         pageSize,
         keyword: searchValue || undefined
       });
-      setKnowledgeBases(response.records);
-      setTotal(response.total);
+      
+      if (isLoadMore) {
+        const newKnowledgeBases = [...knowledgeBases, ...response.records];
+        setKnowledgeBases(newKnowledgeBases);
+        // 根据total判断是否还有更多数据
+        setHasMore(newKnowledgeBases.length < response.total);
+      } else {
+        setKnowledgeBases(response.records);
+        setCurrentPage(1);
+        // 根据total判断是否还有更多数据
+        setHasMore(response.records.length < response.total);
+      }
     } catch (error) {
       message.error('获取知识库数据失败');
       console.error('Failed to fetch knowledge bases:', error);
@@ -61,14 +71,39 @@ const KnowledgeBasePage: React.FC = () => {
   // 页面加载时获取数据
   useEffect(() => {
     fetchKnowledgeBases();
-  }, [currentPage, pageSize, searchValue]);
+  }, [searchValue]);
 
-  // 搜索时重置到第一页
+  // 加载更多数据
+  const loadMore = async () => {
+    if (loading || !hasMore) return;
+    const nextPage = currentPage + 1;
+    setCurrentPage(nextPage);
+    
+    try {
+      setLoading(true);
+      const response = await getKnowledgeBasePage({
+        pageNum: nextPage,
+        pageSize,
+        keyword: searchValue || undefined
+      });
+      
+      const newKnowledgeBases = [...knowledgeBases, ...response.records];
+      setKnowledgeBases(newKnowledgeBases);
+      // 根据total判断是否还有更多数据
+      setHasMore(newKnowledgeBases.length < response.total);
+    } catch (error) {
+      message.error('加载更多数据失败');
+      console.error('Failed to load more knowledge bases:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 搜索时重置数据
   const handleSearch = (value: string) => {
     setSearchValue(value);
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
+    setCurrentPage(1);
+    setHasMore(true);
   };
 
   // 菜单操作
@@ -211,16 +246,25 @@ const KnowledgeBasePage: React.FC = () => {
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 24px' }}>
         {/* 卡片网格布局 */}
-        <div style={{
-          flex: 1,
-          overflowY: 'auto',
-          paddingBottom: 16
-        }}>
+        <div 
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            paddingBottom: 16
+          }}
+          onScroll={(e) => {
+            const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+            if (scrollHeight - scrollTop <= clientHeight + 100 && hasMore && !loading) {
+              loadMore();
+            }
+          }}
+        >
           <Spin spinning={loading}>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-              gap: 16
+              gap: 16,
+              minHeight: 'calc(100vh - 200px)' // 确保有足够高度触发滚动
             }}>
           {/* 添加知识库卡片 */}
           <Card
@@ -385,30 +429,28 @@ const KnowledgeBasePage: React.FC = () => {
           </Spin>
         </div>
  
-        {/* 分页 - 固定在底部 */}
-        <div style={{ 
-          padding: '16px 0 24px', 
-          borderTop: '1px solid #f0f0f0', 
-          backgroundColor: '#fff',
-          display: 'flex', 
-          justifyContent: 'center' 
-        }}>
-          <Pagination
-            current={currentPage}
-            pageSize={pageSize}
-            total={total}
-            showSizeChanger
-            showQuickJumper
-            showTotal={(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`}
-            onChange={(page, size) => {
-              setCurrentPage(page);
-              if (size !== pageSize) {
-                setPageSize(size);
-                setCurrentPage(1);
-              }
-            }}
-          />
-        </div>
+        {/* 加载更多提示 */}
+        {hasMore && !loading && knowledgeBases.length > 0 && (
+          <div style={{ 
+            padding: '16px 0 24px', 
+            textAlign: 'center',
+            color: '#8c8c8c',
+            fontSize: '14px'
+          }}>
+            滚动到底部加载更多...
+          </div>
+        )}
+        
+        {!hasMore && knowledgeBases.length > 0 && (
+          <div style={{ 
+            padding: '16px 0 24px', 
+            textAlign: 'center',
+            color: '#8c8c8c',
+            fontSize: '14px'
+          }}>
+            已加载全部数据
+          </div>
+        )}
       </div>
 
       {/* 新增知识库模态框 */}
