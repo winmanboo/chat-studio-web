@@ -261,13 +261,13 @@ const KnowledgeBasePage: React.FC = () => {
           />
         </Space>
       </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 24px' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* 卡片网格布局 */}
         <div 
           style={{
             flex: 1,
             overflowY: 'auto',
-            paddingBottom: 16,
+            padding: '0 24px 16px 24px',
             minHeight: 400,
             maxHeight: 'calc(100vh - 200px)'
           }}
