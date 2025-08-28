@@ -97,5 +97,5 @@ export const createKnowledgeBase = async (data: CreateKnowledgeBaseParams): Prom
 
 // 更新知识库
 export const updateKnowledgeBase = async (id: number, data: CreateKnowledgeBaseParams): Promise<KnowledgeBase> => {
-  return await request.put(`/kb/${id}`, data);
+  return await request.put('/kb/update', { ...data, id });
 };
