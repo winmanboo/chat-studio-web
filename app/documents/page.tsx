@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Input, Tag, Space, Modal, message, Spin, Upload, Tooltip, Pagination } from 'antd';
+import { Table, Button, Input, Tag, Space, Modal, message, Upload, Tooltip, Switch } from 'antd';
 import { UploadOutlined, DeleteOutlined, EditOutlined, FileTextOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getDocumentPage, deleteDocument, uploadDocument, type Document } from '@/lib/api';
@@ -172,115 +172,141 @@ const DocumentsPage: React.FC = () => {
 
       {/* 文档列表 */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 16px 24px' }}>
-        <Spin spinning={loading}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-            gap: 16,
-            paddingBottom: 16
-          }}>
-            {documents.map((doc) => (
-              <Card
-                key={doc.id}
-                hoverable
-                style={{ 
-                  borderRadius: 12, 
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                  border: '1px solid #f0f0f0'
-                }}
-                bodyStyle={{ padding: '16px' }}
-                actions={[
-                  <Button key="edit" type="text" icon={<EditOutlined />} size="small">
-                    修改
-                  </Button>,
-                  <Button 
-                    key="delete" 
-                    type="text" 
-                    icon={<DeleteOutlined />} 
-                    size="small"
-                    danger
-                    onClick={() => handleDelete(doc)}
-                  >
-                    删除
-                  </Button>
-                ]}
-              >
-                {/* 文档标题和类型 */}
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
+        <Table
+          dataSource={documents}
+          loading={loading}
+          rowKey="id"
+          pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: total,
+            onChange: handlePageChange,
+            showSizeChanger: false,
+            showQuickJumper: true,
+            showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+            style: { marginTop: 16 },
+            hideOnSinglePage: false
+          }}
+          locale={{
+            emptyText: (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '60px 0',
+                color: '#8c8c8c'
+              }}>
+                <FileTextOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+                <div style={{ fontSize: 16, marginBottom: 8 }}>暂无文档</div>
+                <div style={{ fontSize: 14 }}>点击上传按钮添加文档</div>
+              </div>
+            )
+          }}
+          columns={[
+            {
+              title: '文档名称',
+              dataIndex: 'title',
+              key: 'title',
+              width: 200,
+              render: (title: string, record: Document) => (
+                <div style={{ display: 'flex', alignItems: 'center' }}>
                   <FileTextOutlined style={{ fontSize: 16, color: '#1890ff', marginRight: 8 }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>
-                      {doc.title}
-                    </div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{title}</div>
                     <div style={{ fontSize: 12, color: '#8c8c8c' }}>
-                      {doc.sourceType.toUpperCase()}
+                      {record.sourceType.toUpperCase()}
                     </div>
                   </div>
                 </div>
-
-                {/* 状态和启用状态 */}
-                <div style={{ marginBottom: 12 }}>
-                  <Space>
-                    {getStatusTag(doc.status, doc.error)}
-                    <Tag color={doc.enabled ? 'green' : 'default'}>
-                      {doc.enabled ? '已启用' : '已禁用'}
-                    </Tag>
-                  </Space>
-                </div>
-
-                {/* 标签 */}
-                {doc.tags.length > 0 && (
-                  <div style={{ marginBottom: 12 }}>
-                    <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 4 }}>标签</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                      {doc.tags.map((tag, index) => (
-                        <Tag key={index} style={{ margin: 0, fontSize: '11px', padding: '2px 6px' }}>
-                          {tag}
-                        </Tag>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 文档信息 */}
-                <div style={{ fontSize: 12, color: '#8c8c8c', lineHeight: 1.5 }}>
-                  <div>分块数: {doc.chunkSize}</div>
-                  <div>文件大小: {formatFileSize(doc.size)}</div>
-                  <div>上传时间: {formatTime(doc.uploadTime)}</div>
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          {/* 空状态 */}
-          {!loading && documents.length === 0 && (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '60px 0',
-              color: '#8c8c8c'
-            }}>
-              <FileTextOutlined style={{ fontSize: 48, marginBottom: 16 }} />
-              <div style={{ fontSize: 16, marginBottom: 8 }}>暂无文档</div>
-              <div style={{ fontSize: 14 }}>点击上传按钮添加文档</div>
-            </div>
-          )}
-        </Spin>
+              )
+            },
+            {
+               title: '处理状态',
+               dataIndex: 'status',
+               key: 'status',
+               width: 100,
+               render: (status: string, record: Document) => (
+                 getStatusTag(status, record.error)
+               )
+             },
+             {
+               title: '标签',
+               dataIndex: 'tags',
+               key: 'tags',
+               width: 200,
+               render: (tags: string[]) => (
+                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                   {tags.length > 0 ? (
+                     tags.map((tag, index) => (
+                        <Tag key={index}>{tag}</Tag>
+                      ))
+                   ) : (
+                     <span style={{ color: '#8c8c8c', fontSize: 12 }}>无标签</span>
+                   )}
+                 </div>
+               )
+             },
+             {
+               title: '分块数',
+               dataIndex: 'chunkSize',
+               key: 'chunkSize',
+               width: 80,
+               align: 'center'
+             },
+             {
+               title: '文件大小',
+               dataIndex: 'size',
+               key: 'size',
+               width: 100,
+               render: (size: number) => formatFileSize(size)
+             },
+             {
+               title: '上传时间',
+               dataIndex: 'uploadTime',
+               key: 'uploadTime',
+               width: 160,
+               render: (time: string) => formatTime(time)
+             },
+             {
+               title: '启用状态',
+               dataIndex: 'enabled',
+               key: 'enabled',
+               width: 100,
+               align: 'center',
+               render: (enabled: boolean, record: Document) => (
+                 <Switch
+                   checked={enabled}
+                   size="small"
+                   onChange={(checked) => {
+                     // TODO: 实现启用/禁用切换逻辑
+                     console.log(`切换文档 ${record.title} 的启用状态为: ${checked}`);
+                     message.info(`${checked ? '启用' : '禁用'}功能待实现`);
+                   }}
+                 />
+               )
+             },
+             {
+               title: '操作',
+               key: 'action',
+               width: 120,
+               render: (_, record: Document) => (
+                 <Space>
+                   <Button type="text" icon={<EditOutlined />} size="small">
+                     修改
+                   </Button>
+                   <Button 
+                     type="text" 
+                     icon={<DeleteOutlined />} 
+                     size="small"
+                     danger
+                     onClick={() => handleDelete(record)}
+                   >
+                     删除
+                   </Button>
+                 </Space>
+               )
+             }
+          ]}
+        />
       </div>
-
-      {/* 分页 */}
-      {total > 0 && (
-        <div style={{ padding: '16px 24px', borderTop: '1px solid #f0f0f0', textAlign: 'center' }}>
-          <Pagination
-            current={currentPage}
-            pageSize={pageSize}
-            total={total}
-            onChange={handlePageChange}
-            showSizeChanger={false}
-            showQuickJumper
-            showTotal={(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`}
-          />
-        </div>
-      )}
 
       {/* 上传文档模态框 */}
       <Modal
