@@ -61,21 +61,15 @@ const KnowledgeBasePage: React.FC = () => {
   // 页面加载时获取数据
   useEffect(() => {
     fetchKnowledgeBases();
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, searchValue]);
 
-  // 搜索时重置到第一页并获取数据
+  // 搜索时重置到第一页
   const handleSearch = (value: string) => {
     setSearchValue(value);
-    setCurrentPage(1);
-  };
-
-  useEffect(() => {
-    if (currentPage === 1) {
-      fetchKnowledgeBases();
-    } else {
+    if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [searchValue]);
+  };
 
   // 菜单操作
   const handleMenuClick = (key: string, knowledgeBase: KnowledgeBase) => {
