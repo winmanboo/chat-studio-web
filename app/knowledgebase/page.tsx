@@ -77,9 +77,6 @@ const KnowledgeBasePage: React.FC = () => {
   // 页面加载时获取数据
   useEffect(() => {
     fetchKnowledgeBases();
-    fetchDictData();
-    
-
   }, []);
   
 
