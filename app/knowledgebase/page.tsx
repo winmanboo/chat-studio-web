@@ -37,17 +37,19 @@ const KnowledgeBasePage: React.FC = () => {
       // 检查是否返回了有效数据
       const hasValidData = response.records && response.records.length > 0;
       
+      let newKnowledgeBases;
       if (isLoadMore) {
-        setKnowledgeBases(prev => [...prev, ...response.records]);
+        newKnowledgeBases = [...knowledgeBases, ...response.records];
+        setKnowledgeBases(newKnowledgeBases);
         setCurrentPage(prev => prev + 1);
       } else {
-        setKnowledgeBases(response.records);
+        newKnowledgeBases = response.records;
+        setKnowledgeBases(newKnowledgeBases);
         setCurrentPage(1);
       }
       
-      const totalLoaded = isLoadMore ? knowledgeBases.length + response.records.length : response.records.length;
-      // 如果没有返回有效数据或者已加载数量达到总数，则停止分页
-      const hasMoreData = hasValidData && totalLoaded < response.total && response.total > 0;
+      // 使用更新后的数据长度来判断是否还有更多数据
+      const hasMoreData = hasValidData && newKnowledgeBases.length < response.total && response.total > 0;
       setHasMore(hasMoreData);
     } catch (error) {
       console.error('Failed to fetch knowledge bases:', error);
@@ -83,37 +85,14 @@ const KnowledgeBasePage: React.FC = () => {
   
   // 搜索变化时重新获取数据
   useEffect(() => {
-    if (searchValue !== '') {
-      fetchKnowledgeBases();
-    }
+    fetchKnowledgeBases();
   }, [searchValue]);
 
   // 加载更多数据
   const loadMore = async () => {
     if (loading || !hasMore) return;
     
-    try {
-      setLoading(true);
-      const nextPage = currentPage + 1;
-      const response = await getKnowledgeBasePage({
-        pageNum: nextPage,
-        pageSize,
-        keyword: searchValue || undefined
-      });
-      
-      const newKnowledgeBases = [...knowledgeBases, ...response.records];
-      setKnowledgeBases(newKnowledgeBases);
-      setCurrentPage(nextPage);
-      // 根据total判断是否还有更多数据
-      setHasMore(newKnowledgeBases.length < response.total);
-    } catch (error) {
-      message.error('加载更多数据失败');
-      console.error('Failed to load more knowledge bases:', error);
-      // 加载失败时停止继续分页
-      setHasMore(false);
-    } finally {
-      setLoading(false);
-    }
+    await fetchKnowledgeBases(true);
   };
 
   // 搜索时重置数据
