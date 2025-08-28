@@ -59,13 +59,12 @@ const SENDER_CONTAINER_STYLE = {
 
 // Chat Studio标题样式
 const CHAT_STUDIO_TITLE_STYLE = {
-  position: "absolute" as const,
-  top: "38%",
   fontSize: 40,
   fontWeight: 700,
   color: "#222",
   letterSpacing: 2,
   textAlign: "center" as const,
+  marginBottom: "40px",
 };
 
 // 中心容器样式
