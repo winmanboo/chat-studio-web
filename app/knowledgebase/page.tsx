@@ -28,23 +28,27 @@ const KnowledgeBasePage: React.FC = () => {
       setLoading(true);
       
       const currentPageNum = isLoadMore ? currentPage + 1 : 1;
+      
       const response = await getKnowledgeBasePage({
         pageNum: currentPageNum,
         pageSize,
         keyword: searchValue || undefined
       });
+
       
       // 检查是否返回了有效数据
-      const hasValidData = response.records && response.records.length > 0;
+      const hasValidData = response?.records && response.records.length > 0;
       
       let newKnowledgeBases;
       if (isLoadMore) {
         newKnowledgeBases = [...knowledgeBases, ...response.records];
         setKnowledgeBases(newKnowledgeBases);
-        setCurrentPage(prev => prev + 1);
+        // 加载更多时，使用请求的页码更新状态
+        setCurrentPage(currentPageNum);
       } else {
         newKnowledgeBases = response.records;
         setKnowledgeBases(newKnowledgeBases);
+        // 首次加载时，重置为第1页
         setCurrentPage(1);
       }
       
@@ -54,6 +58,10 @@ const KnowledgeBasePage: React.FC = () => {
     } catch (error) {
       console.error('Failed to fetch knowledge bases:', error);
       message.error('获取知识库失败');
+      // 如果是加载更多时出错，不要重置hasMore状态，允许用户重试
+      if (!isLoadMore) {
+        setHasMore(false);
+      }
     } finally {
       setLoading(false);
     }
@@ -81,8 +89,6 @@ const KnowledgeBasePage: React.FC = () => {
     fetchKnowledgeBases();
   }, []);
   
-
-  
   // 搜索变化时重新获取数据
   useEffect(() => {
     fetchKnowledgeBases();
@@ -90,7 +96,9 @@ const KnowledgeBasePage: React.FC = () => {
 
   // 加载更多数据
   const loadMore = async () => {
-    if (loading || !hasMore) return;
+    if (loading || !hasMore) {
+      return;
+    }
     
     await fetchKnowledgeBases(true);
   };
@@ -238,6 +246,7 @@ const KnowledgeBasePage: React.FC = () => {
             onSearch={handleSearch}
             onChange={(e) => setSearchValue(e.target.value)}
           />
+
         </Space>
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
