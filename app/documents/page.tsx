@@ -1,0 +1,330 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { Card, Button, Input, Tag, Space, Modal, message, Spin, Upload, Tooltip, Pagination } from 'antd';
+import { UploadOutlined, DeleteOutlined, EditOutlined, FileTextOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { getDocumentPage, deleteDocument, uploadDocument, type Document } from '@/lib/api';
+
+const { Search } = Input;
+
+const DocumentsPage: React.FC = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const kbId = searchParams.get('kbId');
+  
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [searchValue, setSearchValue] = useState('');
+  const [uploadModalVisible, setUploadModalVisible] = useState(false);
+
+  // 获取文档数据
+  const fetchDocuments = async (pageNum = 1, keyword = '') => {
+    if (!kbId) {
+      message.error('缺少知识库ID参数');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await getDocumentPage({
+        kbId,
+        pageNum,
+        pageSize,
+        keyword: keyword || undefined
+      });
+
+      // 正常处理响应数据，包括空数据情况
+      setDocuments(response?.records || []);
+      setTotal(response?.total || 0);
+      setCurrentPage(response?.current || pageNum);
+    } catch (error) {
+      console.error('Failed to fetch documents:', error);
+      // 只在真正的网络错误或服务器错误时显示错误消息
+      // 数据为空不算错误，不显示错误提示
+      setDocuments([]);
+      setTotal(0);
+      setCurrentPage(pageNum);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 页面加载时获取数据
+  useEffect(() => {
+    fetchDocuments(1, searchValue);
+  }, [kbId]);
+
+  // 搜索处理
+  const handleSearch = (value: string) => {
+    setSearchValue(value);
+    fetchDocuments(1, value);
+  };
+
+  // 分页处理
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchDocuments(page, searchValue);
+  };
+
+  // 格式化文件大小
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // 格式化时间
+  const formatTime = (timeStr: string) => {
+    return new Date(timeStr).toLocaleString('zh-CN');
+  };
+
+  // 获取状态标签
+  const getStatusTag = (status: string, error?: string | null) => {
+    const statusConfig = {
+      QUEUE: { color: 'blue', text: '队列中' },
+      PROCESSING: { color: 'orange', text: '处理中' },
+      COMPLETED: { color: 'green', text: '已完成' },
+      FAILED: { color: 'red', text: '失败' }
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || { color: 'default', text: status };
+    
+    if (status === 'FAILED' && error) {
+      return (
+        <Tooltip title={error}>
+          <Tag color={config.color} style={{ cursor: 'pointer' }}>
+            {config.text}
+          </Tag>
+        </Tooltip>
+      );
+    }
+
+    return <Tag color={config.color}>{config.text}</Tag>;
+  };
+
+  // 删除文档
+  const handleDelete = (doc: Document) => {
+    Modal.confirm({
+      title: '确认删除',
+      icon: <ExclamationCircleOutlined />,
+      content: `确定要删除文档 "${doc.title}" 吗？此操作不可撤销。`,
+      okText: '确认',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await deleteDocument(doc.id);
+          message.success('文档删除成功');
+          fetchDocuments(currentPage, searchValue);
+        } catch (error) {
+          message.error(error instanceof Error ? error.message : '删除失败');
+        }
+      },
+    });
+  };
+
+  // 返回知识库
+  const handleBack = () => {
+    router.push('/knowledgebase');
+  };
+
+  if (!kbId) {
+    return (
+      <div style={{ padding: 24, textAlign: 'center' }}>
+        <p>缺少知识库ID参数</p>
+        <Button onClick={handleBack}>返回知识库</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height: '100vh', width: '100%', background: '#fff', color: '#222', display: 'flex', flexDirection: 'column' }}>
+      {/* 头部 */}
+      <div style={{ padding: 24, flexShrink: 0, borderBottom: '1px solid #f0f0f0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+          <Button type="text" onClick={handleBack} style={{ marginRight: 8 }}>
+            ← 返回知识库
+          </Button>
+          <h2 style={{ margin: 0, color: '#222' }}>文档管理</h2>
+        </div>
+        <Space style={{ marginBottom: 16 }}>
+          <Search
+            placeholder="搜索文档"
+            allowClear
+            style={{ width: 300 }}
+            onSearch={handleSearch}
+            onChange={(e) => setSearchValue(e.target.value)}
+          />
+          <Button 
+            type="primary" 
+            icon={<UploadOutlined />}
+            onClick={() => setUploadModalVisible(true)}
+          >
+            上传文档
+          </Button>
+        </Space>
+      </div>
+
+      {/* 文档列表 */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 16px 24px' }}>
+        <Spin spinning={loading}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+            gap: 16,
+            paddingBottom: 16
+          }}>
+            {documents.map((doc) => (
+              <Card
+                key={doc.id}
+                hoverable
+                style={{ 
+                  borderRadius: 12, 
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                  border: '1px solid #f0f0f0'
+                }}
+                bodyStyle={{ padding: '16px' }}
+                actions={[
+                  <Button key="edit" type="text" icon={<EditOutlined />} size="small">
+                    修改
+                  </Button>,
+                  <Button 
+                    key="delete" 
+                    type="text" 
+                    icon={<DeleteOutlined />} 
+                    size="small"
+                    danger
+                    onClick={() => handleDelete(doc)}
+                  >
+                    删除
+                  </Button>
+                ]}
+              >
+                {/* 文档标题和类型 */}
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
+                  <FileTextOutlined style={{ fontSize: 16, color: '#1890ff', marginRight: 8 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>
+                      {doc.title}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#8c8c8c' }}>
+                      {doc.sourceType.toUpperCase()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 状态和启用状态 */}
+                <div style={{ marginBottom: 12 }}>
+                  <Space>
+                    {getStatusTag(doc.status, doc.error)}
+                    <Tag color={doc.enabled ? 'green' : 'default'}>
+                      {doc.enabled ? '已启用' : '已禁用'}
+                    </Tag>
+                  </Space>
+                </div>
+
+                {/* 标签 */}
+                {doc.tags.length > 0 && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 4 }}>标签</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {doc.tags.map((tag, index) => (
+                        <Tag key={index} style={{ margin: 0, fontSize: '11px', padding: '2px 6px' }}>
+                          {tag}
+                        </Tag>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 文档信息 */}
+                <div style={{ fontSize: 12, color: '#8c8c8c', lineHeight: 1.5 }}>
+                  <div>分块数: {doc.chunkSize}</div>
+                  <div>文件大小: {formatFileSize(doc.size)}</div>
+                  <div>上传时间: {formatTime(doc.uploadTime)}</div>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* 空状态 */}
+          {!loading && documents.length === 0 && (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '60px 0',
+              color: '#8c8c8c'
+            }}>
+              <FileTextOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+              <div style={{ fontSize: 16, marginBottom: 8 }}>暂无文档</div>
+              <div style={{ fontSize: 14 }}>点击上传按钮添加文档</div>
+            </div>
+          )}
+        </Spin>
+      </div>
+
+      {/* 分页 */}
+      {total > 0 && (
+        <div style={{ padding: '16px 24px', borderTop: '1px solid #f0f0f0', textAlign: 'center' }}>
+          <Pagination
+            current={currentPage}
+            pageSize={pageSize}
+            total={total}
+            onChange={handlePageChange}
+            showSizeChanger={false}
+            showQuickJumper
+            showTotal={(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`}
+          />
+        </div>
+      )}
+
+      {/* 上传文档模态框 */}
+      <Modal
+        title="上传文档"
+        open={uploadModalVisible}
+        onCancel={() => setUploadModalVisible(false)}
+        footer={null}
+        width={600}
+      >
+        <div style={{ padding: '20px 0' }}>
+          <Upload.Dragger
+            name="file"
+            multiple
+            customRequest={async ({ file, onSuccess, onError }) => {
+              try {
+                if (kbId && file instanceof File) {
+                  await uploadDocument(kbId, file);
+                  message.success(`${file.name} 文件上传成功`);
+                  onSuccess?.(file);
+                  setUploadModalVisible(false);
+                  fetchDocuments(currentPage, searchValue);
+                } else {
+                  throw new Error('缺少知识库ID或文件无效');
+                }
+              } catch (error) {
+                const errorMsg = error instanceof Error ? error.message : '上传失败';
+                message.error(`${(file as File).name} ${errorMsg}`);
+                onError?.(new Error(errorMsg));
+              }
+            }}
+            style={{ padding: 20 }}
+          >
+            <p className="ant-upload-drag-icon">
+              <UploadOutlined style={{ fontSize: 48, color: '#1890ff' }} />
+            </p>
+            <p className="ant-upload-text">点击或拖拽文件到此区域上传</p>
+            <p className="ant-upload-hint">
+              支持单个或批量上传。支持 PDF、DOC、DOCX、TXT 等格式
+            </p>
+          </Upload.Dragger>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+export default DocumentsPage;

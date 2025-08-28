@@ -4,11 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Tag, Space, Dropdown, Modal, message, Spin, Form, Select, Slider, Switch } from 'antd';
 import { PlusOutlined, MoreOutlined, FileTextOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
+import { useRouter } from 'next/navigation';
 import { getKnowledgeBasePage, deleteKnowledgeBase, createKnowledgeBase, updateKnowledgeBase, getKnowledgeBaseInfo, getDictItems, getKnowledgeBaseTags, type KnowledgeBase, type CreateKnowledgeBaseParams, type DictItem, type TagItem } from '@/lib/api';
 
 const { Search } = Input;
 
 const KnowledgeBasePage: React.FC = () => {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [searchValue, setSearchValue] = useState('');
@@ -324,9 +326,11 @@ const KnowledgeBasePage: React.FC = () => {
                  position: 'relative',
                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                  border: '1px solid #f0f0f0',
-                 transition: 'all 0.3s ease'
+                 transition: 'all 0.3s ease',
+                 cursor: 'pointer'
                }}
                bodyStyle={{ padding: '20px' }}
+               onClick={() => router.push(`/documents?kbId=${kb.id}`)}
              >
                {/* 右上角菜单按钮 */}
                <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1 }}>
@@ -343,6 +347,7 @@ const KnowledgeBasePage: React.FC = () => {
                        color: '#8c8c8c',
                        borderRadius: '6px'
                      }}
+                     onClick={(e) => e.stopPropagation()}
                    />
                  </Dropdown>
                </div>
