@@ -235,7 +235,7 @@ const KnowledgeBasePage: React.FC = () => {
   };
 
   return (
-    <div style={{ height: '100vh', width: '100%', background: '#fff', color: '#222', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100vh', width: '100%', background: '#fff', color: '#222', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: 24, flexShrink: 0 }}>
         <h2 style={{ marginBottom: 16, color: '#222' }}>知识库管理</h2>
         <Space style={{ marginBottom: 16 }}>
@@ -249,17 +249,13 @@ const KnowledgeBasePage: React.FC = () => {
 
         </Space>
       </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* 卡片网格布局 */}
-        <div 
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '0 24px 16px 24px',
-            minHeight: 400,
-            maxHeight: 'calc(100vh - 200px)'
-          }}
-          onScroll={(e) => {
+      <div 
+        style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '0 24px 16px 24px'
+        }}
+        onScroll={(e) => {
           const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
           const isNearBottom = scrollHeight - scrollTop <= clientHeight + 100;
           
@@ -267,15 +263,14 @@ const KnowledgeBasePage: React.FC = () => {
             loadMore();
           }
         }}
-
-        >
-          <Spin spinning={loading}>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-              gap: 16,
-              minHeight: 'auto'
-            }}>
+      >
+        <Spin spinning={loading}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: 16,
+            paddingBottom: 16
+          }}>
           {/* 添加知识库卡片 */}
           <Card
             hoverable
@@ -435,10 +430,9 @@ const KnowledgeBasePage: React.FC = () => {
                )}
              </Card>
             ))}
-            </div>
-          </Spin>
-        </div>
- 
+          </div>
+        </Spin>
+        
         {/* 加载更多提示 */}
         {hasMore && !loading && knowledgeBases.length > 0 && (
           <div style={{ 
