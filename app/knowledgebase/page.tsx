@@ -396,60 +396,70 @@ const KnowledgeBasePage: React.FC = () => {
                </div>
  
                {/* 标签区域 */}
-               {kb.tags.length > 0 && (
-                 <div style={{ marginBottom: 16 }}>
-                   <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8 }}>标签</div>
-                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                     {kb.tags.slice(0, 3).map(tag => (
-                       <Tag 
-                         key={tag.id} 
-                         style={{ 
+               <div style={{ marginBottom: 16, minHeight: 32 }}>
+                 <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8 }}>标签</div>
+                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', minHeight: 24 }}>
+                   {kb.tags.length > 0 ? (
+                     <>
+                       {kb.tags.slice(0, 3).map(tag => (
+                         <Tag 
+                           key={tag.id} 
+                           style={{ 
+                             margin: 0,
+                             borderRadius: '12px',
+                             fontSize: '11px',
+                             padding: '2px 8px',
+                             backgroundColor: '#f0f9ff',
+                             border: '1px solid #bae7ff',
+                             color: '#0958d9'
+                           }}
+                         >
+                           {tag.name}
+                         </Tag>
+                       ))}
+                       {kb.tags.length > 3 && (
+                         <Tag style={{ 
                            margin: 0,
                            borderRadius: '12px',
                            fontSize: '11px',
                            padding: '2px 8px',
-                           backgroundColor: '#f0f9ff',
-                           border: '1px solid #bae7ff',
-                           color: '#0958d9'
-                         }}
-                       >
-                         {tag.name}
-                       </Tag>
-                     ))}
-                     {kb.tags.length > 3 && (
-                       <Tag style={{ 
-                         margin: 0,
-                         borderRadius: '12px',
-                         fontSize: '11px',
-                         padding: '2px 8px',
-                         backgroundColor: '#f5f5f5',
-                         border: '1px solid #d9d9d9',
-                         color: '#8c8c8c'
-                       }}>
-                         +{kb.tags.length - 3}
-                       </Tag>
-                     )}
-                   </div>
+                           backgroundColor: '#f5f5f5',
+                           border: '1px solid #d9d9d9',
+                           color: '#8c8c8c'
+                         }}>
+                           +{kb.tags.length - 3}
+                         </Tag>
+                       )}
+                     </>
+                   ) : (
+                     <span style={{ 
+                       fontSize: '11px',
+                       color: '#bfbfbf',
+                       fontStyle: 'italic',
+                       lineHeight: '24px'
+                     }}>
+                       暂无标签
+                     </span>
+                   )}
                  </div>
-               )}
+               </div>
  
                {/* 描述区域 */}
-               {kb.description && (
-                 <div>
-                   <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 6 }}>描述</div>
-                   <p style={{ 
-                     color: '#595959', 
-                     fontSize: 13, 
-                     margin: 0, 
-                     lineHeight: 1.5,
-                     overflow: 'hidden',
-                     textOverflow: 'ellipsis',
-                     whiteSpace: 'nowrap'
-                   }}>
-                     {kb.description}
-                   </p>
-                 </div>
-               )}
+               <div style={{ minHeight: 40 }}>
+                 <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 6 }}>描述</div>
+                 <p style={{ 
+                   color: kb.description ? '#595959' : '#bfbfbf', 
+                   fontSize: 13, 
+                   margin: 0, 
+                   lineHeight: 1.5,
+                   overflow: 'hidden',
+                   textOverflow: 'ellipsis',
+                   whiteSpace: 'nowrap',
+                   fontStyle: kb.description ? 'normal' : 'italic'
+                 }}>
+                   {kb.description || '暂无描述信息'}
+                 </p>
+               </div>
              </Card>
             ))}
           </div>
