@@ -8,7 +8,7 @@ export interface KnowledgeBase {
   createdTime: string;
   updatedTime: string;
   docCount: number;
-  tags: string[];
+  tags: Array<{ id: number; name: string }>;
 }
 
 // 分页响应类型

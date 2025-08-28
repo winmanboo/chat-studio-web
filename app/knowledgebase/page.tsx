@@ -360,7 +360,7 @@ const KnowledgeBasePage: React.FC = () => {
                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                      {kb.tags.slice(0, 3).map(tag => (
                        <Tag 
-                         key={tag} 
+                         key={tag.id} 
                          style={{ 
                            margin: 0,
                            borderRadius: '12px',
@@ -371,7 +371,7 @@ const KnowledgeBasePage: React.FC = () => {
                            color: '#0958d9'
                          }}
                        >
-                         {tag}
+                         {tag.name}
                        </Tag>
                      ))}
                      {kb.tags.length > 3 && (
