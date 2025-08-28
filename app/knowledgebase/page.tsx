@@ -26,26 +26,32 @@ const KnowledgeBasePage: React.FC = () => {
   const fetchKnowledgeBases = async (isLoadMore = false) => {
     try {
       setLoading(true);
+      
+      const currentPageNum = isLoadMore ? currentPage + 1 : 1;
       const response = await getKnowledgeBasePage({
-        pageNum: isLoadMore ? currentPage : 1,
+        pageNum: currentPageNum,
         pageSize,
         keyword: searchValue || undefined
       });
       
+      // 检查是否返回了有效数据
+      const hasValidData = response.records && response.records.length > 0;
+      
       if (isLoadMore) {
-        const newKnowledgeBases = [...knowledgeBases, ...response.records];
-        setKnowledgeBases(newKnowledgeBases);
-        // 根据total判断是否还有更多数据
-        setHasMore(newKnowledgeBases.length < response.total);
+        setKnowledgeBases(prev => [...prev, ...response.records]);
+        setCurrentPage(prev => prev + 1);
       } else {
         setKnowledgeBases(response.records);
         setCurrentPage(1);
-        // 根据total判断是否还有更多数据
-        setHasMore(response.records.length < response.total);
       }
+      
+      const totalLoaded = isLoadMore ? knowledgeBases.length + response.records.length : response.records.length;
+      // 如果没有返回有效数据或者已加载数量达到总数，则停止分页
+      const hasMoreData = hasValidData && totalLoaded < response.total && response.total > 0;
+      setHasMore(hasMoreData);
     } catch (error) {
-      message.error('获取知识库数据失败');
       console.error('Failed to fetch knowledge bases:', error);
+      message.error('获取知识库失败');
     } finally {
       setLoading(false);
     }
@@ -71,16 +77,27 @@ const KnowledgeBasePage: React.FC = () => {
   // 页面加载时获取数据
   useEffect(() => {
     fetchKnowledgeBases();
+    fetchDictData();
+    
+
+  }, []);
+  
+
+  
+  // 搜索变化时重新获取数据
+  useEffect(() => {
+    if (searchValue !== '') {
+      fetchKnowledgeBases();
+    }
   }, [searchValue]);
 
   // 加载更多数据
   const loadMore = async () => {
     if (loading || !hasMore) return;
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
     
     try {
       setLoading(true);
+      const nextPage = currentPage + 1;
       const response = await getKnowledgeBasePage({
         pageNum: nextPage,
         pageSize,
@@ -89,11 +106,14 @@ const KnowledgeBasePage: React.FC = () => {
       
       const newKnowledgeBases = [...knowledgeBases, ...response.records];
       setKnowledgeBases(newKnowledgeBases);
+      setCurrentPage(nextPage);
       // 根据total判断是否还有更多数据
       setHasMore(newKnowledgeBases.length < response.total);
     } catch (error) {
       message.error('加载更多数据失败');
       console.error('Failed to load more knowledge bases:', error);
+      // 加载失败时停止继续分页
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
@@ -250,21 +270,26 @@ const KnowledgeBasePage: React.FC = () => {
           style={{
             flex: 1,
             overflowY: 'auto',
-            paddingBottom: 16
+            paddingBottom: 16,
+            minHeight: 400,
+            maxHeight: 'calc(100vh - 200px)'
           }}
           onScroll={(e) => {
-            const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-            if (scrollHeight - scrollTop <= clientHeight + 100 && hasMore && !loading) {
-              loadMore();
-            }
-          }}
+          const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+          const isNearBottom = scrollHeight - scrollTop <= clientHeight + 100;
+          
+          if (isNearBottom && hasMore && !loading) {
+            loadMore();
+          }
+        }}
+
         >
           <Spin spinning={loading}>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
               gap: 16,
-              minHeight: 'calc(100vh - 200px)' // 确保有足够高度触发滚动
+              minHeight: 'auto'
             }}>
           {/* 添加知识库卡片 */}
           <Card
