@@ -247,43 +247,137 @@ const KnowledgeBasePage: React.FC = () => {
              <Card
                key={kb.id}
                hoverable
-               style={{ borderRadius: 12, minHeight: 200, position: 'relative' }}
+               style={{ 
+                 borderRadius: 16, 
+                 minHeight: 220, 
+                 position: 'relative',
+                 boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                 border: '1px solid #f0f0f0',
+                 transition: 'all 0.3s ease'
+               }}
+               bodyStyle={{ padding: '20px' }}
              >
                {/* 右上角菜单按钮 */}
-               <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 1 }}>
+               <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1 }}>
                  <Dropdown
                    menu={{ items: getMenuItems(kb) }}
                    trigger={['click']}
                    placement="bottomRight"
                  >
-                   <Button type="text" icon={<MoreOutlined />} size="small" />
+                   <Button 
+                     type="text" 
+                     icon={<MoreOutlined />} 
+                     size="small" 
+                     style={{ 
+                       color: '#8c8c8c',
+                       borderRadius: '6px'
+                     }}
+                   />
                  </Dropdown>
                </div>
 
-               <div style={{ marginBottom: 12 }}>
-                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, paddingRight: 32 }}>
-                   <FileTextOutlined style={{ color: '#1890ff', marginRight: 8 }} />
-                   <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{kb.name}</h3>
+               {/* 标题区域 */}
+               <div style={{ marginBottom: 16, paddingRight: 40 }}>
+                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
+                   <div style={{
+                     width: 32,
+                     height: 32,
+                     borderRadius: '8px',
+                     backgroundColor: '#e6f7ff',
+                     display: 'flex',
+                     alignItems: 'center',
+                     justifyContent: 'center',
+                     marginRight: 12
+                   }}>
+                     <FileTextOutlined style={{ color: '#1890ff', fontSize: 16 }} />
+                   </div>
+                   <h3 style={{ 
+                     margin: 0, 
+                     fontSize: 18, 
+                     fontWeight: 600,
+                     color: '#262626',
+                     lineHeight: 1.3
+                   }}>
+                     {kb.name}
+                   </h3>
                  </div>
-                 <p style={{ color: '#666', fontSize: 12, margin: 0 }}>更新时间: {new Date(kb.updatedTime).toLocaleDateString()}</p>
                </div>
                
-               <div style={{ marginBottom: 12 }}>
-                 <p style={{ color: '#666', fontSize: 14, margin: 0 }}>文档数: {kb.docCount}</p>
+               {/* 统计信息区域 */}
+               <div style={{ 
+                 display: 'flex', 
+                 justifyContent: 'space-between',
+                 marginBottom: 16,
+                 padding: '12px 16px',
+                 backgroundColor: '#fafafa',
+                 borderRadius: '8px'
+               }}>
+                 <div style={{ textAlign: 'center' }}>
+                   <div style={{ fontSize: 20, fontWeight: 600, color: '#1890ff' }}>{kb.docCount}</div>
+                   <div style={{ fontSize: 12, color: '#8c8c8c', marginTop: 2 }}>文档数</div>
+                 </div>
+                 <div style={{ textAlign: 'center' }}>
+                   <div style={{ fontSize: 12, color: '#8c8c8c' }}>更新时间</div>
+                   <div style={{ fontSize: 12, color: '#595959', marginTop: 2, fontWeight: 500 }}>
+                     {new Date(kb.updatedTime).toLocaleDateString()}
+                   </div>
+                 </div>
                </div>
  
-               <div style={{ marginBottom: 12 }}>
-                 {kb.tags.map(tag => (
-                   <Tag key={tag} color="blue" style={{ marginBottom: 4 }}>
-                     {tag}
-                   </Tag>
-                 ))}
-               </div>
+               {/* 标签区域 */}
+               {kb.tags.length > 0 && (
+                 <div style={{ marginBottom: 16 }}>
+                   <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8 }}>标签</div>
+                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                     {kb.tags.slice(0, 3).map(tag => (
+                       <Tag 
+                         key={tag} 
+                         style={{ 
+                           margin: 0,
+                           borderRadius: '12px',
+                           fontSize: '11px',
+                           padding: '2px 8px',
+                           backgroundColor: '#f0f9ff',
+                           border: '1px solid #bae7ff',
+                           color: '#0958d9'
+                         }}
+                       >
+                         {tag}
+                       </Tag>
+                     ))}
+                     {kb.tags.length > 3 && (
+                       <Tag style={{ 
+                         margin: 0,
+                         borderRadius: '12px',
+                         fontSize: '11px',
+                         padding: '2px 8px',
+                         backgroundColor: '#f5f5f5',
+                         border: '1px solid #d9d9d9',
+                         color: '#8c8c8c'
+                       }}>
+                         +{kb.tags.length - 3}
+                       </Tag>
+                     )}
+                   </div>
+                 </div>
+               )}
  
+               {/* 描述区域 */}
                {kb.description && (
-                 <p style={{ color: '#999', fontSize: 12, margin: 0, lineHeight: 1.4 }}>
-                   {kb.description}
-                 </p>
+                 <div>
+                   <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 6 }}>描述</div>
+                   <p style={{ 
+                     color: '#595959', 
+                     fontSize: 13, 
+                     margin: 0, 
+                     lineHeight: 1.5,
+                     overflow: 'hidden',
+                     textOverflow: 'ellipsis',
+                     whiteSpace: 'nowrap'
+                   }}>
+                     {kb.description}
+                   </p>
+                 </div>
                )}
              </Card>
             ))}
@@ -319,40 +413,151 @@ const KnowledgeBasePage: React.FC = () => {
 
       {/* 新增知识库模态框 */}
       <Modal
-          title="新增知识库"
+          title={
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              fontSize: '16px',
+              fontWeight: 600,
+              color: '#262626'
+            }}>
+              <FileTextOutlined style={{ color: '#1890ff' }} />
+              新增知识库
+            </div>
+          }
           open={createModalVisible}
           onOk={handleCreateSubmit}
           onCancel={handleCreateCancel}
           confirmLoading={createLoading}
-          width={600}
+          width={680}
           destroyOnHidden
           okText="保存"
           cancelText="关闭"
+          styles={{
+            body: { 
+              padding: '24px 0 8px',
+              maxHeight: '70vh',
+              overflowY: 'auto'
+            }
+          }}
         >
         <Form
            form={form}
            layout="horizontal"
-           labelCol={{ span: 6 }}
-           wrapperCol={{ span: 18 }}
+           labelCol={{ span: 5 }}
+           wrapperCol={{ span: 19 }}
            requiredMark={false}
+           style={{ padding: '0 24px' }}
          >
-          <Form.Item
-             label="知识库名称"
-             name="name"
-             rules={[
-               { required: true, message: '请输入知识库名称' },
-               { max: 50, message: '知识库名称不能超过50个字符' }
-             ]}
-           >
-             <Input placeholder="请输入知识库名称" />
+          {/* 基本信息分组 */}
+          <div style={{ 
+            marginBottom: '24px',
+            padding: '16px',
+            backgroundColor: '#fafafa',
+            borderRadius: '8px',
+            border: '1px solid #f0f0f0'
+          }}>
+            <div style={{ 
+              fontSize: '14px', 
+              fontWeight: 600, 
+              color: '#262626', 
+              marginBottom: '16px',
+              borderLeft: '3px solid #1890ff',
+              paddingLeft: '8px'
+            }}>
+              基本信息
+            </div>
+            
+            <Form.Item
+               label="知识库名称"
+               name="name"
+               rules={[
+                 { required: true, message: '请输入知识库名称' },
+                 { max: 50, message: '知识库名称不能超过50个字符' }
+               ]}
+               style={{ marginBottom: '20px' }}
+             >
+               <Input 
+                 placeholder="请输入知识库名称" 
+                 style={{ 
+                   borderRadius: '6px',
+                   fontSize: '14px'
+                 }}
+               />
+             </Form.Item>
+
+             <Form.Item
+               label="标签"
+               name="tags"
+               style={{ marginBottom: '20px' }}
+             >
+               <Select
+                 mode="tags"
+                 placeholder="请选择已有标签或输入新标签"
+                 tokenSeparators={[',', ' ']}
+                 maxTagCount={5}
+                 style={{ borderRadius: '6px' }}
+                 options={availableTags.map(tag => ({
+                   label: tag.name,
+                   value: JSON.stringify({ id: tag.id, name: tag.name })
+                 }))}
+                 filterOption={(input, option) =>
+                   option?.label?.toLowerCase().includes(input.toLowerCase()) ?? false
+                 }
+               />
            </Form.Item>
 
            <Form.Item
+             label="描述"
+             name="description"
+             rules={[
+               { max: 200, message: '描述不能超过200个字符' }
+             ]}
+             style={{ marginBottom: '0' }}
+           >
+             <Input.TextArea 
+               placeholder="请输入知识库描述（可选）" 
+               rows={3}
+               showCount
+               maxLength={200}
+               style={{ 
+                 borderRadius: '6px',
+                 fontSize: '14px'
+               }}
+             />
+           </Form.Item>
+          </div>
+
+          {/* 检索配置分组 */}
+          <div style={{ 
+            marginBottom: '16px',
+            padding: '16px',
+            backgroundColor: '#f6ffed',
+            borderRadius: '8px',
+            border: '1px solid #b7eb8f'
+          }}>
+            <div style={{ 
+              fontSize: '14px', 
+              fontWeight: 600, 
+              color: '#262626', 
+              marginBottom: '16px',
+              borderLeft: '3px solid #52c41a',
+              paddingLeft: '8px'
+            }}>
+              检索配置
+            </div>
+
+            <Form.Item
              label="检索模式"
              name="retrievalMode"
              rules={[{ required: true, message: '请选择检索模式' }]}
+             style={{ marginBottom: '20px' }}
            >
-             <Select placeholder="请选择检索模式">
+             <Select 
+               placeholder="请选择检索模式"
+               style={{ borderRadius: '6px' }}
+             >
                {retrievalModes.map(item => (
                  <Select.Option key={item.code} value={item.code}>
                    {item.name}
@@ -365,8 +570,12 @@ const KnowledgeBasePage: React.FC = () => {
              label="分块策略"
              name="splitStrategy"
              rules={[{ required: true, message: '请选择分块策略' }]}
+             style={{ marginBottom: '20px' }}
            >
-             <Select placeholder="请选择分块策略">
+             <Select 
+               placeholder="请选择分块策略"
+               style={{ borderRadius: '6px' }}
+             >
                {splitStrategies.map(item => (
                  <Select.Option key={item.code} value={item.code}>
                    {item.name}
@@ -379,19 +588,24 @@ const KnowledgeBasePage: React.FC = () => {
              label="TopK"
              name="topK"
              rules={[{ required: true, message: '请设置TopK值' }]}
+             style={{ marginBottom: '20px' }}
            >
-             <Slider
-               min={1}
-               max={20}
-               marks={{
-                 1: '1',
-                 5: '5',
-                 10: '10',
-                 15: '15',
-                 20: '20'
-               }}
-               tooltip={{ formatter: (value) => `${value}` }}
-             />
+             <div style={{ padding: '0 8px' }}>
+               <Slider
+                 min={1}
+                 max={20}
+                 marks={{
+                   1: { style: { fontSize: '12px' }, label: '1' },
+                   5: { style: { fontSize: '12px' }, label: '5' },
+                   10: { style: { fontSize: '12px' }, label: '10' },
+                   15: { style: { fontSize: '12px' }, label: '15' },
+                   20: { style: { fontSize: '12px' }, label: '20' }
+                 }}
+                 tooltip={{ formatter: (value) => `TopK: ${value}` }}
+                 trackStyle={{ backgroundColor: '#52c41a' }}
+                 handleStyle={{ borderColor: '#52c41a' }}
+               />
+             </div>
            </Form.Item>
 
            <Form.Item
@@ -399,43 +613,16 @@ const KnowledgeBasePage: React.FC = () => {
              name="rerankEnabled"
              valuePropName="checked"
              rules={[{ required: true, message: '请选择是否启用Rerank' }]}
+             style={{ marginBottom: '0' }}
            >
-             <Switch />
+             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+               <Switch size="default" />
+               <span style={{ fontSize: '12px', color: '#8c8c8c' }}>
+                 开启后将对检索结果进行重新排序
+               </span>
+             </div>
            </Form.Item>
-
-           <Form.Item
-             label="标签"
-             name="tags"
-           >
-             <Select
-               mode="tags"
-               placeholder="请选择已有标签或输入新标签"
-               tokenSeparators={[',', ' ']}
-               maxTagCount={5}
-               options={availableTags.map(tag => ({
-                 label: tag.name,
-                 value: JSON.stringify({ id: tag.id, name: tag.name })
-               }))}
-               filterOption={(input, option) =>
-                 option?.label?.toLowerCase().includes(input.toLowerCase()) ?? false
-               }
-             />
-           </Form.Item>
-
-           <Form.Item
-             label="描述"
-             name="description"
-             rules={[
-               { max: 200, message: '描述不能超过200个字符' }
-             ]}
-           >
-             <Input.TextArea 
-               placeholder="请输入知识库描述（可选）" 
-               rows={3}
-               showCount
-               maxLength={200}
-             />
-           </Form.Item>
+          </div>
         </Form>
       </Modal>
     </div>
