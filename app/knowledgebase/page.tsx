@@ -646,6 +646,7 @@ const KnowledgeBasePage: React.FC = () => {
                <Slider
                  min={1}
                  max={20}
+                 defaultValue={5}
                  marks={{
                    1: { style: { fontSize: '12px' }, label: '1' },
                    5: { style: { fontSize: '12px' }, label: '5' },
