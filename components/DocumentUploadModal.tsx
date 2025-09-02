@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, Upload, message } from 'antd';
 import { UploadOutlined, LinkOutlined } from '@ant-design/icons';
-import { uploadDocumentWithForm, type DocumentUploadParams, getDictItems, type DictItem } from '@/lib/api';
+import { uploadDocumentWithForm, type DocumentUploadParams, getDictItems, getDocumentTags, type DictItem } from '@/lib/api';
 
 interface DocumentUploadModalProps {
   visible: boolean;
@@ -24,17 +24,20 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
   const [storageTypes, setStorageTypes] = useState<DictItem[]>([]);
   const [sourceTypes, setSourceTypes] = useState<DictItem[]>([]);
   const [loadingDict, setLoadingDict] = useState(false);
+  const [availableTags, setAvailableTags] = useState<Array<{ id: number; name: string }>>([]);
 
   // 获取字典数据
   const fetchDictData = async () => {
     try {
       setLoadingDict(true);
-      const [storageTypeData, sourceTypeData] = await Promise.all([
+      const [storageTypeData, sourceTypeData, tagsData] = await Promise.all([
         getDictItems('storage_type'),
-        getDictItems('source_type')
+        getDictItems('source_type'),
+        getDocumentTags()
       ]);
       setStorageTypes(storageTypeData);
       setSourceTypes(sourceTypeData);
+      setAvailableTags(tagsData);
     } catch (error) {
       console.error('获取字典数据失败:', error);
       message.error('获取字典数据失败');
@@ -73,6 +76,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
     sourceType: string;
     description?: string;
     uploadFileUrl?: string;
+    tags?: string[];
     file?: {
       fileList: Array<{
         originFileObj: File;
@@ -87,12 +91,24 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
         return;
       }
 
+      // 处理标签数据
+      const tags = values.tags?.map((tag: string) => {
+        try {
+          // 尝试解析为已有标签
+          return JSON.parse(tag);
+        } catch {
+          // 如果解析失败，说明是新输入的标签
+          return { name: tag };
+        }
+      }) || [];
+
       const uploadParams: DocumentUploadParams = {
         title: values.title,
         storageType: values.storageType,
         sourceType: values.sourceType,
         description: values.description,
-        uploadFileUrl: values.uploadFileUrl
+        uploadFileUrl: values.uploadFileUrl,
+        tags: tags.length > 0 ? tags : undefined
       };
 
       let file: File | undefined;
@@ -238,6 +254,28 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
             />
           </Form.Item>
         )}
+
+        <Form.Item
+          label="标签"
+          name="tags"
+          style={{ marginBottom: 20 }}
+          wrapperCol={{ span: 18, offset: 0 }}
+        >
+          <Select
+            mode="tags"
+            placeholder="请选择或输入标签"
+            loading={loadingDict}
+            style={{ borderRadius: '8px' }}
+            tokenSeparators={[',', ' ']}
+            options={availableTags.map(tag => ({
+              label: tag.name,
+              value: JSON.stringify({ id: tag.id, name: tag.name })
+            }))}
+            filterOption={(input, option) =>
+              option?.label?.toLowerCase().includes(input.toLowerCase()) ?? false
+            }
+          />
+        </Form.Item>
 
         <Form.Item
           label="文档描述"

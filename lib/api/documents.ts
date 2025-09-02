@@ -59,6 +59,7 @@ export interface DocumentUploadParams {
   sourceType: string;
   description?: string;
   uploadFileUrl?: string;
+  tags?: Array<{ id?: number; name: string }>;
 }
 
 // 上传文档（原有接口，保持兼容）
@@ -72,6 +73,11 @@ export const uploadDocument = async (kbId: string, file: File): Promise<void> =>
       'Content-Type': 'multipart/form-data'
     }
   });
+};
+
+// 获取文档标签
+export const getDocumentTags = (): Promise<Array<{ id: number; name: string }>> => {
+  return request.get('/tags/doc');
 };
 
 // 上传文档（完整表单）
@@ -90,6 +96,7 @@ export const uploadDocumentWithForm = async (
     sourceType: string;
     description?: string;
     uploadFileUrl?: string;
+    tags?: Array<{ id?: number; name: string }>;
   } = {
     kbId: kbId,
     title: params.title,
@@ -105,6 +112,11 @@ export const uploadDocumentWithForm = async (
   // 只有当uploadFileUrl有值时才添加
   if (params.uploadFileUrl?.trim()) {
     documentData.uploadFileUrl = params.uploadFileUrl;
+  }
+  
+  // 只有当tags有值时才添加
+  if (params.tags && params.tags.length > 0) {
+    documentData.tags = params.tags;
   }
   
   // 将document作为JSON字符串添加到FormData
