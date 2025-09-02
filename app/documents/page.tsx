@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Tag, Space, Modal, message, Upload, Tooltip, Switch } from 'antd';
+import { Table, Button, Input, Tag, Space, Modal, message, Tooltip, Switch } from 'antd';
 import { UploadOutlined, DeleteOutlined, EditOutlined, FileTextOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getDocumentPage, deleteDocument, uploadDocument, type Document } from '@/lib/api';
+import { getDocumentPage, deleteDocument, type Document } from '@/lib/api';
+import DocumentUploadModal from '@/components/DocumentUploadModal';
 
 const { Search } = Input;
 
@@ -309,46 +310,15 @@ const DocumentsPage: React.FC = () => {
       </div>
 
       {/* 上传文档模态框 */}
-      <Modal
-        title="上传文档"
-        open={uploadModalVisible}
+      <DocumentUploadModal
+        visible={uploadModalVisible}
         onCancel={() => setUploadModalVisible(false)}
-        footer={null}
-        width={600}
-      >
-        <div style={{ padding: '20px 0' }}>
-          <Upload.Dragger
-            name="file"
-            multiple
-            customRequest={async ({ file, onSuccess, onError }) => {
-              try {
-                if (kbId && file instanceof File) {
-                  await uploadDocument(kbId, file);
-                  message.success(`${file.name} 文件上传成功`);
-                  onSuccess?.(file);
-                  setUploadModalVisible(false);
-                  fetchDocuments(currentPage, searchValue);
-                } else {
-                  throw new Error('缺少知识库ID或文件无效');
-                }
-              } catch (error) {
-                const errorMsg = error instanceof Error ? error.message : '上传失败';
-                message.error(`${(file as File).name} ${errorMsg}`);
-                onError?.(new Error(errorMsg));
-              }
-            }}
-            style={{ padding: 20 }}
-          >
-            <p className="ant-upload-drag-icon">
-              <UploadOutlined style={{ fontSize: 48, color: '#1890ff' }} />
-            </p>
-            <p className="ant-upload-text">点击或拖拽文件到此区域上传</p>
-            <p className="ant-upload-hint">
-              支持单个或批量上传。支持 PDF、DOC、DOCX、TXT 等格式
-            </p>
-          </Upload.Dragger>
-        </div>
-      </Modal>
+        onSuccess={() => {
+          setUploadModalVisible(false);
+          fetchDocuments(currentPage, searchValue);
+        }}
+        kbId={kbId || ''}
+      />
     </div>
   );
 };

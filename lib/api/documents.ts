@@ -52,13 +52,51 @@ export const updateDocument = async (docId: number, params: Partial<Document>): 
   await request.put(`/doc/${docId}`, params);
 };
 
-// 上传文档
+// 文档上传参数
+export interface DocumentUploadParams {
+  title: string;
+  storageType: 'OSS' | 'OBJECT' | 'NFS';
+  sourceType: 'WEB' | 'UPLOAD';
+  description?: string;
+  uploadFileUrl?: string;
+}
+
+// 上传文档（原有接口，保持兼容）
 export const uploadDocument = async (kbId: string, file: File): Promise<void> => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('kbId', kbId);
   
   await request.post('/doc/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+
+// 上传文档（完整表单）
+export const uploadDocumentWithForm = async (
+  kbId: string, 
+  params: DocumentUploadParams, 
+  file?: File
+): Promise<void> => {
+  const formData = new FormData();
+  formData.append('kbId', kbId);
+  formData.append('title', params.title);
+  formData.append('storageType', params.storageType);
+  formData.append('sourceType', params.sourceType);
+  
+  if (params.description) {
+    formData.append('description', params.description);
+  }
+  
+  if (params.sourceType === 'UPLOAD' && file) {
+    formData.append('file', file);
+  } else if (params.sourceType === 'WEB' && params.uploadFileUrl) {
+    formData.append('uploadFileUrl', params.uploadFileUrl);
+  }
+  
+  await request.post('/doc/upload-form', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
