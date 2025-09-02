@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, Upload, message } from 'antd';
 import { UploadOutlined, LinkOutlined } from '@ant-design/icons';
-import { uploadDocumentWithForm, type DocumentUploadParams } from '@/lib/api';
+import { uploadDocumentWithForm, type DocumentUploadParams, getDictItems, type DictItem } from '@/lib/api';
 
 interface DocumentUploadModalProps {
   visible: boolean;
@@ -19,19 +19,58 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
   kbId
 }) => {
   const [uploadForm] = Form.useForm();
-  const [sourceType, setSourceType] = useState<'WEB' | 'UPLOAD'>('UPLOAD');
+  const [sourceType, setSourceType] = useState<string>('');
   const [uploading, setUploading] = useState(false);
+  const [storageTypes, setStorageTypes] = useState<DictItem[]>([]);
+  const [sourceTypes, setSourceTypes] = useState<DictItem[]>([]);
+  const [loadingDict, setLoadingDict] = useState(false);
+
+  // 获取字典数据
+  const fetchDictData = async () => {
+    try {
+      setLoadingDict(true);
+      const [storageTypeData, sourceTypeData] = await Promise.all([
+        getDictItems('storage_type'),
+        getDictItems('source_type')
+      ]);
+      setStorageTypes(storageTypeData);
+      setSourceTypes(sourceTypeData);
+    } catch (error) {
+      console.error('获取字典数据失败:', error);
+      message.error('获取字典数据失败');
+    } finally {
+      setLoadingDict(false);
+    }
+  };
+
+  useEffect(() => {
+    if (visible) {
+      fetchDictData();
+    }
+  }, [visible]);
+
+  // 判断是否为上传类型
+  const isUploadType = (type: string) => {
+    const uploadItem = sourceTypes.find(item => item.code === type);
+    return uploadItem?.name?.includes('上传') || uploadItem?.name?.includes('文件');
+  };
+
+  // 判断是否为网络链接类型
+  const isWebType = (type: string) => {
+    const webItem = sourceTypes.find(item => item.code === type);
+    return webItem?.name?.includes('网络') || webItem?.name?.includes('链接') || webItem?.name?.includes('URL');
+  };
 
   const handleCancel = () => {
     uploadForm.resetFields();
-    setSourceType('UPLOAD');
+    setSourceType('');
     onCancel();
   };
 
   const handleSubmit = async (values: {
     title: string;
-    storageType: 'OSS' | 'OBJECT' | 'NFS';
-    sourceType: 'WEB' | 'UPLOAD';
+    storageType: string;
+    sourceType: string;
     description?: string;
     uploadFileUrl?: string;
     file?: {
@@ -57,20 +96,20 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
       };
 
       let file: File | undefined;
-      if (values.sourceType === 'UPLOAD' && values.file?.fileList && values.file.fileList.length > 0) {
+      if (isUploadType(values.sourceType) && values.file?.fileList && values.file.fileList.length > 0) {
         file = values.file.fileList[0].originFileObj;
       }
 
       await uploadDocumentWithForm(kbId, uploadParams, file);
       
-      if (values.sourceType === 'UPLOAD' && file) {
+      if (isUploadType(values.sourceType) && file) {
         message.success(`文档 "${values.title}" 上传成功`);
-      } else if (values.sourceType === 'WEB') {
+      } else if (isWebType(values.sourceType)) {
         message.success(`文档 "${values.title}" 创建成功`);
       }
       
       uploadForm.resetFields();
-      setSourceType('UPLOAD');
+      setSourceType('');
       onSuccess();
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : '上传失败';
@@ -120,13 +159,18 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
           label="存储类型"
           name="storageType"
           rules={[{ required: true, message: '请选择存储类型' }]}
-          initialValue="OBJECT"
           style={{ marginBottom: 20 }}
         >
-          <Select placeholder="请选择存储类型" size="large">
-            <Select.Option value="OSS">云存储</Select.Option>
-            <Select.Option value="OBJECT">对象存储</Select.Option>
-            <Select.Option value="NFS">NFS</Select.Option>
+          <Select 
+            placeholder="请选择存储类型" 
+            size="large"
+            loading={loadingDict}
+          >
+            {storageTypes.map(item => (
+              <Select.Option key={item.code} value={item.code}>
+                {item.name}
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
 
@@ -134,20 +178,23 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
           label="来源类型"
           name="sourceType"
           rules={[{ required: true, message: '请选择来源类型' }]}
-          initialValue="UPLOAD"
           style={{ marginBottom: 20 }}
         >
           <Select 
             placeholder="请选择来源类型"
             size="large"
+            loading={loadingDict}
             onChange={(value) => setSourceType(value)}
           >
-            <Select.Option value="UPLOAD">文件上传</Select.Option>
-            <Select.Option value="WEB">网络链接</Select.Option>
+            {sourceTypes.map(item => (
+              <Select.Option key={item.code} value={item.code}>
+                {item.name}
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
 
-        {sourceType === 'UPLOAD' && (
+        {isUploadType(sourceType) && (
           <Form.Item
             label="上传文件"
             name="file"
@@ -174,7 +221,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
           </Form.Item>
         )}
 
-        {sourceType === 'WEB' && (
+        {isWebType(sourceType) && (
           <Form.Item
             label="文件链接"
             name="uploadFileUrl"

@@ -55,8 +55,8 @@ export const updateDocument = async (docId: number, params: Partial<Document>): 
 // 文档上传参数
 export interface DocumentUploadParams {
   title: string;
-  storageType: 'OSS' | 'OBJECT' | 'NFS';
-  sourceType: 'WEB' | 'UPLOAD';
+  storageType: string;
+  sourceType: string;
   description?: string;
   uploadFileUrl?: string;
 }
