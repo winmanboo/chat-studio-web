@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Input, Tag, Space, Modal, message, Tooltip, Switch } from 'antd';
-import { UploadOutlined, DeleteOutlined, EditOutlined, FileTextOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { UploadOutlined, DeleteOutlined, EditOutlined, FileTextOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getDocumentPage, deleteDocument, type Document } from '@/lib/api';
 import DocumentUploadModal from '@/components/DocumentUploadModal';
@@ -161,6 +161,12 @@ const DocumentsPage: React.FC = () => {
             onSearch={handleSearch}
             onChange={(e) => setSearchValue(e.target.value)}
           />
+          <Button 
+            icon={<ReloadOutlined />}
+            onClick={() => fetchDocuments(currentPage, searchValue)}
+          >
+            刷新
+          </Button>
           <Button 
             type="primary" 
             icon={<UploadOutlined />}
