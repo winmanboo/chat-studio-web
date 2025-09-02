@@ -17,7 +17,7 @@ const DocumentsPage: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(20);
   const [total, setTotal] = useState(0);
   const [searchValue, setSearchValue] = useState('');
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
@@ -178,11 +178,18 @@ const DocumentsPage: React.FC = () => {
       </div>
 
       {/* 文档列表 */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 16px 24px' }}>
+      <div 
+        style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '0 24px 16px 24px'
+        }}
+      >
         <Table
           dataSource={documents}
           loading={loading}
           rowKey="id"
+          scroll={{ y: 'calc(100vh - 320px)' }}
           pagination={{
             current: currentPage,
             pageSize: pageSize,
