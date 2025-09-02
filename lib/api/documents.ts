@@ -81,22 +81,49 @@ export const uploadDocumentWithForm = async (
   file?: File
 ): Promise<void> => {
   const formData = new FormData();
-  formData.append('kbId', kbId);
-  formData.append('title', params.title);
-  formData.append('storageType', params.storageType);
-  formData.append('sourceType', params.sourceType);
   
-  if (params.description) {
-    formData.append('description', params.description);
+  // 构建document部分的JSON数据
+  const documentData: {
+    kbId: string;
+    title: string;
+    storageType: string;
+    sourceType: string;
+    description?: string;
+    uploadFileUrl?: string;
+  } = {
+    kbId: kbId,
+    title: params.title,
+    storageType: params.storageType,
+    sourceType: params.sourceType
+  };
+  
+  // 只有当description有值时才添加
+  if (params.description?.trim()) {
+    documentData.description = params.description;
   }
   
+  // 只有当uploadFileUrl有值时才添加
+  if (params.uploadFileUrl?.trim()) {
+    documentData.uploadFileUrl = params.uploadFileUrl;
+  }
+  
+  // 将document作为JSON字符串添加到FormData
+  const documentBlob = new Blob([JSON.stringify(documentData)], {
+    type: 'application/json'
+  });
+  formData.append('document', documentBlob);
+  
+  // 根据sourceType添加相应的文件或URL参数
   if (params.sourceType === 'UPLOAD' && file) {
     formData.append('file', file);
   } else if (params.sourceType === 'WEB' && params.uploadFileUrl) {
-    formData.append('uploadFileUrl', params.uploadFileUrl);
+    // WEB类型时，文件信息已包含在document中的uploadFileUrl字段
+    // 创建一个空的文件占位符以满足后端@RequestPart("file")的要求
+    const emptyFile = new Blob([''], { type: 'text/plain' });
+    formData.append('file', emptyFile, 'placeholder.txt');
   }
   
-  await request.post('/doc/upload-form', formData, {
+  await request.post('/doc/upload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
