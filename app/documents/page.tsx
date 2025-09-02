@@ -259,6 +259,16 @@ const DocumentsPage: React.FC = () => {
                align: 'center'
              },
              {
+               title: 'Token用量',
+               dataIndex: 'totalTokenCount',
+               key: 'totalTokenCount',
+               width: 100,
+               align: 'center',
+               render: (totalTokenCount: number | null) => (
+                 totalTokenCount !== null ? totalTokenCount.toLocaleString() : '-'
+               )
+             },
+             {
                title: '文件大小',
                dataIndex: 'size',
                key: 'size',
