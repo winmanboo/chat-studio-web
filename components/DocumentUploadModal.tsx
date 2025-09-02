@@ -22,21 +22,24 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
   const [sourceType, setSourceType] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const [storageTypes, setStorageTypes] = useState<DictItem[]>([]);
-  const [sourceTypes, setSourceTypes] = useState<DictItem[]>([]);
   const [loadingDict, setLoadingDict] = useState(false);
+  
+  // 静态来源类型数据
+  const sourceTypes = [
+    { code: 'WEB', name: '网络链接' },
+    { code: 'UPLOAD', name: '文件上传' }
+  ];
   const [availableTags, setAvailableTags] = useState<Array<{ id: number; name: string }>>([]);
 
   // 获取字典数据
   const fetchDictData = async () => {
     try {
       setLoadingDict(true);
-      const [storageTypeData, sourceTypeData, tagsData] = await Promise.all([
+      const [storageTypeData, tagsData] = await Promise.all([
         getDictItems('storage_type'),
-        getDictItems('source_type'),
         getDocumentTags()
       ]);
       setStorageTypes(storageTypeData);
-      setSourceTypes(sourceTypeData);
       setAvailableTags(tagsData);
     } catch (error) {
       console.error('获取字典数据失败:', error);
@@ -54,14 +57,12 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
 
   // 判断是否为上传类型
   const isUploadType = (type: string) => {
-    const uploadItem = sourceTypes.find(item => item.code === type);
-    return uploadItem?.name?.includes('上传') || uploadItem?.name?.includes('文件');
+    return type === 'UPLOAD';
   };
 
   // 判断是否为网络链接类型
   const isWebType = (type: string) => {
-    const webItem = sourceTypes.find(item => item.code === type);
-    return webItem?.name?.includes('网络') || webItem?.name?.includes('链接') || webItem?.name?.includes('URL');
+    return type === 'WEB';
   };
 
   const handleCancel = () => {
@@ -199,7 +200,6 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
           <Select 
             placeholder="请选择来源类型"
             size="large"
-            loading={loadingDict}
             onChange={(value) => setSourceType(value)}
           >
             {sourceTypes.map(item => (
