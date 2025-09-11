@@ -335,10 +335,6 @@ const ChatPage: React.FC = () => {
 
   // 删除会话
   const handleDeleteConversation = async (key: string) => {
-    if (conversations.length <= 1) {
-      antdMessage.warning("至少需要保留一个会话");
-      return;
-    }
     
     // 获取要删除的会话名称
     const conversationToDelete = conversations.find(conv => conv.key === key);
