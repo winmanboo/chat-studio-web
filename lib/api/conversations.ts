@@ -48,6 +48,7 @@ export interface ChatRequest {
   searchEnabled?: boolean;
   thinkingEnabled?: boolean;
   ragEnabled?: boolean;
+  kbId?: number; // 知识库ID，当ragEnabled为true时使用
 }
 
 // 聊天接口返回类型 - 流式响应，这里只做类型声明

@@ -40,6 +40,8 @@ import {
 } from "antd";
 import { createSession, chatStream, ChatRequest, getSessionList, SessionItem, getSessionMessages, SessionMessage, deleteSession } from "@/lib/api/conversations";
 import SessionManageModal from "@/components/SessionManageModal";
+import KnowledgeBaseSelectModal from "@/components/KnowledgeBaseSelectModal";
+import { KnowledgeBase } from "@/lib/api/knowledgebase";
 
 // 样式常量
 const ICON_SIZE = 15;
@@ -200,6 +202,8 @@ const ChatPage: React.FC = () => {
   const [deepThinking, setDeepThinking] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [sessionManageModalVisible, setSessionManageModalVisible] = useState<boolean>(false);
+  const [kbSelectModalVisible, setKbSelectModalVisible] = useState<boolean>(false);
+  const [selectedKb, setSelectedKb] = useState<KnowledgeBase | null>(null);
 
   // 加载会话列表
   const loadSessionList = async () => {
@@ -275,6 +279,8 @@ const ChatPage: React.FC = () => {
   const modeLabel =
     searchMode === "web"
       ? "Web 搜索"
+      : searchMode === "kb" && selectedKb
+      ? selectedKb.name
       : searchMode === "kb"
       ? "知识库"
       : "检索模式";
@@ -293,7 +299,7 @@ const ChatPage: React.FC = () => {
         key: "kb",
         icon: <DatabaseOutlined />,
         label: "知识库检索",
-        onClick: () => setSearchMode("kb")
+        onClick: () => setKbSelectModalVisible(true)
       }
     ]
   };
@@ -441,6 +447,12 @@ const ChatPage: React.FC = () => {
     setMessages([]);
   };
 
+  // 处理知识库选择
+  const handleKbSelect = (kb: KnowledgeBase) => {
+    setSelectedKb(kb);
+    setSearchMode("kb");
+  };
+
   // 发送消息
   const handleSubmit = async (message: string) => {
     // 如果还没有开始对话，设置为已开始状态
@@ -485,7 +497,8 @@ const ChatPage: React.FC = () => {
         prompt: message,
         searchEnabled: searchMode === "web",
         thinkingEnabled: deepThinking,
-        ragEnabled: searchMode === "kb"
+        ragEnabled: searchMode === "kb",
+        ...(searchMode === "kb" && selectedKb && { kbId: selectedKb.id })
       };
 
       // 如果是新创建的会话，在开始流式聊天前刷新会话列表
@@ -1106,6 +1119,13 @@ const ChatPage: React.FC = () => {
         open={sessionManageModalVisible}
         onCancel={() => setSessionManageModalVisible(false)}
         onSessionsChange={loadSessionList}
+      />
+      
+      {/* 知识库选择模态框 */}
+      <KnowledgeBaseSelectModal
+        open={kbSelectModalVisible}
+        onCancel={() => setKbSelectModalVisible(false)}
+        onSelect={handleKbSelect}
       />
     </div>
   );
