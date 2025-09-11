@@ -41,6 +41,7 @@ import {
 import { createSession, chatStream, ChatRequest, getSessionList, SessionItem, getSessionMessages, SessionMessage, deleteSession } from "@/lib/api/conversations";
 import SessionManageModal from "@/components/SessionManageModal";
 import KnowledgeBaseSelectModal from "@/components/KnowledgeBaseSelectModal";
+import RetrieveResultsDisplay from "@/components/RetrieveResultsDisplay";
 import { KnowledgeBase } from "@/lib/api/knowledgebase";
 
 // 样式常量
@@ -143,11 +144,20 @@ const convertSessionToConversation = (session: SessionItem): ConversationItem =>
 
 // 将API消息转换为组件消息格式
 const convertSessionMessageToChatMessage = (sessionMessage: SessionMessage): ChatMessage => {
-  return {
+  const chatMessage: ChatMessage = {
     content: sessionMessage.message,
     role: sessionMessage.messageType === 'USER' ? 'user' : 'assistant',
     avatar: sessionMessage.messageType === 'USER' ? '👤' : '🤖'
   };
+  
+  // 如果是AI消息且包含检索结果，添加检索相关数据
+  if (sessionMessage.messageType === 'ASSISTANT' && sessionMessage.kbName && sessionMessage.retrieves) {
+    chatMessage.retrieveMode = true;
+    chatMessage.kbName = sessionMessage.kbName;
+    chatMessage.retrieves = sessionMessage.retrieves;
+  }
+  
+  return chatMessage;
 };
 
 // 加载会话消息
@@ -163,6 +173,14 @@ const loadSessionMessages = async (sessionId: string): Promise<ChatMessage[]> =>
   }
 };
 
+// 检索结果类型定义
+interface RetrieveResult {
+  chunkIndexs: string[];
+  docId: string;
+  kbId: number;
+  title: string;
+}
+
 // 聊天消息类型定义
 interface ChatMessage {
   content: string;
@@ -170,6 +188,9 @@ interface ChatMessage {
   avatar?: string;
   isLoading?: boolean;
   displayContent?: string; // 用于打字机效果的显示内容
+  retrieveMode?: boolean; // 是否是检索模式
+  kbName?: string; // 知识库名称
+  retrieves?: RetrieveResult[]; // 检索结果
 }
 
 // 定义会话项类型
@@ -546,15 +567,29 @@ const ChatPage: React.FC = () => {
                 const data = line.slice(5).trim();
                 if (data !== '[DONE]') {
                   try {
-                    // 尝试解析JSON数据
-                    const jsonData = JSON.parse(data);
-                    if (jsonData.content) {
-                      fullContent += jsonData.content;
+                      // 尝试解析JSON数据
+                      const jsonData = JSON.parse(data);
+                      
+                      // 处理检索模式的响应
+                      if (jsonData.retrieveMode === true) {
+                        // 这是检索结果，更新消息的检索信息
+                        setMessages(prev => {
+                          const newMessages = [...prev];
+                          newMessages[messageIndex] = {
+                            ...newMessages[messageIndex],
+                            retrieveMode: true,
+                            kbName: jsonData.kbName,
+                            retrieves: jsonData.retrieves
+                          };
+                          return newMessages;
+                        });
+                      } else if (jsonData.content) {
+                        fullContent += jsonData.content;
+                      }
+                    } catch {
+                      // 如果不是有效的JSON，直接使用原始数据
+                      fullContent += data;
                     }
-                  } catch {
-                    // 如果不是有效的JSON，直接使用原始数据
-                    fullContent += data;
-                  }
                 }
               }
             }
@@ -599,24 +634,52 @@ const ChatPage: React.FC = () => {
               try {
                 // 尝试解析JSON数据
                 const jsonData = JSON.parse(data);
-                if (jsonData.content) {
+                
+                // 处理检索模式的响应
+                if (jsonData.retrieveMode === true) {
+                  // 这是检索结果，只在第一个响应中出现
+                  setMessages(prev => {
+                    const newMessages = [...prev];
+                    newMessages[messageIndex] = {
+                      ...newMessages[messageIndex],
+                      retrieveMode: true,
+                      kbName: jsonData.kbName,
+                      retrieves: jsonData.retrieves,
+                      content: fullContent,
+                      displayContent: fullContent
+                    };
+                    return newMessages;
+                  });
+                } else if (jsonData.content) {
+                  // 这是普通的内容响应
                   fullContent += jsonData.content;
+                  
+                  // 流式更新消息内容
+                  setMessages(prev => {
+                    const newMessages = [...prev];
+                    newMessages[messageIndex] = {
+                      ...newMessages[messageIndex],
+                      content: fullContent,
+                      displayContent: fullContent
+                    };
+                    return newMessages;
+                  });
                 }
               } catch {
                 // 如果不是有效的JSON，直接使用原始数据
                 fullContent += data;
+                
+                // 流式更新消息内容
+                setMessages(prev => {
+                  const newMessages = [...prev];
+                  newMessages[messageIndex] = {
+                    ...newMessages[messageIndex],
+                    content: fullContent,
+                    displayContent: fullContent
+                  };
+                  return newMessages;
+                });
               }
-              
-              // 流式更新消息内容
-              setMessages(prev => {
-                const newMessages = [...prev];
-                newMessages[messageIndex] = {
-                  ...newMessages[messageIndex],
-                  content: fullContent,
-                  displayContent: fullContent
-                };
-                return newMessages;
-              });
             }
           }
         }
@@ -939,7 +1002,7 @@ const ChatPage: React.FC = () => {
               <Bubble.List
                 items={messages.map((msg, index) => ({
                   key: index,
-                  content: msg.displayContent || msg.content,
+                  content: msg, // 传递完整的消息对象
                   role: msg.role,
                   avatar: msg.role === 'user' ? 
                     { icon: <UserOutlined />, style: USER_AVATAR_STYLE } : 
@@ -950,15 +1013,18 @@ const ChatPage: React.FC = () => {
                 roles={{
                   user: {
                     placement: 'end',
-                    messageRender: (content) => (
-                      <div style={{
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word',
-                        lineHeight: '1.5'
-                      }}>
-                        {content as string}
-                      </div>
-                    ),
+                    messageRender: (content) => {
+                      const msg = content as ChatMessage;
+                      return (
+                        <div style={{
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          lineHeight: '1.5'
+                        }}>
+                          {msg.displayContent || msg.content}
+                        </div>
+                      );
+                    },
                     avatar: {
                       icon: <UserOutlined />,
                       style: USER_AVATAR_STYLE
@@ -967,7 +1033,22 @@ const ChatPage: React.FC = () => {
                   },
                   assistant: {
                     placement: 'start',
-                    messageRender: (content) => renderMarkdown(content as string),
+                    messageRender: (content) => {
+                      const msg = content as ChatMessage;
+                      return (
+                        <div>
+                          {/* 检索结果显示 */}
+                          {msg.retrieveMode && msg.kbName && msg.retrieves && (
+                            <RetrieveResultsDisplay
+                              kbName={msg.kbName}
+                              retrieves={msg.retrieves}
+                            />
+                          )}
+                          {/* 消息内容 */}
+                          {renderMarkdown(msg.displayContent || msg.content)}
+                        </div>
+                      );
+                    },
                     avatar: {
                       icon: <RobotOutlined />,
                       style: ASSISTANT_AVATAR_STYLE

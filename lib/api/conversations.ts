@@ -10,6 +10,14 @@ export interface SessionItem {
   createdAt: number;
 }
 
+// 检索结果类型定义
+interface RetrieveResult {
+  kbId: number;
+  docId: string;
+  title: string;
+  chunkIndexs: string[];
+}
+
 // 会话消息类型
 export interface SessionMessage {
   id: number;
@@ -17,6 +25,8 @@ export interface SessionMessage {
   message: string;
   messageType: 'USER' | 'ASSISTANT';
   parentId: number;
+  kbName?: string; // 知识库名称，仅在ASSISTANT消息中存在
+  retrieves?: RetrieveResult[]; // 检索结果，仅在ASSISTANT消息中存在
 }
 
 // 创建会话接口
