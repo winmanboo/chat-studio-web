@@ -307,23 +307,7 @@ const ChatPage: React.FC = () => {
       : "检索模式";
   
       
-  // 检索模式菜单
-  const searchMenu = {
-    items: [
-      {
-        key: "web",
-        icon: <GlobalOutlined />,
-        label: "Web搜索",
-        onClick: () => setSearchMode("web")
-      },
-      {
-        key: "kb",
-        icon: <DatabaseOutlined />,
-        label: "知识库检索",
-        onClick: () => setKbSelectModalVisible(true)
-      }
-    ]
-  };
+
 
   // 修改会话名称
   const handleEditConversation = (key: string, currentLabel: string) => {
@@ -472,6 +456,51 @@ const ChatPage: React.FC = () => {
   const handleKbSelect = (kb: KnowledgeBase) => {
     setSelectedKb(kb);
     setSearchMode("kb");
+  };
+
+  // 检索模式菜单
+  const searchMenu = {
+    items: [
+      {
+        key: "web",
+        icon: <GlobalOutlined />,
+        label: "Web搜索",
+        onClick: () => {
+          if (searchMode === "web") {
+            // 如果当前已选择Web搜索，则取消
+            setSearchMode(null);
+          } else {
+            // 否则选择Web搜索
+            setSearchMode("web");
+          }
+        }
+      },
+      {
+        key: "kb",
+        icon: <DatabaseOutlined />,
+        label: "知识库检索",
+        onClick: () => {
+          if (searchMode === "kb") {
+            // 如果当前已选择知识库检索，则取消
+            setSearchMode(null);
+            setSelectedKb(null);
+          } else {
+            // 否则弹出知识库选择模态框
+            setKbSelectModalVisible(true);
+          }
+        }
+      }
+    ]
+  };
+
+  // 处理检索模式按钮点击
+  const handleSearchModeClick = () => {
+    if (searchMode) {
+      // 如果当前有选择的检索模式，则取消
+      setSearchMode(null);
+      setSelectedKb(null);
+    }
+    // 如果没有选择模式，Dropdown会自动显示菜单
   };
 
   // 发送消息
@@ -896,10 +925,10 @@ const ChatPage: React.FC = () => {
                       {/* 左侧：检索模式 + 深度思考 */}
                       <Flex gap="small" align="center">
                         <Dropdown
-                          menu={searchMenu}
-                          trigger={["click"]}
-                          placement="topLeft"
-                        >
+                           menu={searchMenu}
+                           trigger={searchMode ? [] : ["click"]} // 已选择模式时不触发菜单
+                           placement="topLeft"
+                         >
                           <Button
                             type="text"
                             icon={
@@ -918,7 +947,7 @@ const ChatPage: React.FC = () => {
                                 ? token.colorPrimary
                                 : token.colorText,
                             }}
-                            onClick={() => {}}
+                            onClick={handleSearchModeClick}
                           >
                             {modeLabel}
                           </Button>
@@ -1095,7 +1124,7 @@ const ChatPage: React.FC = () => {
                         <Flex gap="small" align="center">
                           <Dropdown
                             menu={searchMenu}
-                            trigger={["click"]}
+                            trigger={searchMode ? [] : ["click"]} // 已选择模式时不触发菜单
                             placement="topLeft"
                           >
                             <Button
@@ -1116,7 +1145,7 @@ const ChatPage: React.FC = () => {
                                   ? token.colorPrimary
                                   : token.colorText,
                               }}
-                              onClick={() => {}}
+                              onClick={handleSearchModeClick}
                             >
                               {modeLabel}
                             </Button>
