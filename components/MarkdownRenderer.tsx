@@ -27,27 +27,32 @@ const md = new MarkdownIt({
      }
 
     // 处理其他代码块
-    const trimmedStr = str.trim(); // 去除前后空白
+    // 注意：不要使用trim()，因为它会去除重要的换行符
     let highlightedCode = '';
     
     // 使用highlight.js进行语法高亮
     if (lang && lang !== 'text' && hljs.getLanguage(lang)) {
       try {
-        const result = hljs.highlight(trimmedStr, { language: lang });
+        const result = hljs.highlight(str, { language: lang });
         highlightedCode = result.value;
       } catch (err) {
         console.warn('Highlight.js error:', err);
-        highlightedCode = hljs.highlightAuto(trimmedStr).value;
+        highlightedCode = hljs.highlightAuto(str).value;
       }
     } else {
       // 如果没有指定语言或语言不支持，使用自动检测
-      highlightedCode = hljs.highlightAuto(trimmedStr).value;
+      highlightedCode = hljs.highlightAuto(str).value;
     }
     
     // 分割高亮后的代码为行
     const codeLines = highlightedCode.split('\n');
-    const lineNumbers = codeLines.map((_, index) => `<span class="line-number">${index + 1}</span>`).join('\n');
-    const codeContent = codeLines.map(line => `<span class="code-line">${line}</span>`).join('\n');
+    
+    // 确保最后一行不是空的，如果是则移除（但保留有意义的空行）
+    if (codeLines.length > 0 && codeLines[codeLines.length - 1] === '') {
+      codeLines.pop();
+    }
+    const lineNumbers = codeLines.map((_, index) => `<span class="line-number">${index + 1}</span>`).join('');
+    const codeContent = codeLines.map(line => `<span class="code-line">${line === '' ? ' ' : line}</span>`).join('');
     
     return `<div class="code-block-container"><div class="code-header"><span class="language-label">${displayLang}</span><button class="copy-button" onclick="copyCodeToClipboard(this)">复制</button></div><pre><code><div class="line-numbers">${lineNumbers}</div><div class="code-content">${codeContent}</div></code></pre></div>`;
   }

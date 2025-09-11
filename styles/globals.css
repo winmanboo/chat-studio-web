@@ -208,7 +208,7 @@ body {
   border: 1px solid #e1e4e8;
   border-radius: 12px;
   margin: 4px 0;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
   background: transparent;
   width: 100%;
@@ -226,8 +226,7 @@ body {
   background: transparent;
   padding: 0;
   border-radius: 0 0 12px 12px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: visible;
   margin: 0;
   border: none;
   background-clip: padding-box;
@@ -255,7 +254,8 @@ body {
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
   font-weight: 400;
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
+  line-height: 21px;
 }
 
 /* 行号样式 */
@@ -263,7 +263,7 @@ body {
   display: flex;
   flex-direction: column;
   background: rgba(0, 0, 0, 0.05);
-  padding: 0 8px;
+  padding: 16px 8px;
   margin-right: 0;
   user-select: none;
   -webkit-user-select: none;
@@ -273,14 +273,14 @@ body {
   text-align: right;
   border-right: 1px solid rgba(0, 0, 0, 0.1);
   justify-content: flex-start;
-  height: 100%;
-  align-self: stretch;
+  align-self: flex-start;
+  flex-shrink: 0;
 }
 
 .markdown-content .line-number {
   color: #656d76;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 21px;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
   font-weight: 400;
   display: block;
@@ -288,32 +288,34 @@ body {
   margin: 0;
   padding: 0;
   text-align: right;
-  min-height: 24px;
+  min-height: 21px;
+  flex-shrink: 0;
 }
 
 /* 代码内容样式 */
 .markdown-content .code-content {
   flex: 1;
-  overflow-x: auto;
-  overflow-y: visible;
+  overflow: visible;
   min-width: 0;
   width: 100%;
   max-width: 100%;
-  padding: 0 16px;
+  padding: 16px 16px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 }
 
 .markdown-content .code-line {
-  line-height: 1.5;
+  line-height: 21px;
   white-space: pre;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
-  font-size: 16px;
+  font-size: 14px;
   margin: 0;
   padding: 0;
   display: block;
-  min-height: 24px;
+  min-height: 21px;
+  flex-shrink: 0;
+  overflow: visible;
 }
 
 /* Highlight.js 语法高亮样式支持 */
@@ -416,16 +418,6 @@ body {
   font-weight: 500;
   white-space: nowrap;
   font-size: 15px;
-}
-
-/* 代码块禁用滚动条 */
-.markdown-content pre {
-  overflow: visible;
-}
-
-.markdown-content pre code {
-  white-space: pre-wrap;
-  word-wrap: break-word;
 }
 
 /* 禁用代码选中时的背景色 */
