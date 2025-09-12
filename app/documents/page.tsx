@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Table, Button, Input, Tag, Space, Modal, message, Tooltip, Switch } from 'antd';
 import { UploadOutlined, DeleteOutlined, EditOutlined, FileTextOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -9,7 +9,7 @@ import DocumentUploadModal from '@/components/DocumentUploadModal';
 
 const { Search } = Input;
 
-const DocumentsPage: React.FC = () => {
+const DocumentsPageContent: React.FC = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const kbId = searchParams.get('kbId');
@@ -343,6 +343,27 @@ const DocumentsPage: React.FC = () => {
         kbId={kbId || ''}
       />
     </div>
+  );
+};
+
+const DocumentsPage: React.FC = () => {
+  return (
+    <Suspense fallback={
+      <div style={{ 
+        height: '100vh', 
+        width: '100%', 
+        background: '#fff', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        fontSize: 16,
+        color: '#666'
+      }}>
+        加载中...
+      </div>
+    }>
+      <DocumentsPageContent />
+    </Suspense>
   );
 };
 

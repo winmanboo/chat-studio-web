@@ -1,10 +1,12 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import HeaderComponent from "./Header";
 import UserModal from "./UserModal";
 import SettingsModal from "./SettingsModal";
+import VersionUpdateModal from "./VersionUpdateModal";
 import { logout } from "../lib/api";
+import { useServiceWorker } from "../lib/hooks/useServiceWorker";
 
 interface AppMainProps {
   children: React.ReactNode;
@@ -15,6 +17,14 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
   const [userModalOpen, setUserModalOpen] = React.useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
   const [isLogin, setIsLogin] = React.useState(false);
+  
+  // Service Worker 和版本更新相关
+  const { 
+    hasUpdate, 
+    versionData, 
+    checkForUpdates, 
+    dismissUpdate 
+  } = useServiceWorker();
 
   // 根据当前路径确定选中的tab
   const getSelectedTab = () => {
@@ -56,6 +66,19 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
   const handleUserModalClose = () => setUserModalOpen(false);
   const handleSettingsModalClose = () => setSettingsModalOpen(false);
   const handleLogin = () => setIsLogin(true);
+  
+  // 版本更新相关处理函数
+  const handleVersionUpdateClose = () => {
+    dismissUpdate();
+  };
+  
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+  
+  const handleOpenNewTab = () => {
+    window.open(window.location.href, '_blank');
+  };
   const handleLogout = async () => {
     try {
       // 调用登出接口
@@ -95,6 +118,14 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
         open={settingsModalOpen}
         onCancel={handleSettingsModalClose}
       />
+      <VersionUpdateModal
+        visible={hasUpdate}
+        versionData={versionData}
+        onClose={handleVersionUpdateClose}
+        onRefresh={handleRefresh}
+        onOpenNewTab={handleOpenNewTab}
+      />
+
     </div>
   );
 };

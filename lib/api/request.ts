@@ -64,7 +64,10 @@ request.interceptors.response.use(
       // 例如：清除token并重定向到登录页面
       if (typeof window !== 'undefined') {
         localStorage.removeItem('authToken');
+        localStorage.removeItem('userInfo');
       }
+      // 返回更明确的错误信息
+      return Promise.reject(new Error('401 未授权，请先登录'));
     }
     
     return Promise.reject(error);
