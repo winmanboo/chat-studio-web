@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Menu, Space } from 'antd';
 import { SettingOutlined, AppstoreOutlined, SkinOutlined, RobotOutlined, UserOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { UserInfo } from '../lib/api';
@@ -22,6 +22,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   userInfo
 }) => {
   const [activeTab, setActiveTab] = useState<SettingTab>('general');
+
+  // 每次打开弹窗时重置到默认面板
+  useEffect(() => {
+    if (open) {
+      setActiveTab('general');
+    }
+  }, [open]);
 
   // 左侧菜单项
   const menuItems = [

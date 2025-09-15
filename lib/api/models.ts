@@ -55,3 +55,10 @@ export const getInstalledModels = async (): Promise<InstalledModel[]> => {
     throw error;
   }
 };
+
+// 安装模型接口
+export const installModel = async (providerId: string, apiKey: string): Promise<{ success: boolean; message?: string }> => {
+  const response = await request.post(`/models/install/${providerId}/${apiKey}`);
+  // 由于响应拦截器会返回data字段，成功时data为null，所以直接返回成功状态
+  return { success: true, message: '安装成功' };
+};

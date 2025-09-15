@@ -3,6 +3,7 @@ import { Typography, Card, Button, Row, Col, Tag, Divider, Spin, message } from 
 import { DownloadOutlined, SettingOutlined, CloudOutlined, DesktopOutlined } from '@ant-design/icons';
 import { getModelProviders, ModelProvider, getInstalledModels, InstalledModel } from '../../lib/api';
 import ModelSettingsModal from './ModelSettingsModal';
+import InstallModelModal from './InstallModelModal';
 
 const { Title, Text } = Typography;
 
@@ -14,6 +15,8 @@ const ModelPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState<InstalledModel | null>(null);
+  const [installModalOpen, setInstallModalOpen] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<ModelProvider | null>(null);
 
   // 获取数据
   useEffect(() => {
@@ -65,6 +68,28 @@ const ModelPanel: React.FC = () => {
   const handleCloseSettings = () => {
     setSettingsModalOpen(false);
     setSelectedModel(null);
+  };
+
+  // 打开安装弹窗
+  const handleOpenInstall = (provider: ModelProvider) => {
+    setSelectedProvider(provider);
+    setInstallModalOpen(true);
+  };
+
+  // 关闭安装弹窗
+  const handleCloseInstall = () => {
+    setInstallModalOpen(false);
+    setSelectedProvider(null);
+  };
+
+  // 安装成功后刷新已安装模型列表
+  const handleInstallSuccess = async () => {
+    try {
+      const installed = await getInstalledModels();
+      setInstalledModels(installed);
+    } catch (error) {
+      console.error('刷新模型列表失败:', error);
+    }
   };
 
   if (loading) {
@@ -162,6 +187,7 @@ const ModelPanel: React.FC = () => {
                       borderRadius: 8
                     }}
                     size="small"
+                    onClick={() => handleOpenInstall(provider)}
                   >
                     安装
                   </Button>
@@ -176,6 +202,14 @@ const ModelPanel: React.FC = () => {
         open={settingsModalOpen}
         onClose={handleCloseSettings}
         model={selectedModel}
+      />
+      
+      {/* 模型安装弹窗 */}
+      <InstallModelModal
+        open={installModalOpen}
+        onClose={handleCloseInstall}
+        provider={selectedProvider}
+        onInstallSuccess={handleInstallSuccess}
       />
     </div>
   );
