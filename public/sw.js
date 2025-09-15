@@ -138,9 +138,17 @@ self.addEventListener('message', (event) => {
   
   switch (type) {
     case 'CHECK_VERSION':
+      if (ENVIRONMENT === 'development') {
+        console.log('[SW] Manual version check disabled in development mode');
+        return;
+      }
       checkVersion();
       break;
     case 'MANUAL_UPDATE_CHECK':
+      if (ENVIRONMENT === 'development') {
+        console.log('[SW] Manual version check disabled in development mode');
+        return;
+      }
       checkVersion();
       break;
     case 'SKIP_WAITING':
@@ -159,6 +167,12 @@ self.addEventListener('message', (event) => {
 
 // 开始定期版本检查
 function startVersionCheck() {
+  // 在开发环境下禁用版本检查
+  if (ENVIRONMENT === 'development') {
+    console.log('[SW] Version check disabled in development mode');
+    return;
+  }
+  
   // 立即检查一次
   checkVersion();
   
@@ -170,6 +184,12 @@ function startVersionCheck() {
 
 // 检查版本更新
 function checkVersion() {
+  // 在开发环境下禁用版本检查
+  if (ENVIRONMENT === 'development') {
+    console.log('[SW] Version check disabled in development mode');
+    return;
+  }
+  
   fetch('/version.json', { 
     cache: 'no-cache',
     headers: {

@@ -38,6 +38,13 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
 
   // 检查浏览器是否支持Service Worker
   useEffect(() => {
+    // 在开发环境下禁用 Service Worker
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[SW] Service Worker disabled in development mode');
+      setIsSupported(false);
+      return;
+    }
+    
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       setIsSupported(true);
     }
@@ -46,7 +53,11 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
   // 注册Service Worker
   const registerServiceWorker = useCallback(async () => {
     if (!isSupported) {
-      console.warn('Service Worker not supported in this browser');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Service Worker disabled in development mode');
+      } else {
+        console.warn('Service Worker not supported in this browser');
+      }
       return;
     }
 

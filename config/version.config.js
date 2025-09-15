@@ -13,13 +13,15 @@ const environmentConfigs = {
     name: 'development',
     displayName: '开发环境',
     versionPrefix: 'dev',
-    checkInterval: 10000
+    checkInterval: 10000,
+    disableServiceWorker: true  // 开发环境下禁用 Service Worker
   },
   production: {
     name: 'production',
     displayName: '生产环境',
     versionPrefix: '',
-    checkInterval: 60000
+    checkInterval: 60000,
+    disableServiceWorker: false  // 生产环境下启用 Service Worker
   }
 };
 
@@ -35,7 +37,8 @@ function getCurrentEnvironment() {
     name: config.name,
     displayName: config.displayName,
     versionPrefix: config.versionPrefix,
-    checkInterval: parseInt(process.env.SW_VERSION_CHECK_INTERVAL) || config.checkInterval
+    checkInterval: parseInt(process.env.SW_VERSION_CHECK_INTERVAL) || config.checkInterval,
+    disableServiceWorker: process.env.DISABLE_SERVICE_WORKER_IN_DEV === 'true' ? true : config.disableServiceWorker
   };
 }
 
