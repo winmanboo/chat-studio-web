@@ -116,7 +116,8 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
       />
       <SettingsModal
         open={settingsModalOpen}
-        onCancel={handleSettingsModalClose}
+        onClose={handleSettingsModalClose}
+        userInfo={null}
       />
       <VersionUpdateModal
         visible={hasUpdate}

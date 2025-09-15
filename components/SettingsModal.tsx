@@ -76,6 +76,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       onCancel={onClose}
       footer={null}
       centered
+      maskClosable={true}
+      closable={true}
       title={
         <Space>
           <SettingOutlined />

@@ -3,4 +3,5 @@ export * from './conversations';
 export * from './auth';
 export * from './knowledgebase';
 export * from './documents';
+export * from './models';
 export { default as request } from './request';
