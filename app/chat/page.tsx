@@ -9,6 +9,7 @@ import {
 } from "@ant-design/x";
 
 import { renderMarkdown } from '@/components/MarkdownRenderer';
+import ModelSelectButton from '@/components/ModelSelectButton';
 import {
   PlusOutlined,
   MenuFoldOutlined,
@@ -41,8 +42,10 @@ import {
 import { createSession, chatStream, ChatRequest, getSessionList, SessionItem, getSessionMessages, SessionMessage, deleteSession } from "@/lib/api/conversations";
 import SessionManageModal from "@/components/SessionManageModal";
 import KnowledgeBaseSelectModal from "@/components/KnowledgeBaseSelectModal";
+import ModelSelectModal from "@/components/ModelSelectModal";
 import RetrieveResultsDisplay from "@/components/RetrieveResultsDisplay";
 import { KnowledgeBase } from "@/lib/api/knowledgebase";
+import { InstalledModel, getDefaultModel, DefaultModel, ModelListItem, setDefaultModel as setDefaultModelAPI } from "@/lib/api/models";
 import { loginEventManager } from '@/lib/events/loginEvents';
 
 // 样式常量
@@ -101,6 +104,13 @@ const BOTTOM_SENDER_CONTAINER_STYLE = {
   ...SENDER_CONTAINER_STYLE,
 };
 
+// 模型选择组件的绝对定位样式
+const MODEL_SELECT_BUTTON_CONTAINER_STYLE = {
+  position: "absolute" as const,
+  top: "10px",
+  left: "10px",
+  zIndex: 10,
+};
 
 
 // 时间分组函数
@@ -226,6 +236,9 @@ const ChatPage: React.FC = () => {
   const [sessionManageModalVisible, setSessionManageModalVisible] = useState<boolean>(false);
   const [kbSelectModalVisible, setKbSelectModalVisible] = useState<boolean>(false);
   const [selectedKb, setSelectedKb] = useState<KnowledgeBase | null>(null);
+  const [modelSelectModalVisible, setModelSelectModalVisible] = useState<boolean>(false);
+  const [selectedModel, setSelectedModel] = useState<ModelListItem | null>(null);
+  const [defaultModel, setDefaultModel] = useState<DefaultModel | null>(null);
 
   // 加载会话列表
   const loadSessionList = async () => {
@@ -241,9 +254,38 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  // 组件挂载时加载会话列表
+  // 加载默认模型
+  const loadDefaultModel = async () => {
+    try {
+      const model = await getDefaultModel();
+      setDefaultModel(model);
+    } catch (error) {
+      console.error('加载默认模型失败:', error);
+    }
+  };
+
+  // 设置默认模型
+  const handleSetDefaultModel = async () => {
+    if (!selectedModel) {
+      antdMessage.warning('请先选择一个模型');
+      return;
+    }
+    
+    try {
+      await setDefaultModelAPI(selectedModel.id);
+      antdMessage.success('设置默认模型成功');
+      // 重新加载默认模型信息
+      await loadDefaultModel();
+    } catch (error) {
+      console.error('设置默认模型失败:', error);
+      antdMessage.error('设置默认模型失败');
+    }
+  };
+
+  // 组件挂载时加载会话列表和默认模型
   useEffect(() => {
     loadSessionList();
+    loadDefaultModel();
   }, []);
 
   // 监听登录成功事件，自动刷新会话列表
@@ -312,9 +354,6 @@ const ChatPage: React.FC = () => {
       ? "知识库"
       : "检索模式";
   
-      
-
-
   // 修改会话名称
   const handleEditConversation = (key: string, currentLabel: string) => {
     setEditingConversation({ key, label: currentLabel });
@@ -911,6 +950,19 @@ const ChatPage: React.FC = () => {
       >
         {!hasStarted ? (
           <div style={CENTER_CONTAINER_STYLE}>
+            {/* 模型选择按钮 - 初始状态，置于左上角 */}
+            <div style={MODEL_SELECT_BUTTON_CONTAINER_STYLE}>
+              <ModelSelectButton
+                selectedModel={selectedModel}
+                defaultModel={defaultModel}
+                onModelSelectClick={() => setModelSelectModalVisible(true)}
+                onSetDefaultClick={() => {
+                  handleSetDefaultModel();
+                }}
+                showSetDefault={true}
+              />
+            </div>
+            
             <div style={CHAT_STUDIO_TITLE_STYLE}>
               Chat Studio
             </div>
@@ -1021,13 +1073,26 @@ const ChatPage: React.FC = () => {
               overflow: "hidden",
             }}
           >
+            {/* 模型选择按钮 - 聊天状态 */}
+            <div style={MODEL_SELECT_BUTTON_CONTAINER_STYLE}>
+              <ModelSelectButton
+                selectedModel={selectedModel}
+                defaultModel={defaultModel}
+                onModelSelectClick={() => setModelSelectModalVisible(true)}
+                onSetDefaultClick={() => {
+                  handleSetDefaultModel();
+                }}
+                showSetDefault={false}
+              />
+            </div>
+
             {/* BubbleList 区域 */}
             <div
               ref={bubbleListRef}
               onScroll={handleScroll}
               style={{
                 position: "absolute",
-                top: "30px", // 增加顶部间距
+                top: "40px", // 增加顶部间距为模型选择按钮留出空间
                 left: 0,
                 right: 0,
                 bottom: `${senderHeight + 30}px`, // 动态调整为Sender的实际高度并增加底部间距
@@ -1243,6 +1308,17 @@ const ChatPage: React.FC = () => {
         open={kbSelectModalVisible}
         onCancel={() => setKbSelectModalVisible(false)}
         onSelect={handleKbSelect}
+      />
+      
+      {/* 模型选择模态框 */}
+      <ModelSelectModal
+        open={modelSelectModalVisible}
+        onCancel={() => setModelSelectModalVisible(false)}
+        onSelect={(model) => {
+          setSelectedModel(model);
+          setModelSelectModalVisible(false);
+        }}
+        selectedModel={selectedModel}
       />
     </div>
   );
