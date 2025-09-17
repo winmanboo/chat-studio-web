@@ -288,11 +288,11 @@ const ChatPage: React.FC = () => {
     loadDefaultModel();
   }, []);
 
-  // 监听登录成功事件，自动刷新会话列表
+  // 监听登录成功事件，自动刷新会话列表和默认模型
   useEffect(() => {
     const unsubscribe = loginEventManager.onLoginSuccess(() => {
-      console.log('收到登录成功事件，刷新会话列表');
       loadSessionList();
+      loadDefaultModel();
     });
 
     // 组件卸载时取消订阅
