@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Button, Form, Input, Space, Tabs, message } from 'antd';
 import { UserOutlined, MailOutlined, LockOutlined, GiftOutlined, SendOutlined } from '@ant-design/icons';
 import { login, register, sendCode, LoginRequest, RegisterRequest, AuthResponse } from '@/lib/api';
+import { loginEventManager } from '@/lib/events/loginEvents';
 
 interface UserModalProps {
   open: boolean;
@@ -82,6 +83,10 @@ const UserModal: React.FC<UserModalProps> = ({
       
       messageApi.success('登录成功');
       onLogin();
+      
+      // 触发登录成功事件，通知其他组件刷新数据
+      loginEventManager.triggerLoginSuccess();
+      
       onCancel();
     } catch (error) {
       messageApi.error('登录失败: ' + (error as Error).message);

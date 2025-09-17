@@ -9,6 +9,18 @@ const request = axios.create({
   },
 });
 
+// 不需要登录的接口路径列表
+const NO_AUTH_PATHS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/sendCode'
+];
+
+// 检查是否为不需要登录的接口
+const isNoAuthPath = (url: string): boolean => {
+  return NO_AUTH_PATHS.some(path => url.includes(path));
+};
+
 // 请求拦截器
 request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -16,7 +28,19 @@ request.interceptors.request.use(
     // 从localStorage获取Auth-Token并添加到请求头
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('authToken');
-      if (token) {
+      
+      // 检查是否为需要登录的接口
+      if (!isNoAuthPath(config.url || '')) {
+        // 如果是需要登录的接口但没有token，直接提示并拒绝请求
+        if (!token) {
+          // 动态导入message以避免SSR问题
+          import('antd').then(({ message }) => {
+            message.warning('未登录，请先登录后才能使用此功能');
+          });
+          return Promise.reject(new Error('未登录，请先登录后才能使用此功能'));
+        }
+        
+        // 添加token到请求头
         config.headers['Auth-Token'] = token;
       }
     }

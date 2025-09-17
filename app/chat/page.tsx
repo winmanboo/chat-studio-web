@@ -43,6 +43,7 @@ import SessionManageModal from "@/components/SessionManageModal";
 import KnowledgeBaseSelectModal from "@/components/KnowledgeBaseSelectModal";
 import RetrieveResultsDisplay from "@/components/RetrieveResultsDisplay";
 import { KnowledgeBase } from "@/lib/api/knowledgebase";
+import { loginEventManager } from '@/lib/events/loginEvents';
 
 // 样式常量
 const ICON_SIZE = 15;
@@ -240,7 +241,6 @@ const ChatPage: React.FC = () => {
       }
     } catch (error) {
       console.error('加载会话列表失败:', error);
-      antdMessage.error('加载会话列表失败: ' + (error instanceof Error ? error.message : '未知错误'));
     } finally {
       setLoading(false);
     }
@@ -249,6 +249,17 @@ const ChatPage: React.FC = () => {
   // 组件挂载时加载会话列表
   useEffect(() => {
     loadSessionList();
+  }, []);
+
+  // 监听登录成功事件，自动刷新会话列表
+  useEffect(() => {
+    const unsubscribe = loginEventManager.onLoginSuccess(() => {
+      console.log('收到登录成功事件，刷新会话列表');
+      loadSessionList();
+    });
+
+    // 组件卸载时取消订阅
+    return unsubscribe;
   }, []);
 
   // 监听Sender高度变化

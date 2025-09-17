@@ -61,7 +61,6 @@ const KnowledgeBasePage: React.FC = () => {
       setHasMore(hasMoreData);
     } catch (error) {
       console.error('Failed to fetch knowledge bases:', error);
-      message.error('获取知识库失败');
       // 如果是加载更多时出错，不要重置hasMore状态，允许用户重试
       if (!isLoadMore) {
         setHasMore(false);

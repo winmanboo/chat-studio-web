@@ -92,6 +92,8 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
         localStorage.removeItem('userInfo');
       }
       setIsLogin(false);
+      // 登出后重定向到主页面，清理所有界面数据
+      window.location.href = '/';
     }
   };
 
