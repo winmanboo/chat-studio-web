@@ -45,13 +45,17 @@ const ModelSelectModal: React.FC<ModelSelectModalProps> = ({
   // 当模态框打开时获取数据
   useEffect(() => {
     if (open) {
+      // 清空之前的数据状态
+      setModelProviders([]);
+      setFilteredModels([]);
+      setSelectedProvider(null);
       fetchData();
     }
   }, [open]);
 
   // 根据选中的提供商过滤模型
   useEffect(() => {
-    if (selectedProvider && selectedProvider !== 'all') {
+    if (selectedProvider) {
       const provider = modelProviders.find(p => p.providerName === selectedProvider);
       setFilteredModels(provider ? provider.models : []);
     } else {
@@ -98,10 +102,7 @@ const ModelSelectModal: React.FC<ModelSelectModalProps> = ({
                 </div>
               ) : (
                 <div>
-                  {[
-                    { providerName: '全部模型', icon: '', models: [] },
-                    ...modelProviders
-                  ].map((provider: ModelProviderWithModels) => (
+                  {modelProviders.map((provider: ModelProviderWithModels) => (
                     <div
                       key={provider.providerName}
                       style={{
@@ -117,26 +118,11 @@ const ModelSelectModal: React.FC<ModelSelectModalProps> = ({
                       onClick={() => handleProviderSelect(provider.providerName)}
                     >
                       <div style={{ marginRight: 12 }}>
-                        {provider.providerName === '全部模型' ? (
-                          <div style={{ 
-                            width: 32, 
-                            height: 32, 
-                            borderRadius: '50%', 
-                            backgroundColor: '#f0f0f0',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 16
-                          }}>
-                            🤖
-                          </div>
-                        ) : (
-                          <img 
-                            src={provider.icon} 
-                            alt={provider.providerName} 
-                            style={{ width: 32, height: 32, borderRadius: '50%' }} 
-                          />
-                        )}
+                        <img 
+                          src={provider.icon} 
+                          alt={provider.providerName} 
+                          style={{ width: 32, height: 32, borderRadius: '50%' }} 
+                        />
                       </div>
                       <div>
                         <div>
@@ -146,7 +132,7 @@ const ModelSelectModal: React.FC<ModelSelectModalProps> = ({
                         </div>
                         <div>
                           <Text style={{ fontSize: 12, color: '#666' }}>
-                            {provider.providerName === '全部模型' ? '显示所有可用模型' : `${provider.models.length} 个模型`}
+                            {`${provider.models.length} 个模型`}
                           </Text>
                         </div>
                       </div>

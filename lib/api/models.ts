@@ -75,7 +75,12 @@ export interface DefaultModelResponse {
 
 // 获取模型列表
 export const getModelList = async (): Promise<ModelProviderWithModels[]> => {
-  return await request.get('/models/list');
+  return await request.get('/models/list', {
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
+    }
+  });
 };
 
 // 获取模型提供商列表
