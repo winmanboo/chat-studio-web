@@ -234,11 +234,6 @@ const ChatPage: React.FC = () => {
       const sessions = await getSessionList();
       const conversationItems = sessions.map(convertSessionToConversation);
       setConversations(conversationItems);
-      
-      // 如果有会话且当前没有选中的会话，选中第一个
-      if (conversationItems.length > 0 && !selectedId) {
-        setSelectedId(conversationItems[0].key);
-      }
     } catch (error) {
       console.error('加载会话列表失败:', error);
     } finally {
