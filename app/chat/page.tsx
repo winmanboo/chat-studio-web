@@ -446,6 +446,11 @@ const ChatPage: React.FC = () => {
     // 清除会话ID和消息
     setSessionId(null);
     setMessages([]);
+    // 重置Sender状态
+    setInputValue(''); // 清空输入框内容
+    setSearchMode(null); // 重置检索模式
+    setSelectedKb(null); // 清除选中的知识库
+    setDeepThinking(false); // 重置深度思考状态
   };
 
   // 处理知识库选择
