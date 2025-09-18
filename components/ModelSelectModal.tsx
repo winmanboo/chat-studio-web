@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Row, Col, Card, Typography, Spin, message } from 'antd';
-import { StarFilled, CheckOutlined } from '@ant-design/icons';
+import { Modal, Row, Col, Card, Typography, Spin, message, Input } from 'antd';
+import { StarFilled, CheckOutlined, SearchOutlined } from '@ant-design/icons';
 import { getModelList } from '@/lib/api/models';
 import type { ModelProviderWithModels, ModelListItem } from '@/lib/api/models';
 
@@ -23,6 +23,7 @@ const ModelSelectModal: React.FC<ModelSelectModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [filteredModels, setFilteredModels] = useState<(ModelListItem & { providerId: string })[]>([]);
+  const [searchText, setSearchText] = useState<string>('');
 
   // 获取数据
   const fetchData = async () => {
@@ -51,23 +52,35 @@ const ModelSelectModal: React.FC<ModelSelectModalProps> = ({
       setModelProviders([]);
       setFilteredModels([]);
       setSelectedProvider(null);
+      setSearchText(''); // 清空搜索文本
       fetchData();
     }
   }, [open]);
 
-  // 根据选中的提供商过滤模型
+  // 根据选中的提供商和搜索文本过滤模型
   useEffect(() => {
+    let modelsToFilter: (ModelListItem & { providerId: string })[] = [];
+    
     if (selectedProvider) {
       const provider = modelProviders.find(p => p.providerId === selectedProvider);
-      setFilteredModels(provider ? provider.models.map(model => ({ ...model, providerId: provider.providerId })) : []);
+      modelsToFilter = provider ? provider.models.map(model => ({ ...model, providerId: provider.providerId })) : [];
     } else {
       // 显示所有模型，并为每个模型添加providerId
-      const allModels = modelProviders.flatMap(provider => 
+      modelsToFilter = modelProviders.flatMap(provider => 
         provider.models.map(model => ({ ...model, providerId: provider.providerId }))
       );
-      setFilteredModels(allModels);
     }
-  }, [selectedProvider, modelProviders]);
+
+    // 根据搜索文本过滤模型
+    if (searchText.trim()) {
+      const searchLower = searchText.toLowerCase().trim();
+      modelsToFilter = modelsToFilter.filter(model => 
+        model.modelName.toLowerCase().includes(searchLower)
+      );
+    }
+
+    setFilteredModels(modelsToFilter);
+  }, [selectedProvider, modelProviders, searchText]);
 
   // 处理模型选择
   const handleModelSelect = (model: ModelListItem & { providerId: string }) => {
@@ -149,7 +162,17 @@ const ModelSelectModal: React.FC<ModelSelectModalProps> = ({
 
           {/* 右侧模型列表 */}
           <Col span={16} style={{ paddingLeft: 16, height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Title level={5} style={{ marginBottom: 16, flexShrink: 0 }}>可用模型</Title>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexShrink: 0 }}>
+              <Title level={5} style={{ margin: 0 }}>可用模型</Title>
+              <Input
+                placeholder="搜索模型..."
+                prefix={<SearchOutlined />}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={{ width: 200 }}
+                allowClear
+              />
+            </div>
             <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
               {loading ? (
                 <div style={{ textAlign: 'center', padding: '50px 0' }}>
