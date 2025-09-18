@@ -55,6 +55,8 @@ export const deleteSession = (sessionIds: string[]): Promise<void> => {
 export interface ChatRequest {
   sessionId: string;
   prompt: string;
+  providerId?: string; // 模型提供商ID
+  modelName?: string; // 模型名称
   searchEnabled?: boolean;
   thinkingEnabled?: boolean;
   ragEnabled?: boolean;

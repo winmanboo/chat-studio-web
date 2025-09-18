@@ -9,7 +9,7 @@ const { Title, Text } = Typography;
 interface ModelSelectModalProps {
   open: boolean;
   onCancel: () => void;
-  onSelect: (model: ModelListItem) => void;
+  onSelect: (model: ModelListItem & { providerId: string }) => void;
   selectedModel?: ModelListItem | null;
 }
 
@@ -22,7 +22,7 @@ const ModelSelectModal: React.FC<ModelSelectModalProps> = ({
   const [modelProviders, setModelProviders] = useState<ModelProviderWithModels[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-  const [filteredModels, setFilteredModels] = useState<ModelListItem[]>([]);
+  const [filteredModels, setFilteredModels] = useState<(ModelListItem & { providerId: string })[]>([]);
 
   // 获取数据
   const fetchData = async () => {
@@ -31,8 +31,10 @@ const ModelSelectModal: React.FC<ModelSelectModalProps> = ({
       const providers = await getModelList();
       setModelProviders(providers);
       
-      // 默认显示所有模型
-      const allModels = providers.flatMap(provider => provider.models);
+      // 默认显示所有模型，并为每个模型添加providerId
+      const allModels = providers.flatMap(provider => 
+        provider.models.map(model => ({ ...model, providerId: provider.providerId }))
+      );
       setFilteredModels(allModels);
     } catch (error) {
       console.error('获取模型数据失败:', error);
@@ -56,24 +58,26 @@ const ModelSelectModal: React.FC<ModelSelectModalProps> = ({
   // 根据选中的提供商过滤模型
   useEffect(() => {
     if (selectedProvider) {
-      const provider = modelProviders.find(p => p.providerName === selectedProvider);
-      setFilteredModels(provider ? provider.models : []);
+      const provider = modelProviders.find(p => p.providerId === selectedProvider);
+      setFilteredModels(provider ? provider.models.map(model => ({ ...model, providerId: provider.providerId })) : []);
     } else {
-      // 显示所有模型
-      const allModels = modelProviders.flatMap(provider => provider.models);
+      // 显示所有模型，并为每个模型添加providerId
+      const allModels = modelProviders.flatMap(provider => 
+        provider.models.map(model => ({ ...model, providerId: provider.providerId }))
+      );
       setFilteredModels(allModels);
     }
   }, [selectedProvider, modelProviders]);
 
   // 处理模型选择
-  const handleModelSelect = (model: ModelListItem) => {
+  const handleModelSelect = (model: ModelListItem & { providerId: string }) => {
     onSelect(model);
     onCancel();
   };
 
   // 处理提供商选择
-  const handleProviderSelect = (providerName: string) => {
-    setSelectedProvider(selectedProvider === providerName ? null : providerName);
+  const handleProviderSelect = (providerId: string) => {
+    setSelectedProvider(selectedProvider === providerId ? null : providerId);
   };
 
   return (
@@ -104,18 +108,18 @@ const ModelSelectModal: React.FC<ModelSelectModalProps> = ({
                 <div>
                   {modelProviders.map((provider: ModelProviderWithModels) => (
                     <div
-                      key={provider.providerName}
+                      key={provider.providerId}
                       style={{
                         cursor: 'pointer',
                         padding: '12px 8px',
                         borderRadius: 8,
                         marginBottom: 4,
-                        backgroundColor: selectedProvider === provider.providerName ? '#f6ffed' : 'transparent',
-                        border: selectedProvider === provider.providerName ? '1px solid #b7eb8f' : '1px solid transparent',
+                        backgroundColor: selectedProvider === provider.providerId ? '#f6ffed' : 'transparent',
+                        border: selectedProvider === provider.providerId ? '1px solid #b7eb8f' : '1px solid transparent',
                         display: 'flex',
                         alignItems: 'center'
                       }}
-                      onClick={() => handleProviderSelect(provider.providerName)}
+                      onClick={() => handleProviderSelect(provider.providerId)}
                     >
                       <div style={{ marginRight: 12 }}>
                         <img 

@@ -587,10 +587,15 @@ const ChatPage: React.FC = () => {
     setMessages(prev => [...prev, userMessage, aiMessage]);
     
     try {
+      // 确定要使用的模型信息
+      const modelToUse = selectedModel || defaultModel;
+      
       // 准备请求参数
       const requestData: ChatRequest = {
         sessionId: currentSessionId, // 直接使用currentSessionId，确保它是有效的
         prompt: message,
+        ...(modelToUse?.providerId && { providerId: modelToUse.providerId }),
+        ...(modelToUse?.modelName && { modelName: modelToUse.modelName }),
         searchEnabled: searchMode === "web",
         thinkingEnabled: deepThinking,
         ragEnabled: searchMode === "kb",

@@ -21,9 +21,11 @@ export interface InstalledModel {
 // 默认模型数据类型定义
 export interface DefaultModel {
   id: number;
+  providerId: string;
   modelName: string;
   sort: number;
   def: boolean;
+  created?: number;
 }
 
 // API响应类型定义
@@ -49,9 +51,11 @@ export interface ModelListItem {
   sort: number;
   def: boolean;
   created?: number; // 模型发布时间戳，可选字段
+  providerId?: string; // 提供商ID，可选字段，在选择时添加
 }
 
 export interface ModelProviderWithModels {
+  providerId: string;
   providerName: string;
   icon: string;
   models: ModelListItem[];
