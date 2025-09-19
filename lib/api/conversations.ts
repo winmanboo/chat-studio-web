@@ -58,7 +58,6 @@ export interface ChatRequest {
   providerId?: string; // 模型提供商ID
   modelName?: string; // 模型名称
   searchEnabled?: boolean;
-  thinkingEnabled?: boolean;
   ragEnabled?: boolean;
   kbId?: number; // 知识库ID，当ragEnabled为true时使用
 }

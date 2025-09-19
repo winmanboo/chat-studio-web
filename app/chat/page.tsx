@@ -18,7 +18,6 @@ import {
   UploadOutlined,
   DatabaseOutlined,
   GlobalOutlined,
-  ThunderboltOutlined,
   SettingOutlined,
   EditOutlined,
   DeleteOutlined,
@@ -229,9 +228,8 @@ const ChatPage: React.FC = () => {
 
 
   const { token } = theme.useToken();
-  // 检索模式与深度思考
+  // 检索模式
   const [searchMode, setSearchMode] = useState<null | "web" | "kb">(null);
-  const [deepThinking, setDeepThinking] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [sessionManageModalVisible, setSessionManageModalVisible] = useState<boolean>(false);
   const [kbSelectModalVisible, setKbSelectModalVisible] = useState<boolean>(false);
@@ -495,7 +493,6 @@ const ChatPage: React.FC = () => {
     setInputValue(''); // 清空输入框内容
     setSearchMode(null); // 重置检索模式
     setSelectedKb(null); // 清除选中的知识库
-    setDeepThinking(false); // 重置深度思考状态
   };
 
   // 处理知识库选择
@@ -597,7 +594,6 @@ const ChatPage: React.FC = () => {
         ...(modelToUse?.providerId && { providerId: modelToUse.providerId }),
         ...(modelToUse?.modelName && { modelName: modelToUse.modelName }),
         searchEnabled: searchMode === "web",
-        thinkingEnabled: deepThinking,
         ragEnabled: searchMode === "kb",
         ...(searchMode === "kb" && selectedKb && { kbId: selectedKb.id })
       };
@@ -986,7 +982,7 @@ const ChatPage: React.FC = () => {
                   const { SendButton, SpeechButton } = components;
                   return (
                     <Flex justify="space-between" align="center">
-                      {/* 左侧：检索模式 + 深度思考 */}
+                      {/* 左侧：检索模式 */}
                       <Flex gap="small" align="center">
                         <Dropdown
                            menu={searchMenu}
@@ -1016,29 +1012,6 @@ const ChatPage: React.FC = () => {
                             {modeLabel}
                           </Button>
                         </Dropdown>
-                        <Divider type="vertical" />
-                        <Button
-                          type="text"
-                          icon={
-                            <ThunderboltOutlined
-                                style={{
-                                  color: deepThinking
-                                    ? token.colorPrimary
-                                    : token.colorText,
-                                  fontSize: ICON_SIZE,
-                                }}
-                            />
-                          }
-                          style={{
-                              fontSize: ICON_SIZE,
-                              color: deepThinking
-                                ? token.colorPrimary
-                                : token.colorText,
-                            }}
-                          onClick={() => setDeepThinking((v) => !v)}
-                        >
-                          深度思考
-                        </Button>
                       </Flex>
                       {/* 右侧：上传附件（语音左侧） + 语音 + 发送 */}
                       <Flex align="center" gap={8}>
@@ -1197,7 +1170,7 @@ const ChatPage: React.FC = () => {
                     const { SendButton, SpeechButton } = components;
                     return (
                       <Flex justify="space-between" align="center">
-                        {/* 左侧：检索模式 + 深度思考 */}
+                        {/* 左侧：检索模式 */}
                         <Flex gap="small" align="center">
                           <Dropdown
                             menu={searchMenu}
@@ -1227,29 +1200,6 @@ const ChatPage: React.FC = () => {
                               {modeLabel}
                             </Button>
                           </Dropdown>
-                          <Divider type="vertical" />
-                          <Button
-                            type="text"
-                            icon={
-                              <ThunderboltOutlined
-                                  style={{
-                                    color: deepThinking
-                                      ? token.colorPrimary
-                                      : token.colorText,
-                                    fontSize: ICON_SIZE,
-                                  }}
-                              />
-                            }
-                            style={{
-                                fontSize: ICON_SIZE,
-                                color: deepThinking
-                                  ? token.colorPrimary
-                                  : token.colorText,
-                              }}
-                            onClick={() => setDeepThinking((v) => !v)}
-                          >
-                            深度思考
-                          </Button>
                         </Flex>
                         {/* 右侧：上传附件（语音左侧） + 语音 + 发送 */}
                         <Flex align="center" gap={8}>
