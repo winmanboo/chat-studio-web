@@ -30,7 +30,6 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
   const getSelectedTab = () => {
     if (pathname.startsWith('/chat')) return 'chat';
     if (pathname.startsWith('/knowledgebase') || pathname.startsWith('/documents')) return 'kb';
-    if (pathname.startsWith('/market')) return 'market';
     return 'chat'; // 默认选中chat
   };
 
