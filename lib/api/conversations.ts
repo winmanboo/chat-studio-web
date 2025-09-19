@@ -23,6 +23,7 @@ export interface SessionMessage {
   id: number;
   sessionId: string;
   message: string;
+  thinking?: string; // 深度思考内容，仅在ASSISTANT消息中存在
   messageType: 'USER' | 'ASSISTANT';
   parentId: number;
   kbName?: string; // 知识库名称，仅在ASSISTANT消息中存在

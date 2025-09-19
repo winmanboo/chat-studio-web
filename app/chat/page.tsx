@@ -159,6 +159,11 @@ const convertSessionMessageToChatMessage = (
     avatar: sessionMessage.messageType === "USER" ? "👤" : "🤖",
   };
 
+  // 如果是AI消息且包含thinking内容，添加thinking字段
+  if (sessionMessage.messageType === "ASSISTANT" && sessionMessage.thinking) {
+    chatMessage.thinking = sessionMessage.thinking;
+  }
+
   // 如果是AI消息且包含检索结果，添加检索相关数据
   if (
     sessionMessage.messageType === "ASSISTANT" &&
@@ -206,6 +211,8 @@ interface ChatMessage {
   retrieveMode?: boolean; // 是否是检索模式
   kbName?: string; // 知识库名称
   retrieves?: RetrieveResult[]; // 检索结果
+  thinking?: string; // 深度思考内容
+  thinkingDuration?: number; // 深度思考耗时，单位为秒
 }
 
 // 定义会话项类型
@@ -875,7 +882,10 @@ const ChatPage: React.FC = () => {
                 padding: "0 10%", // 使用padding控制内容宽度，与Sender的80%宽度对应
               }}
             >
-              <ChatMessageList messages={messages} />
+              <ChatMessageList 
+                messages={messages} 
+                isViewingHistory={!!selectedId} // 如果有选中的会话ID，说明在查看历史消息
+              />
             </div>
             {/* Sender 组件 - 绝对定位固定在底部 */}
             <div
