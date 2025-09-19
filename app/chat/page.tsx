@@ -2,38 +2,18 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import {
-  Sender,
-  Conversations,
   ConversationsProps,
-  Bubble,
 } from "@ant-design/x";
 
-import { renderMarkdown } from "@/components/MarkdownRenderer";
 import ModelSelectButton from "@/components/ModelSelectButton";
 import {
-  PlusOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  SearchOutlined,
-  UploadOutlined,
-  DatabaseOutlined,
-  GlobalOutlined,
-  SettingOutlined,
   EditOutlined,
   DeleteOutlined,
   CommentOutlined,
-  UserOutlined,
-  RobotOutlined,
 } from "@ant-design/icons";
 import {
   Button,
-  Divider,
-  Flex,
-  theme,
-  Dropdown,
-  Upload,
   message as antdMessage,
-  Spin,
   Modal,
   Input,
   Space,
@@ -51,7 +31,9 @@ import {
 import SessionManageModal from "@/components/SessionManageModal";
 import KnowledgeBaseSelectModal from "@/components/KnowledgeBaseSelectModal";
 import ModelSelectModal from "@/components/ModelSelectModal";
-import RetrieveResultsDisplay from "@/components/RetrieveResultsDisplay";
+import ChatSidebar from "@/components/chat/ChatSidebar";
+import ChatMessageInput from "@/components/chat/ChatMessageInput";
+import ChatMessageList from "@/components/chat/ChatMessageList";
 import { KnowledgeBase } from "@/lib/api/knowledgebase";
 import {
   InstalledModel,
@@ -63,11 +45,6 @@ import {
 import { loginEventManager } from "@/lib/events/loginEvents";
 
 // 样式常量
-const ICON_SIZE = 15;
-const BUTTON_SIZE = 18;
-const BOLD_BUTTON_STYLE = { fontWeight: "bold", fontSize: BUTTON_SIZE };
-const USER_AVATAR_STYLE = { backgroundColor: "#1890ff", color: "white" };
-const ASSISTANT_AVATAR_STYLE = { backgroundColor: "#f0f0f0", color: "black" };
 
 // Sender容器3D样式常量
 const SENDER_CONTAINER_STYLE = {
@@ -257,7 +234,6 @@ const ChatPage: React.FC = () => {
   const senderRef = useRef<HTMLDivElement>(null);
   const [senderHeight, setSenderHeight] = useState(100); // 跟踪Sender高度
 
-  const { token } = theme.useToken();
   // 检索模式
   const [searchMode, setSearchMode] = useState<null | "web" | "kb">(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -272,6 +248,11 @@ const ChatPage: React.FC = () => {
     null
   );
   const [defaultModel, setDefaultModel] = useState<DefaultModel | null>(null);
+
+  // 获取模式标签
+  const modeLabel = searchMode === "web" ? "Web搜索" : 
+                   (searchMode === "kb" && selectedKb) ? selectedKb.name : 
+                   searchMode === "kb" ? "知识库检索" : "";
 
   // 加载会话列表
   const loadSessionList = async () => {
@@ -378,14 +359,7 @@ const ChatPage: React.FC = () => {
     setIsUserScrolling(!isAtBottom);
   };
 
-  const modeLabel =
-    searchMode === "web"
-      ? "Web 搜索"
-      : searchMode === "kb" && selectedKb
-      ? selectedKb.name
-      : searchMode === "kb"
-      ? "知识库"
-      : "检索模式";
+
 
   // 修改会话名称
   const handleEditConversation = (key: string, currentLabel: string) => {
@@ -536,51 +510,6 @@ const ChatPage: React.FC = () => {
   const handleKbSelect = (kb: KnowledgeBase) => {
     setSelectedKb(kb);
     setSearchMode("kb");
-  };
-
-  // 检索模式菜单
-  const searchMenu = {
-    items: [
-      {
-        key: "web",
-        icon: <GlobalOutlined />,
-        label: "Web搜索",
-        onClick: () => {
-          if (searchMode === "web") {
-            // 如果当前已选择Web搜索，则取消
-            setSearchMode(null);
-          } else {
-            // 否则选择Web搜索
-            setSearchMode("web");
-          }
-        },
-      },
-      {
-        key: "kb",
-        icon: <DatabaseOutlined />,
-        label: "知识库检索",
-        onClick: () => {
-          if (searchMode === "kb") {
-            // 如果当前已选择知识库检索，则取消
-            setSearchMode(null);
-            setSelectedKb(null);
-          } else {
-            // 否则弹出知识库选择模态框
-            setKbSelectModalVisible(true);
-          }
-        },
-      },
-    ],
-  };
-
-  // 处理检索模式按钮点击
-  const handleSearchModeClick = () => {
-    if (searchMode) {
-      // 如果当前有选择的检索模式，则取消
-      setSearchMode(null);
-      setSelectedKb(null);
-    }
-    // 如果没有选择模式，Dropdown会自动显示菜单
   };
 
   // 发送消息
@@ -832,176 +761,43 @@ const ChatPage: React.FC = () => {
       }}
     >
       {/* 左侧对话管理区 */}
-      <div
-        style={{
-          width: collapsed ? 48 : 220,
-          transition: "width 0.2s",
-          borderRight: "1px solid #f0f0f0",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          background: "#fafbfc",
-          height: "100%",
-          color: "#222",
+      <ChatSidebar
+        collapsed={collapsed}
+        onCollapsedChange={setCollapsed}
+        conversations={conversations}
+        selectedId={selectedId}
+        loading={loading}
+        onAddConversation={handleAddConversation}
+        onSettingsClick={() => setSessionManageModalVisible(true)}
+        onConversationSelect={async (key) => {
+          try {
+            setSelectedId(key);
+            setSessionId(key); // 切换会话时设置sessionId为选中的会话ID
+            setHasStarted(true);
+
+            // 加载该会话的历史消息
+            const historyMessages = await loadSessionMessages(key);
+            setMessages(historyMessages);
+
+            // 重置用户滚动状态，允许自动滚动
+            setIsUserScrolling(false);
+
+            // 使用requestAnimationFrame确保DOM更新后再滚动，避免闪烁
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                scrollToBottom(true, true); // 使用平滑滚动
+              });
+            });
+          } catch (error) {
+            console.error("切换会话失败:", error);
+            antdMessage.error("切换会话失败，请重试");
+            setMessages([]); // 出错时清空消息
+            setHasStarted(false);
+          }
         }}
-      >
-        {collapsed ? (
-          // 折叠状态下只显示展开按钮
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Button
-              type="text"
-              icon={<MenuUnfoldOutlined />}
-              onClick={() => setCollapsed(false)}
-              style={{
-                fontSize: 18,
-                color: token.colorText,
-              }}
-            />
-          </div>
-        ) : (
-          // 展开状态显示完整内容
-          <>
-            {/* 新建对话按钮（替换原顶部文字） */}
-            <div
-              style={{
-                width: "100%",
-                padding: "16px 0 8px 0",
-                textAlign: "center",
-                borderBottom: "1px solid #f0f0f0",
-                position: "relative",
-                color: "#222",
-              }}
-            >
-              <Flex justify="center" gap={8}>
-                <Button
-                  type="text"
-                  icon={<PlusOutlined />}
-                  style={BOLD_BUTTON_STYLE}
-                  onClick={handleAddConversation}
-                >
-                  新建对话
-                </Button>
-                <Button
-                  type="text"
-                  icon={<SettingOutlined />}
-                  style={BOLD_BUTTON_STYLE}
-                  onClick={() => setSessionManageModalVisible(true)}
-                >
-                  设置
-                </Button>
-              </Flex>
-            </div>
-            <div
-              style={{
-                flex: 1,
-                width: "100%",
-                overflowY: "auto",
-                padding: 8,
-              }}
-            >
-              {(() => {
-                if (loading) {
-                  return (
-                    <div style={{ textAlign: "center", padding: "20px" }}>
-                      <Spin size="small" />
-                      <div style={{ marginTop: "8px", color: "#666" }}>
-                        加载中...
-                      </div>
-                    </div>
-                  );
-                }
-
-                if (conversations.length === 0) {
-                  return (
-                    <div
-                      style={{
-                        textAlign: "center",
-                        padding: "40px 20px",
-                        color: "#999",
-                      }}
-                    >
-                      <CommentOutlined
-                        style={{
-                          fontSize: "32px",
-                          marginBottom: "12px",
-                          display: "block",
-                        }}
-                      />
-                      <div style={{ fontSize: "14px", marginBottom: "8px" }}>
-                        暂无会话
-                      </div>
-                      <div style={{ fontSize: "12px" }}>
-                        点击上方 + 按钮创建新会话
-                      </div>
-                    </div>
-                  );
-                }
-
-                return (
-                  <Conversations
-                    style={{ width: "100%", color: "#222" }}
-                    items={conversations}
-                    activeKey={selectedId}
-                    onActiveChange={async (key) => {
-                      try {
-                        setSelectedId(key);
-                        setSessionId(key); // 切换会话时设置sessionId为选中的会话ID
-                        setHasStarted(true);
-
-                        // 加载该会话的历史消息
-                        const historyMessages = await loadSessionMessages(key);
-                        setMessages(historyMessages);
-
-                        // 重置用户滚动状态，允许自动滚动
-                        setIsUserScrolling(false);
-
-                        // 使用requestAnimationFrame确保DOM更新后再滚动，避免闪烁
-                        requestAnimationFrame(() => {
-                          requestAnimationFrame(() => {
-                            scrollToBottom(true, true); // 使用平滑滚动
-                          });
-                        });
-                      } catch (error) {
-                        console.error("切换会话失败:", error);
-                        antdMessage.error("切换会话失败，请重试");
-                        setMessages([]); // 出错时清空消息
-                        setHasStarted(false);
-                      }
-                    }}
-                    menu={conversationMenu}
-                    groupable={groupable}
-                  />
-                );
-              })()}
-            </div>
-            <div
-              style={{
-                width: "100%",
-                padding: 8,
-                borderTop: "1px solid #f0f0f0",
-                textAlign: "center",
-              }}
-            >
-              <Button
-                type="text"
-                icon={<MenuFoldOutlined />}
-                onClick={() => setCollapsed(true)}
-                style={{ width: "100%" }}
-              >
-                收起
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
+        conversationMenu={conversationMenu}
+        groupable={groupable}
+      />
       {/* 右侧聊天区 */}
       <div
         style={{
@@ -1029,84 +825,18 @@ const ChatPage: React.FC = () => {
 
             <div style={CHAT_STUDIO_TITLE_STYLE}>Chat Studio</div>
             <div style={MIDDLE_SENDER_CONTAINER_STYLE}>
-              <Sender
+              <ChatMessageInput
                 value={inputValue}
-                onChange={(val) => setInputValue(val)}
-                placeholder="请输入内容并回车..."
-                allowSpeech={false}
-                actions={false}
+                onChange={setInputValue}
                 onSubmit={(val) => {
                   handleSubmit(val);
                   setInputValue(""); // 提交后清空输入框
                 }}
-                footer={({ components }) => {
-                  const { SendButton, SpeechButton } = components;
-                  return (
-                    <Flex justify="space-between" align="center">
-                      {/* 左侧：检索模式 */}
-                      <Flex gap="small" align="center">
-                        <Dropdown
-                          menu={searchMenu}
-                          trigger={searchMode ? [] : ["click"]} // 已选择模式时不触发菜单
-                          placement="topLeft"
-                        >
-                          <Button
-                            type="text"
-                            icon={
-                              <SearchOutlined
-                                style={{
-                                  color: searchMode
-                                    ? token.colorPrimary
-                                    : token.colorText,
-                                  fontSize: ICON_SIZE,
-                                }}
-                              />
-                            }
-                            style={{
-                              fontSize: ICON_SIZE,
-                              color: searchMode
-                                ? token.colorPrimary
-                                : token.colorText,
-                            }}
-                            onClick={handleSearchModeClick}
-                          >
-                            {modeLabel}
-                          </Button>
-                        </Dropdown>
-                      </Flex>
-                      {/* 右侧：上传附件（语音左侧） + 语音 + 发送 */}
-                      <Flex align="center" gap={8}>
-                        <Upload
-                          showUploadList={false}
-                          beforeUpload={() => {
-                            antdMessage.info("上传文件功能开发中");
-                            return false;
-                          }}
-                        >
-                          <Button
-                            type="text"
-                            icon={
-                              <UploadOutlined style={{ fontSize: ICON_SIZE }} />
-                            }
-                            style={{
-                              fontSize: BUTTON_SIZE,
-                              color: token.colorText,
-                            }}
-                          />
-                        </Upload>
-                        <Divider type="vertical" />
-                        <SpeechButton
-                          style={{
-                            fontSize: ICON_SIZE,
-                            color: token.colorText,
-                          }}
-                        />
-                        <Divider type="vertical" />
-                        <SendButton type="primary" disabled={false} />
-                      </Flex>
-                    </Flex>
-                  );
-                }}
+                searchMode={searchMode}
+                selectedKb={selectedKb}
+                onSearchModeChange={setSearchMode}
+                onKbSelectModalOpen={() => setKbSelectModalVisible(true)}
+                placeholder="请输入内容并回车..."
               />
             </div>
           </div>
@@ -1145,74 +875,7 @@ const ChatPage: React.FC = () => {
                 padding: "0 10%", // 使用padding控制内容宽度，与Sender的80%宽度对应
               }}
             >
-              <Bubble.List
-                items={messages.map((msg, index) => ({
-                  key: index,
-                  content: msg, // 传递完整的消息对象
-                  role: msg.role,
-                  avatar:
-                    msg.role === "user"
-                      ? { icon: <UserOutlined />, style: USER_AVATAR_STYLE }
-                      : {
-                          icon: <RobotOutlined />,
-                          style: ASSISTANT_AVATAR_STYLE,
-                        },
-                  loading: msg.isLoading,
-                  variant: msg.role === "user" ? "filled" : "outlined",
-                }))}
-                roles={{
-                  user: {
-                    placement: "end",
-                    messageRender: (content) => {
-                      const msg = content as ChatMessage;
-                      return (
-                        <div
-                          style={{
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-word",
-                            lineHeight: "1.5",
-                          }}
-                        >
-                          {msg.displayContent || msg.content}
-                        </div>
-                      );
-                    },
-                    avatar: {
-                      icon: <UserOutlined />,
-                      style: USER_AVATAR_STYLE,
-                    },
-                    className: "user-bubble",
-                  },
-                  assistant: {
-                    placement: "start",
-                    messageRender: (content) => {
-                      const msg = content as ChatMessage;
-                      return (
-                        <div>
-                          {/* 检索结果显示 */}
-                          {msg.retrieveMode && msg.kbName && msg.retrieves && (
-                            <RetrieveResultsDisplay
-                              kbName={msg.kbName}
-                              retrieves={msg.retrieves}
-                            />
-                          )}
-                          {/* 消息内容 */}
-                          {renderMarkdown(msg.displayContent || msg.content)}
-                        </div>
-                      );
-                    },
-                    avatar: {
-                      icon: <RobotOutlined />,
-                      style: ASSISTANT_AVATAR_STYLE,
-                    },
-                    className: "assistant-bubble",
-                  },
-                }}
-                style={{
-                  width: "100%",
-                  minHeight: "100%",
-                }}
-              />
+              <ChatMessageList messages={messages} />
             </div>
             {/* Sender 组件 - 绝对定位固定在底部 */}
             <div
@@ -1229,86 +892,18 @@ const ChatPage: React.FC = () => {
               }}
             >
               <div style={BOTTOM_SENDER_CONTAINER_STYLE}>
-                <Sender
+                <ChatMessageInput
                   value={inputValue}
-                  onChange={(val) => setInputValue(val)}
-                  placeholder="请输入内容并回车..."
-                  allowSpeech
-                  actions={false as const}
+                  onChange={setInputValue}
                   onSubmit={(val) => {
                     handleSubmit(val);
                     setInputValue(""); // 提交后清空输入框
                   }}
-                  footer={({ components }) => {
-                    const { SendButton, SpeechButton } = components;
-                    return (
-                      <Flex justify="space-between" align="center">
-                        {/* 左侧：检索模式 */}
-                        <Flex gap="small" align="center">
-                          <Dropdown
-                            menu={searchMenu}
-                            trigger={searchMode ? [] : ["click"]} // 已选择模式时不触发菜单
-                            placement="topLeft"
-                          >
-                            <Button
-                              type="text"
-                              icon={
-                                <SearchOutlined
-                                  style={{
-                                    color: searchMode
-                                      ? token.colorPrimary
-                                      : token.colorText,
-                                    fontSize: ICON_SIZE,
-                                  }}
-                                />
-                              }
-                              style={{
-                                fontSize: ICON_SIZE,
-                                color: searchMode
-                                  ? token.colorPrimary
-                                  : token.colorText,
-                              }}
-                              onClick={handleSearchModeClick}
-                            >
-                              {modeLabel}
-                            </Button>
-                          </Dropdown>
-                        </Flex>
-                        {/* 右侧：上传附件（语音左侧） + 语音 + 发送 */}
-                        <Flex align="center" gap={8}>
-                          <Upload
-                            showUploadList={false}
-                            beforeUpload={() => {
-                              antdMessage.info("上传文件功能开发中");
-                              return false;
-                            }}
-                          >
-                            <Button
-                              type="text"
-                              icon={
-                                <UploadOutlined
-                                  style={{ fontSize: ICON_SIZE }}
-                                />
-                              }
-                              style={{
-                                fontSize: BUTTON_SIZE,
-                                color: token.colorText,
-                              }}
-                            />
-                          </Upload>
-                          <Divider type="vertical" />
-                          <SpeechButton
-                            style={{
-                              fontSize: ICON_SIZE,
-                              color: token.colorText,
-                            }}
-                          />
-                          <Divider type="vertical" />
-                          <SendButton type="primary" disabled={false} />
-                        </Flex>
-                      </Flex>
-                    );
-                  }}
+                  searchMode={searchMode}
+                  selectedKb={selectedKb}
+                  onSearchModeChange={setSearchMode}
+                  onKbSelectModalOpen={() => setKbSelectModalVisible(true)}
+                  placeholder="请输入内容并回车..."
                 />
               </div>
             </div>
