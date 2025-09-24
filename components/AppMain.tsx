@@ -122,6 +122,7 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
         onSettingsClick={handleSettingsClick}
         isLogin={isLogin}
         onLogout={handleLogout}
+        userInfo={userInfo}
       />
       <main style={{ flex: 1, width: '100%', alignSelf: 'stretch', display: 'flex' }}>
         <div style={{ flex: 1, display: 'flex' }}>

@@ -4,4 +4,5 @@ export * from './auth';
 export * from './knowledgebase';
 export * from './documents';
 export * from './models';
+export * from './admin';
 export { default as request } from './request';

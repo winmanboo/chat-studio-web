@@ -1,9 +1,17 @@
 import React from 'react';
 import { Layout, Avatar, Button, Dropdown, Menu, message } from 'antd';
-import { UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
+import { UserOutlined, SettingOutlined, LogoutOutlined, CrownOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
 const { Header } = Layout;
+
+interface UserInfo {
+  userId: string;
+  userRole: string;
+  state: string;
+  capacity: number;
+  inviteCode: string;
+}
 
 interface HeaderProps {
   selectedTab: string;
@@ -11,9 +19,10 @@ interface HeaderProps {
   onSettingsClick: () => void;
   isLogin: boolean;
   onLogout: () => void;
+  userInfo: UserInfo | null;
 }
 
-const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSettingsClick, isLogin, onLogout }) => {
+const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSettingsClick, isLogin, onLogout, userInfo }) => {
   const router = useRouter();
   const capsuleTabs = [
     { key: 'chat', icon: '💬', label: '聊天' },
@@ -38,6 +47,10 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
     if (route) {
       router.push(route);
     }
+  };
+
+  const handleAdminClick = () => {
+    router.push('/admin');
   };
 
   return (
@@ -128,6 +141,11 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
                 <Menu.Item key="settings" icon={<SettingOutlined />} onClick={onSettingsClick}>
                   设置
                 </Menu.Item>
+                {userInfo?.userRole === 'ADMIN' && (
+                  <Menu.Item key="admin" icon={<CrownOutlined />} onClick={handleAdminClick}>
+                    管理员设置
+                  </Menu.Item>
+                )}
                 <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={onLogout}>
                   登出
                 </Menu.Item>
