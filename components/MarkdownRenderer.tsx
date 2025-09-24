@@ -5,6 +5,11 @@ import MarkdownIt from 'markdown-it';
 import mermaid from 'mermaid';
 import hljs from 'highlight.js';
 
+// 禁用Haskell语言以修复正则表达式错误
+if (typeof window !== 'undefined' && hljs.getLanguage('haskell')) {
+  hljs.unregisterLanguage('haskell');
+}
+
 interface CustomWindow extends Window {
   copyCodeToClipboard: (button: HTMLButtonElement) => void;
   handleMermaidZoom: (element: HTMLElement) => void;
