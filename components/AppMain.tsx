@@ -5,7 +5,7 @@ import HeaderComponent from "./Header";
 import UserModal from "./UserModal";
 import SettingsModal from "./SettingsModal";
 import VersionUpdateModal from "./VersionUpdateModal";
-import { logout } from "../lib/api";
+import { logout, UserInfo } from "../lib/api";
 import { useServiceWorker } from "../lib/hooks/useServiceWorker";
 
 interface AppMainProps {
@@ -14,16 +14,16 @@ interface AppMainProps {
 
 const AppMain: React.FC<AppMainProps> = ({ children }) => {
   const pathname = usePathname();
-  const [userModalOpen, setUserModalOpen] = React.useState(false);
-  const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
-  const [isLogin, setIsLogin] = React.useState(false);
-  
-  // Service Worker 和版本更新相关
-  const { 
-    hasUpdate, 
-    versionData, 
-    checkForUpdates, 
-    dismissUpdate 
+  const [isLogin, setIsLogin] = useState(false);
+  const [userModalOpen, setUserModalOpen] = useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+
+  // 版本更新相关状态
+  const {
+    hasUpdate,
+    versionData,
+    dismissUpdate,
   } = useServiceWorker();
 
   // 根据当前路径确定选中的tab
@@ -37,34 +37,50 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('authToken');
-      const userInfo = localStorage.getItem('userInfo');
+      const userInfoStr = localStorage.getItem('userInfo');
       
       // 如果存在token和用户信息，则认为用户已登录
-      if (token && userInfo) {
+      if (token && userInfoStr) {
         try {
-          JSON.parse(userInfo); // 验证用户信息是否为有效的JSON
+          const parsedUserInfo = JSON.parse(userInfoStr); // 验证用户信息是否为有效的JSON
+          setUserInfo(parsedUserInfo);
           setIsLogin(true);
         } catch {
           // 如果用户信息无效，则清除localStorage中的数据
           localStorage.removeItem('authToken');
           localStorage.removeItem('userInfo');
+          setUserInfo(null);
           setIsLogin(false);
         }
       } else {
         // 如果缺少token或用户信息，则确保两者都被清除
         if (!token) localStorage.removeItem('authToken');
-        if (!userInfo) localStorage.removeItem('userInfo');
+        if (!userInfoStr) localStorage.removeItem('userInfo');
+        setUserInfo(null);
         setIsLogin(false);
       }
     }
   }, []);
 
-
   const handleUserClick = () => setUserModalOpen(true);
   const handleSettingsClick = () => setSettingsModalOpen(true);
   const handleUserModalClose = () => setUserModalOpen(false);
   const handleSettingsModalClose = () => setSettingsModalOpen(false);
-  const handleLogin = () => setIsLogin(true);
+  const handleLogin = () => {
+    setIsLogin(true);
+    // 重新获取用户信息
+    if (typeof window !== 'undefined') {
+      const userInfoStr = localStorage.getItem('userInfo');
+      if (userInfoStr) {
+        try {
+          const parsedUserInfo = JSON.parse(userInfoStr);
+          setUserInfo(parsedUserInfo);
+        } catch {
+          setUserInfo(null);
+        }
+      }
+    }
+  };
   
   // 版本更新相关处理函数
   const handleVersionUpdateClose = () => {
@@ -78,6 +94,7 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
   const handleOpenNewTab = () => {
     window.open(window.location.href, '_blank');
   };
+
   const handleLogout = async () => {
     try {
       // 调用登出接口
@@ -90,6 +107,7 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userInfo');
       }
+      setUserInfo(null);
       setIsLogin(false);
       // 登出后重定向到主页面，清理所有界面数据
       window.location.href = '/';
@@ -118,7 +136,7 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
       <SettingsModal
         open={settingsModalOpen}
         onClose={handleSettingsModalClose}
-        userInfo={null}
+        userInfo={userInfo}
       />
       <VersionUpdateModal
         visible={hasUpdate}
@@ -127,7 +145,6 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
         onRefresh={handleRefresh}
         onOpenNewTab={handleOpenNewTab}
       />
-
     </div>
   );
 };
