@@ -48,7 +48,7 @@ export const getSessionMessages = (sessionId: string): Promise<SessionMessage[]>
 // 删除会话接口 - 支持单个或批量删除
 export const deleteSession = (sessionId: string | string[]): Promise<void> => {
   const sessionIds = Array.isArray(sessionId) ? sessionId : [sessionId];
-  return request.delete<void>(`/session/delete`, { data: { sessionIds } }) as unknown as Promise<void>;
+  return request.delete<void>(`/session/delete`, { data: sessionIds }) as unknown as Promise<void>;
 };
 
 // 聊天接口参数类型
