@@ -148,7 +148,9 @@ const SessionManageModal: React.FC<SessionManageModalProps> = ({
     }
 
     try {
+      // 批量删除会话
       await deleteSession(selectedRowKeys as string[]);
+      
       message.success(`成功删除 ${selectedRowKeys.length} 个会话`);
       
       // 重新加载会话列表

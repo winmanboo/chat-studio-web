@@ -12,7 +12,6 @@ import {
   CommentOutlined,
 } from "@ant-design/icons";
 import {
-  Button,
   message as antdMessage,
   Modal,
   Input,
@@ -415,8 +414,8 @@ const ChatPage: React.FC = () => {
       },
       onOk: async () => {
         try {
-          // 调用删除会话API，传递sessionIds数组
-          await deleteSession([key]);
+          // 调用删除会话API，传递单个sessionId
+          await deleteSession(key);
 
           // 刷新会话列表
           await loadSessionList();

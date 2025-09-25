@@ -6,7 +6,7 @@ RUN npm config set registry https://registry.npmmirror.com
 
 WORKDIR /app/web
 
-ENV NEXT_PUBLIC_API_BASE_URL=http://chat-studio-server:8080
+ENV BACKEND_API_URL=http://chat-studio-server:8080
 ENV PORT=3000
 
 COPY package.json .
@@ -16,6 +16,8 @@ COPY package-lock.json .
 RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 COPY ./ /app/web/
+
+COPY .env.example .env
 
 RUN pnpm build
 

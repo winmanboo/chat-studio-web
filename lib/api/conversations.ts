@@ -32,24 +32,23 @@ export interface SessionMessage {
 
 // 创建会话接口
 export const createSession = (): Promise<SessionId> => {
-  return request.post<SessionId>('/chat/v1/session/create') as unknown as Promise<SessionId>;
+  return request.post<SessionId>('/session/create') as unknown as Promise<SessionId>;
 };
 
 // 获取会话列表接口
 export const getSessionList = (): Promise<SessionItem[]> => {
-  return request.get<SessionItem[]>('/chat/v1/sessions') as unknown as Promise<SessionItem[]>;
+  return request.get<SessionItem[]>('/session/list') as unknown as Promise<SessionItem[]>;
 };
 
 // 获取会话消息接口
 export const getSessionMessages = (sessionId: string): Promise<SessionMessage[]> => {
-  return request.get<SessionMessage[]>(`/chat/v1/messages/${sessionId}`) as unknown as Promise<SessionMessage[]>;
+  return request.get<SessionMessage[]>(`/session/messages/${sessionId}`) as unknown as Promise<SessionMessage[]>;
 };
 
-// 删除会话接口
-export const deleteSession = (sessionIds: string[]): Promise<void> => {
-  return request.delete<void>('/chat/v1/session/delete', {
-    data: sessionIds // 直接发送数组，匹配后端 List<String> 参数
-  }) as unknown as Promise<void>;
+// 删除会话接口 - 支持单个或批量删除
+export const deleteSession = (sessionId: string | string[]): Promise<void> => {
+  const sessionIds = Array.isArray(sessionId) ? sessionId : [sessionId];
+  return request.delete<void>(`/session/delete`, { data: { sessionIds } }) as unknown as Promise<void>;
 };
 
 // 聊天接口参数类型
@@ -69,7 +68,7 @@ export type ChatResponse = string;
 // 流式聊天接口
 export const chatStream = async (data: ChatRequest): Promise<ReadableStreamDefaultReader<Uint8Array>> => {
   // 使用fetch API处理流式响应，因为axios在浏览器中不支持stream
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
+  const baseUrl = '/api';
   const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : '';
   
   const response = await fetch(`${baseUrl}/chat/v1/chat`, {
