@@ -23,21 +23,24 @@ import type { ColumnsType } from 'antd/es/table';
 
 const { Search } = Input;
 const { Text } = Typography;
-
-interface SessionManageModalProps {
+export interface SessionManageModalProps {
   open: boolean;
   onCancel: () => void;
   onSessionsChange?: () => void; // 会话变更后的回调
+  selectedSessionId?: string; // 当前选中的会话ID
+  onSelectedSessionDeleted?: () => void; // 当前选中会话被删除时的回调
 }
 
 interface ExtendedSessionItem extends SessionItem {
   lastUpdateTime?: string; // 格式化后的时间
 }
 
-const SessionManageModal: React.FC<SessionManageModalProps> = ({
-  open,
-  onCancel,
+const SessionManageModal: React.FC<SessionManageModalProps> = ({ 
+  open, 
+  onCancel, 
   onSessionsChange,
+  selectedSessionId,
+  onSelectedSessionDeleted
 }) => {
   const [sessions, setSessions] = useState<ExtendedSessionItem[]>([]);
   const [filteredSessions, setFilteredSessions] = useState<ExtendedSessionItem[]>([]);
@@ -148,6 +151,9 @@ const SessionManageModal: React.FC<SessionManageModalProps> = ({
     }
 
     try {
+      // 检查是否包含当前选中的会话
+      const isCurrentSessionDeleted = selectedSessionId && selectedRowKeys.includes(selectedSessionId);
+      
       // 批量删除会话
       await deleteSession(selectedRowKeys as string[]);
       
@@ -159,6 +165,11 @@ const SessionManageModal: React.FC<SessionManageModalProps> = ({
       
       // 通知父组件会话已变更
       onSessionsChange?.();
+      
+      // 如果删除的会话中包含当前选中的会话，通知父组件清空右侧聊天区域
+      if (isCurrentSessionDeleted) {
+        onSelectedSessionDeleted?.();
+      }
     } catch (error) {
       console.error('批量删除会话失败:', error);
       message.error('批量删除会话失败');

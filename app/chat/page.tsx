@@ -949,6 +949,14 @@ const ChatPage: React.FC = () => {
         open={sessionManageModalVisible}
         onCancel={() => setSessionManageModalVisible(false)}
         onSessionsChange={loadSessionList}
+        selectedSessionId={selectedId}
+        onSelectedSessionDeleted={() => {
+          // 当前选中的会话被删除时，重置到新建会话状态
+          setSelectedId("");
+          setSessionId(null);
+          setMessages([]);
+          setHasStarted(false);
+        }}
       />
 
       {/* 知识库选择模态框 */}
