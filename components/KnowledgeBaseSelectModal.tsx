@@ -33,12 +33,16 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
         ...(keyword && { keyword })
       };
       const response = await getKnowledgeBasePage(params);
-      setKnowledgeBases(response.records);
-      setTotal(response.total);
+      // 确保records不为null，如果为null则设置为空数组
+      setKnowledgeBases(response?.records || []);
+      setTotal(response?.total || 0);
       setCurrentPage(page);
     } catch (error) {
       console.error('加载知识库列表失败:', error);
       message.error('加载知识库列表失败');
+      // 出错时也要确保设置为空数组而不是null
+      setKnowledgeBases([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }

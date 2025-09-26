@@ -149,7 +149,7 @@ const ModelSelectModal: React.FC<ModelSelectModalProps> = ({
                         </div>
                         <div>
                           <Text style={{ fontSize: 12, color: '#666' }}>
-                            {`${provider.models.length} 个模型`}
+                            {`${provider.models?.length || 0} 个模型`}
                           </Text>
                         </div>
                       </div>

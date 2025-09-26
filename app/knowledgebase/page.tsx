@@ -404,7 +404,7 @@ const KnowledgeBasePage: React.FC = () => {
                <div style={{ marginBottom: 16, minHeight: 32 }}>
                  <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8 }}>标签</div>
                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', minHeight: 24 }}>
-                   {kb.tags.length > 0 ? (
+                   {kb.tags && kb.tags.length > 0 ? (
                      <>
                        {kb.tags.slice(0, 3).map(tag => (
                          <Tag 

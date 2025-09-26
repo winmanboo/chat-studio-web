@@ -20,6 +20,9 @@ const RetrieveResultsDisplay: React.FC<RetrieveResultsDisplayProps> = ({
   kbName,
   retrieves
 }) => {
+  // 确保retrieves不为null或undefined，如果是则使用空数组
+  const safeRetrieves = retrieves || [];
+  
   return (
     <Card
       size="small"
@@ -34,20 +37,20 @@ const RetrieveResultsDisplay: React.FC<RetrieveResultsDisplayProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <DatabaseOutlined style={{ color: '#1890ff', fontSize: '14px' }} />
           <Text strong style={{ fontSize: '13px' }}>
-            在知识库「{kbName}」中找到 {retrieves.length} 个相关文件
+            在知识库「{kbName}」中找到 {safeRetrieves.length} 个相关文件
           </Text>
         </div>
         
         {/* 文档列表 */}
         <div style={{ paddingLeft: '22px' }}>
-          {retrieves.map((retrieve, index) => (
+          {safeRetrieves.map((retrieve, index) => (
             <div
               key={`${retrieve.docId}-${index}`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                marginBottom: index < retrieves.length - 1 ? '6px' : '0',
+                marginBottom: index < safeRetrieves.length - 1 ? '6px' : '0',
                 padding: '4px 8px',
                 backgroundColor: '#fff',
                 borderRadius: '4px',
