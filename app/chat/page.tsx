@@ -42,6 +42,7 @@ import {
   setDefaultModel as setDefaultModelAPI,
 } from "@/lib/api/models";
 import { loginEventManager } from "@/lib/events/loginEvents";
+import { modelEventManager } from "@/lib/events/modelEvents";
 
 // 样式常量
 
@@ -255,11 +256,6 @@ const ChatPage: React.FC = () => {
   );
   const [defaultModel, setDefaultModel] = useState<DefaultModel | null>(null);
 
-  // 获取模式标签
-  const modeLabel = searchMode === "web" ? "Web搜索" : 
-                   (searchMode === "kb" && selectedKb) ? selectedKb.name : 
-                   searchMode === "kb" ? "知识库检索" : "";
-
   // 加载会话列表
   const loadSessionList = async () => {
     try {
@@ -296,6 +292,8 @@ const ChatPage: React.FC = () => {
       antdMessage.success("设置默认模型成功");
       // 重新加载默认模型信息
       await loadDefaultModel();
+      // 触发模型变更事件，通知其他组件刷新
+      modelEventManager.triggerModelChange();
     } catch (error) {
       console.error("设置默认模型失败:", error);
       antdMessage.error("设置默认模型失败");
@@ -312,6 +310,16 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     const unsubscribe = loginEventManager.onLoginSuccess(() => {
       loadSessionList();
+      loadDefaultModel();
+    });
+
+    // 组件卸载时取消订阅
+    return unsubscribe;
+  }, []);
+
+  // 监听模型变更事件，自动刷新默认模型
+  useEffect(() => {
+    const unsubscribe = modelEventManager.onModelChange(() => {
       loadDefaultModel();
     });
 

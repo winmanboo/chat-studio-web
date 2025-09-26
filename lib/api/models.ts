@@ -13,6 +13,8 @@ export interface ModelProvider {
 // 已安装模型数据类型定义
 export interface InstalledModel {
   id: number;
+  providerId: string;
+  icon: string;
   modelInstalledName: string;
   sourceType: 'service' | 'local';
   enabled: boolean;
@@ -134,6 +136,17 @@ export const setDefaultModel = async (modelId: number): Promise<{ success: boole
     return { success: true, message: '设置默认模型成功' };
   } catch (error) {
     console.error('设置默认模型失败:', error);
+    throw error;
+  }
+};
+
+// 删除模型
+export const deleteModel = async (providerId: string): Promise<{ success: boolean; message?: string }> => {
+  try {
+    await request.delete(`/models/delete/${providerId}`);
+    return { success: true, message: '删除模型成功' };
+  } catch (error) {
+    console.error('删除模型失败:', error);
     throw error;
   }
 };

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Card, Button, Row, Col, Tag, Divider, Spin, message } from 'antd';
-import { DownloadOutlined, SettingOutlined, CloudOutlined, DesktopOutlined } from '@ant-design/icons';
-import { getModelProviders, ModelProvider, getInstalledModels, InstalledModel } from '../../lib/api';
+import { Typography, Card, Button, Row, Col, Tag, Divider, Spin, message, Modal, Space } from 'antd';
+import { DownloadOutlined, SettingOutlined, CloudOutlined, DesktopOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { getModelProviders, ModelProvider, getInstalledModels, InstalledModel, deleteModel } from '../../lib/api';
+import { modelEventManager } from '../../lib/events/modelEvents';
 import ModelSettingsModal from './ModelSettingsModal';
 import InstallModelModal from './InstallModelModal';
 
@@ -40,7 +41,45 @@ const ModelPanel: React.FC = () => {
     fetchData();
   }, []);
 
-  // 渲染模型类型图标
+  // 渲染模型图标
+  const renderModelIcon = (model: InstalledModel) => {
+    // 如果模型有自定义图标，优先显示自定义图标
+    if (model.icon) {
+      return (
+        <img 
+          src={model.icon} 
+          alt={model.modelInstalledName}
+          style={{ 
+            width: 16, 
+            height: 16, 
+            borderRadius: 2,
+            objectFit: 'cover'
+          }}
+          onError={(e) => {
+            // 如果图标加载失败，回退到类型图标
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            const parent = target.parentElement;
+            if (parent) {
+              const fallbackIcon = model.sourceType === 'service' ? 
+                '<span style="color: #1890ff;">☁</span>' : 
+                '<span style="color: #52c41a;">💻</span>';
+              parent.innerHTML = fallbackIcon;
+            }
+          }}
+        />
+      );
+    }
+    
+    // 回退到原来的类型图标
+    return model.sourceType === 'service' ? (
+      <CloudOutlined style={{ color: '#1890ff' }} />
+    ) : (
+      <DesktopOutlined style={{ color: '#52c41a' }} />
+    );
+  };
+
+  // 渲染模型类型图标（保留原函数用于其他地方）
   const renderModelTypeIcon = (sourceType: 'service' | 'local') => {
     return sourceType === 'service' ? (
       <CloudOutlined style={{ color: '#1890ff' }} />
@@ -87,9 +126,56 @@ const ModelPanel: React.FC = () => {
     try {
       const installed = await getInstalledModels();
       setInstalledModels(installed);
+      // 触发模型变更事件，通知其他组件刷新
+      modelEventManager.triggerModelChange();
     } catch (error) {
       console.error('刷新模型列表失败:', error);
     }
+  };
+
+  // 删除模型
+  const handleDeleteModel = (model: InstalledModel) => {
+    Modal.confirm({
+      title: '确认删除模型',
+      icon: <ExclamationCircleOutlined />,
+      content: (
+        <div>
+          <p>您确定要删除模型 <strong>{model.modelInstalledName}</strong> 吗？</p>
+          <p style={{ color: '#ff4d4f', fontSize: '12px' }}>此操作不可撤销，删除后需要重新安装才能使用。</p>
+        </div>
+      ),
+      okText: '确认删除',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          const result = await deleteModel(model.providerId);
+          if (result.success) {
+            message.success('模型删除成功！');
+            // 刷新已安装模型列表
+            const installed = await getInstalledModels();
+            setInstalledModels(installed);
+            // 触发模型变更事件，通知其他组件刷新
+            modelEventManager.triggerModelChange();
+          } else {
+            message.error(result.message || '删除失败，请重试');
+          }
+        } catch (error: any) {
+          console.error('删除模型失败:', error);
+          let errorMessage = '删除失败，请检查网络连接';
+          
+          if (error?.response?.data?.msg) {
+            errorMessage = error.response.data.msg;
+          } else if (error?.response?.data?.message) {
+            errorMessage = error.response.data.message;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          }
+          
+          message.error(errorMessage);
+        }
+      }
+    });
   };
 
   if (loading) {
@@ -115,7 +201,7 @@ const ModelPanel: React.FC = () => {
                 title={
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {renderModelTypeIcon(model.sourceType)}
+                      {renderModelIcon(model)}
                       <span>{model.modelInstalledName}</span>
                     </div>
                     <Tag color={model.enabled ? 'green' : 'default'}>
@@ -124,16 +210,29 @@ const ModelPanel: React.FC = () => {
                   </div>
                 }
                 extra={
-                  <Button 
-                    type="text" 
-                    icon={<SettingOutlined />} 
-                    size="small"
-                    title="模型设置"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenSettings(model);
-                    }}
-                  />
+                  <Space size="small">
+                    <Button 
+                      type="text" 
+                      icon={<SettingOutlined />} 
+                      size="small"
+                      title="模型设置"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenSettings(model);
+                      }}
+                    />
+                    <Button 
+                      type="text" 
+                      icon={<DeleteOutlined />} 
+                      size="small"
+                      title="删除模型"
+                      danger
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteModel(model);
+                      }}
+                    />
+                  </Space>
                 }
                 style={{ height: '100%' }}
               >
