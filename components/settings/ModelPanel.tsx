@@ -149,17 +149,13 @@ const ModelPanel: React.FC = () => {
       cancelText: '取消',
       onOk: async () => {
         try {
-          const result = await deleteModel(model.providerId);
-          if (result.success) {
-            message.success('模型删除成功！');
-            // 刷新已安装模型列表
-            const installed = await getInstalledModels();
-            setInstalledModels(installed);
-            // 触发模型变更事件，通知其他组件刷新
-            modelEventManager.triggerModelChange();
-          } else {
-            message.error(result.message || '删除失败，请重试');
-          }
+          await deleteModel(model.providerId);
+          message.success('模型删除成功！');
+          // 刷新已安装模型列表
+          const installed = await getInstalledModels();
+          setInstalledModels(installed);
+          // 触发模型变更事件，通知其他组件刷新
+          modelEventManager.triggerModelChange();
         } catch (error: any) {
           console.error('删除模型失败:', error);
           let errorMessage = '删除失败，请检查网络连接';

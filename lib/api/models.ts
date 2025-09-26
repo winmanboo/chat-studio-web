@@ -112,10 +112,8 @@ export const getInstalledModels = async (): Promise<InstalledModel[]> => {
 };
 
 // 安装模型接口
-export const installModel = async (providerId: string, apiKey: string): Promise<{ success: boolean; message?: string }> => {
-  const response = await request.post(`/models/install/${providerId}/${apiKey}`);
-  // 由于响应拦截器会返回data字段，成功时data为null，所以直接返回成功状态
-  return { success: true, message: '安装成功' };
+export const installModel = async (providerId: string, apiKey: string): Promise<void> => {
+  await request.post(`/models/install/${providerId}/${apiKey}`);
 };
 
 // 获取默认模型
@@ -130,23 +128,48 @@ export const getDefaultModel = async (): Promise<DefaultModel | null> => {
 };
 
 // 设置默认模型
-export const setDefaultModel = async (modelId: number): Promise<{ success: boolean; message?: string }> => {
+export const setDefaultModel = async (modelId: number): Promise<void> => {
+  await request.post(`/models/setDefault/${modelId}`);
+};
+
+// 获取模型配置信息
+export const getModelSettings = async (providerId: string): Promise<{ apiKey: string; baseUrl: string }> => {
   try {
-    await request.post(`/models/setDefault/${modelId}`);
-    return { success: true, message: '设置默认模型成功' };
+    // 响应拦截器已经处理了标准响应格式，直接返回data字段内容
+    const data = await request.get(`/models/settings/info?providerId=${providerId}`);
+    return data as unknown as { apiKey: string; baseUrl: string };
   } catch (error) {
-    console.error('设置默认模型失败:', error);
+    console.error('获取模型配置信息失败:', error);
     throw error;
   }
 };
 
-// 删除模型
-export const deleteModel = async (providerId: string): Promise<{ success: boolean; message?: string }> => {
-  try {
-    await request.delete(`/models/delete/${providerId}`);
-    return { success: true, message: '删除模型成功' };
-  } catch (error) {
-    console.error('删除模型失败:', error);
-    throw error;
+// 修改模型配置
+export const modifyModelSettings = async (
+  modelInstalledId: number, 
+  providerId: string, 
+  apiKey?: string, 
+  baseUrl?: string
+): Promise<void> => {
+  const requestBody: any = {
+    modelInstalledId,
+    providerId
+  };
+  
+  if (apiKey !== undefined) {
+    requestBody.apiKey = apiKey;
   }
+  
+  if (baseUrl !== undefined) {
+    requestBody.baseUrl = baseUrl;
+  }
+  
+  await request.put('/models/modify/settings', requestBody);
+  // 响应拦截器会处理错误，成功时直接返回即可
+};
+
+// 删除模型
+export const deleteModel = async (providerId: string): Promise<void> => {
+  await request.delete(`/models/delete/${providerId}`);
+  // 响应拦截器会处理错误，成功时直接返回即可
 };

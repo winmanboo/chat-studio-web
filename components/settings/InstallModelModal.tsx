@@ -23,15 +23,11 @@ const InstallModelModal: React.FC<InstallModelModalProps> = ({
     
     setLoading(true);
     try {
-      const result = await installModel(provider.id, values.apiKey);
-      if (result.success) {
-        message.success('模型安装成功！');
-        form.resetFields();
-        onClose();
-        onInstallSuccess?.();
-      } else {
-        message.error(result.message || '安装失败，请重试');
-      }
+      await installModel(provider.id, values.apiKey);
+      message.success('模型安装成功！');
+      form.resetFields();
+      onClose();
+      onInstallSuccess?.();
     } catch (error: any) {
       console.error('安装模型失败:', error);
       // 优先显示响应中的msg字段，处理response为null的情况

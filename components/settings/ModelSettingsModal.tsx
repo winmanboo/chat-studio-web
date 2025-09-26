@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Button, Space, message } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
-import { InstalledModel } from '../../lib/api';
+import { InstalledModel, modifyModelSettings, getModelSettings } from '../../lib/api';
 
 interface ModelSettingsModalProps {
   open: boolean;
@@ -22,14 +22,38 @@ const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
   const [form] = Form.useForm<ModelSettings>();
   const [loading, setLoading] = useState(false);
 
-  // 当模型变化时重置表单
+  // 当模型变化时加载配置信息
   useEffect(() => {
-    if (model && open) {
-      form.setFieldsValue({
-        apiKey: '',
-        baseUrl: ''
-      });
-    }
+    const loadModelSettings = async () => {
+      if (model && open) {
+        try {
+          // 获取模型配置信息
+          const settings = await getModelSettings(model.providerId);
+          // 添加额外的安全检查
+          if (settings && typeof settings === 'object') {
+            form.setFieldsValue({
+              apiKey: settings.apiKey || '',
+              baseUrl: settings.baseUrl || ''
+            });
+          } else {
+            // 如果返回的数据格式不正确，设置为空值
+            form.setFieldsValue({
+              apiKey: '',
+              baseUrl: ''
+            });
+          }
+        } catch (error) {
+          console.error('加载模型配置失败:', error);
+          // 如果获取失败，设置为空值
+          form.setFieldsValue({
+            apiKey: '',
+            baseUrl: ''
+          });
+        }
+      }
+    };
+
+    loadModelSettings();
   }, [model, open, form]);
 
   // 保存设置
@@ -38,17 +62,36 @@ const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
       setLoading(true);
       const values = await form.validateFields();
       
-      // TODO: 调用API保存模型设置
-      console.log('保存模型设置:', {
-        modelId: model?.id,
-        ...values
-      });
+      if (!model) {
+        message.error('模型信息不存在');
+        return;
+      }
+      
+      // 调用API保存模型设置
+      await modifyModelSettings(
+        model.id,
+        model.providerId,
+        values.apiKey,
+        values.baseUrl
+      );
       
       message.success('模型设置保存成功');
+      form.resetFields();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('保存模型设置失败:', error);
-      message.error('保存模型设置失败');
+      
+      let errorMessage = '保存失败，请检查网络连接';
+      
+      if (error?.response?.data?.msg) {
+        errorMessage = error.response.data.msg;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
