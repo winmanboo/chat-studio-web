@@ -1,5 +1,5 @@
 // Service Worker for version management and update notifications
-const CACHE_NAME = 'chat-studio-development-v0.1.0';
+const CACHE_NAME = 'chat-studio-development-v0.1.1';
 const ENVIRONMENT = 'development';
 
 // 统一的配置管理
