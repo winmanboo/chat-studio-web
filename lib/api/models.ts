@@ -7,7 +7,7 @@ export interface ModelProvider {
   sourceType: string;
   baseUrl: string;
   icon: string;
-  desc: string;
+  description: string;
 }
 
 // 已安装模型数据类型定义

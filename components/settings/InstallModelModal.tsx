@@ -83,9 +83,22 @@ const InstallModelModal: React.FC<InstallModelModalProps> = ({
           />
         </Form.Item>
         
-        {provider?.desc && (
-          <div style={{ marginBottom: 16, color: '#666', fontSize: '14px' }}>
-            {provider.desc}
+        {provider?.description && (
+          <div
+            style={{ marginBottom: 16, color: '#666', fontSize: '14px' }}
+            title={provider.description}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {provider.description}
+            </span>
           </div>
         )}
         

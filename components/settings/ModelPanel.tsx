@@ -6,7 +6,7 @@ import { modelEventManager } from '../../lib/events/modelEvents';
 import ModelSettingsModal from './ModelSettingsModal';
 import InstallModelModal from './InstallModelModal';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 
 
@@ -265,9 +265,9 @@ const ModelPanel: React.FC = () => {
                 >
                   <div style={{ height: '100%', overflow: 'hidden' }}>
                     <div style={{ marginBottom: 12 }}>
-                      <Text style={{ fontSize: 12, color: '#666' }}>
-                        {provider.desc}
-                      </Text>
+                      <Paragraph style={{ fontSize: 12, color: '#666', marginBottom: 0 }} ellipsis={{ rows: 2, tooltip: provider.description }}>
+                        {provider.description}
+                      </Paragraph>
                     </div>
                   </div>
                   <Button 
