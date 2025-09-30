@@ -124,8 +124,8 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
         onLogout={handleLogout}
         userInfo={userInfo}
       />
-      <main style={{ flex: 1, width: '100%', alignSelf: 'stretch', display: 'flex' }}>
-        <div style={{ flex: 1, display: 'flex' }}>
+      <main style={{ flex: 1, width: '100%', alignSelf: 'stretch', display: 'flex', minHeight: 0, overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
           {children}
         </div>
       </main>
