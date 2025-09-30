@@ -1,6 +1,6 @@
 {
-  "version": "0.1.1",
-  "buildTime": "2025-09-26T09:14:32.821Z",
+  "version": "0.2.0",
+  "buildTime": "2025-09-30T08:48:05.467Z",
   "updateNotes": {
     "0.1.0": {
       "title": "版本更新",
@@ -44,6 +44,24 @@
       ],
       "releaseDate": "2025-09-26",
       "buildTime": "2025-09-26T09:14:32.821Z"
+    },
+    "0.2.0": {
+      "title": "版本更新",
+      "description": "Chat Studio 0.2.0 版本更新",
+      "environment": "development",
+      "versionType": "minor",
+      "isPrerelease": false,
+      "features": [
+      ],
+      "optimizations": [
+        "🔄 用户体验提升"
+      ],
+      "bugfixes": [
+        "🐛 修复知识库为空时选择知识库检索时使用属性length的空指针问题",
+        "🔧 修复chat界面与AppMain重复的100vh造成主内容区高度叠加而溢出"
+      ],
+      "releaseDate": "2025-09-30",
+      "buildTime": "2025-09-30T08:48:05.468Z"
     }
   }
 }
