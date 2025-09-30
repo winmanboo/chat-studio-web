@@ -53,7 +53,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   return (
     <div
       style={{
-        width: collapsed ? 48 : 220,
+        width: collapsed ? 48 : 280,
         transition: "width 0.2s",
         borderRight: "1px solid #f0f0f0",
         display: "flex",
