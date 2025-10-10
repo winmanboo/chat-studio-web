@@ -1,6 +1,6 @@
 {
-  "version": "0.2.0",
-  "buildTime": "2025-09-30T08:48:05.467Z",
+  "version": "0.2.1",
+  "buildTime": "2025-10-10T03:46:03.747Z",
   "updateNotes": {
     "0.1.0": {
       "title": "版本更新",
@@ -51,8 +51,7 @@
       "environment": "development",
       "versionType": "minor",
       "isPrerelease": false,
-      "features": [
-      ],
+      "features": [],
       "optimizations": [
         "🔄 用户体验提升"
       ],
@@ -62,6 +61,23 @@
       ],
       "releaseDate": "2025-09-30",
       "buildTime": "2025-09-30T08:48:05.468Z"
+    },
+    "0.2.1": {
+      "title": "版本更新",
+      "description": "Chat Studio 0.2.1 版本更新",
+      "environment": "development",
+      "versionType": "patch",
+      "isPrerelease": false,
+      "features": [
+        "✨ 新增豆包大模型",
+        "🚀 新增智谱AI大模型"
+      ],
+      "optimizations": [
+      ],
+      "bugfixes": [
+      ],
+      "releaseDate": "2025-10-10",
+      "buildTime": "2025-10-10T03:46:03.747Z"
     }
   }
 }
