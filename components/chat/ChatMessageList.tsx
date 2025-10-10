@@ -1,6 +1,7 @@
 import React from "react";
 import { Bubble } from "@ant-design/x";
-import { UserOutlined, RobotOutlined } from "@ant-design/icons";
+import { Button, Space, theme, message } from "antd";
+import { UserOutlined, RobotOutlined, CopyOutlined, SyncOutlined } from "@ant-design/icons";
 import { renderMarkdown } from "@/components/MarkdownRenderer";
 import RetrieveResultsDisplay from "@/components/RetrieveResultsDisplay";
 import ThinkingSection from "@/components/ThinkingSection";
@@ -44,8 +45,18 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
   messages,
   style,
   className,
-  isViewingHistory = false, // 默认为false，表示新消息输入场景
 }) => {
+  const { token } = theme.useToken();
+
+  // 复制消息内容的处理函数
+  const onCopy = (messageContext: ChatMessage) => {
+    const textToCopy = messageContext.displayContent || messageContext.content;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      message.success('已复制到剪贴板');
+    }).catch(() => {
+      message.error('复制失败');
+    });
+  };
   return (
     <Bubble.List
       items={messages.map((msg, index) => ({
@@ -79,6 +90,18 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
               </div>
             );
           },
+          footer: (messageContext) => (
+            <Space size={token.paddingXXS}>
+              <Button color="default" variant="text" size="small" icon={<SyncOutlined />} />
+              <Button
+                color="default"
+                variant="text"
+                size="small"
+                onClick={() => onCopy(messageContext as ChatMessage)}
+                icon={<CopyOutlined />}
+              />
+            </Space>
+          ),
           avatar: {
             icon: <UserOutlined />,
             style: USER_AVATAR_STYLE,
@@ -125,6 +148,18 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
               </div>
             );
           },
+          footer: (messageContext) => (
+            <Space size={token.paddingXXS}>
+              <Button color="default" variant="text" size="small" icon={<SyncOutlined />} />
+              <Button
+                color="default"
+                variant="text"
+                size="small"
+                onClick={() => onCopy(messageContext as ChatMessage)}
+                icon={<CopyOutlined />}
+              />
+            </Space>
+          ),
           avatar: {
             icon: <RobotOutlined />,
             style: ASSISTANT_AVATAR_STYLE,
