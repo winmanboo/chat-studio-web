@@ -112,8 +112,12 @@ export const getInstalledModels = async (): Promise<InstalledModel[]> => {
 };
 
 // 安装模型接口
+// 将路径参数改为通过请求体传递，包含 providerId 和 apiKey
 export const installModel = async (providerId: string, apiKey: string): Promise<void> => {
-  await request.post(`/models/install/${providerId}/${apiKey}`);
+  await request.post('/models/install', {
+    providerId,
+    apiKey
+  });
 };
 
 // 获取默认模型
