@@ -165,11 +165,44 @@ export interface DocumentDetail {
   fileUploads: FileUpload;
 }
 
+// 文档分块数据类型
+export interface DocumentChunk {
+  chunkId: string;
+  chunkIndex: number;
+  content: string;
+}
+
+// 文档分块分页响应类型
+export interface DocumentChunkPageResponse {
+  records: DocumentChunk[];
+  current: number;
+  size: number;
+  total: number;
+}
+
+// 文档分块分页请求参数类型
+export interface DocumentChunkPageParams {
+  docId: string;
+  pageNum: number;
+  pageSize: number;
+}
+
 // 获取文档详情
 export const getDocumentInfo = async (docId: string): Promise<DocumentDetail> => {
   return await request.get('/doc/info', {
     params: {
       id: docId
+    }
+  });
+};
+
+// 获取文档分块分页数据
+export const getDocumentChunkPage = async (params: DocumentChunkPageParams): Promise<DocumentChunkPageResponse> => {
+  return await request.get('/doc/chunk/page', {
+    params: {
+      docId: params.docId,
+      pageNum: params.pageNum,
+      pageSize: params.pageSize
     }
   });
 };
