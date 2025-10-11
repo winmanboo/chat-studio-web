@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { Table, Button, Input, Tag, Space, Modal, message, Tooltip, Switch } from 'antd';
+import { Table, Button, Input, Tag, Space, Modal, message, Tooltip } from 'antd';
 import { UploadOutlined, DeleteOutlined, EditOutlined, FileTextOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getDocumentPage, deleteDocument, type Document } from '@/lib/api';
@@ -288,25 +288,8 @@ const DocumentsPageContent: React.FC = () => {
                key: 'uploadTime',
                width: 160,
                render: (time: string) => formatTime(time)
-             },
-             {
-               title: '启用状态',
-               dataIndex: 'enabled',
-               key: 'enabled',
-               width: 100,
-               align: 'center',
-               render: (enabled: boolean, record: Document) => (
-                 <Switch
-                   checked={enabled}
-                   size="small"
-                   onChange={(checked) => {
-                     // TODO: 实现启用/禁用切换逻辑
-                     console.log(`切换文档 ${record.title} 的启用状态为: ${checked}`);
-                     message.info(`${checked ? '启用' : '禁用'}功能待实现`);
-                   }}
-                 />
-               )
-             },
+            },
+            
              {
                title: '操作',
                key: 'action',

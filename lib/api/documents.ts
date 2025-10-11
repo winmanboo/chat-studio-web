@@ -5,7 +5,6 @@ export interface Document {
   id: number;
   title: string;
   sourceType: string;
-  enabled: boolean;
   tags: string[];
   status: 'QUEUE' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
   error: string | null;
