@@ -18,7 +18,7 @@ import {
   CheckOutlined,
   CloseOutlined,
 } from '@ant-design/icons';
-import { SessionItem, getSessionList, deleteSession } from '@/lib/api/conversations';
+import { SessionItem, getSessionList, deleteSession, updateSessionTitle } from '@/lib/api/conversations';
 import type { ColumnsType } from 'antd/es/table';
 
 const { Search } = Input;
@@ -106,10 +106,10 @@ const SessionManageModal: React.FC<SessionManageModalProps> = ({
   // 保存编辑
   const saveEdit = async (sessionId: string) => {
     try {
-      // TODO: 调用更新会话名称的API
-      // await updateSessionTitle(sessionId, editingTitle);
+      // 调用更新会话名称的API
+      await updateSessionTitle(sessionId, editingTitle);
       
-      // Mock实现：直接更新本地状态
+      // 更新本地状态
       const updatedSessions = sessions.map(session =>
         session.sessionId === sessionId
           ? { ...session, sessionTitle: editingTitle }
@@ -132,8 +132,7 @@ const SessionManageModal: React.FC<SessionManageModalProps> = ({
       // 通知父组件会话已变更
       onSessionsChange?.();
     } catch (error) {
-      console.error('更新会话名称失败:', error);
-      message.error('更新会话名称失败');
+      message.error('更新会话名称失败: ' + (error instanceof Error ? error.message : '未知错误'));
     }
   };
 

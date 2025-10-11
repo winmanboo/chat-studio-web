@@ -26,6 +26,7 @@ import {
   getSessionMessages,
   SessionMessage,
   deleteSession,
+  updateSessionTitle,
 } from "@/lib/api/conversations";
 import SessionManageModal from "@/components/SessionManageModal";
 import KnowledgeBaseSelectModal from "@/components/KnowledgeBaseSelectModal";
@@ -382,20 +383,28 @@ const ChatPage: React.FC = () => {
   };
 
   // 确认修改会话名称
-  const confirmEditConversation = () => {
+  const confirmEditConversation = async () => {
     if (editingConversation && newConversationName.trim()) {
-      setConversations((prev) =>
-        prev.map((conv) =>
-          conv.key === editingConversation.key
-            ? { ...conv, label: newConversationName.trim() }
-            : conv
-        )
-      );
-      if (selectedId === editingConversation.key) {
+      try {
+        // 调用API更新会话标题
+        await updateSessionTitle(editingConversation.key, newConversationName.trim());
+        
+        // 更新本地状态
+        setConversations((prev) =>
+          prev.map((conv) =>
+            conv.key === editingConversation.key
+              ? { ...conv, label: newConversationName.trim() }
+              : conv
+          )
+        );
+        
         antdMessage.success("会话名称已更新");
+        setEditingConversation(null);
+        setNewConversationName("");
+      } catch (error) {
+        console.error("更新会话名称失败:", error);
+        antdMessage.error("更新会话名称失败: " + (error instanceof Error ? error.message : "未知错误"));
       }
-      setEditingConversation(null);
-      setNewConversationName("");
     }
   };
 

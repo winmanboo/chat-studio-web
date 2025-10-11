@@ -51,6 +51,11 @@ export const deleteSession = (sessionId: string | string[]): Promise<void> => {
   return request.delete<void>(`/session/delete`, { data: sessionIds }) as unknown as Promise<void>;
 };
 
+// 修改会话标题接口
+export const updateSessionTitle = (sessionId: string, title: string): Promise<void> => {
+  return request.put<void>(`/session/modify/title/${sessionId}/${encodeURIComponent(title)}`) as unknown as Promise<void>;
+};
+
 // 聊天接口参数类型
 export interface ChatRequest {
   sessionId: string;
