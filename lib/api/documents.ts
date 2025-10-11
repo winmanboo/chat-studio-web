@@ -43,7 +43,7 @@ export const getDocumentPage = async (params: DocumentPageParams): Promise<Docum
 
 // 删除文档
 export const deleteDocument = async (docId: number): Promise<void> => {
-  await request.delete(`/doc/${docId}`);
+  await request.delete(`/doc/delete/${docId}`);
 };
 
 // 更新文档
