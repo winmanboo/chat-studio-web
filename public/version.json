@@ -1,6 +1,6 @@
 {
-  "version": "0.2.1",
-  "buildTime": "2025-10-10T03:46:03.747Z",
+  "version": "0.2.2",
+  "buildTime": "2025-10-11T06:50:26.039Z",
   "updateNotes": {
     "0.1.0": {
       "title": "版本更新",
@@ -72,12 +72,28 @@
         "✨ 新增豆包大模型",
         "🚀 新增智谱AI大模型"
       ],
+      "optimizations": [],
+      "bugfixes": [],
+      "releaseDate": "2025-10-10",
+      "buildTime": "2025-10-10T03:46:03.747Z"
+    },
+    "0.2.2": {
+      "title": "版本更新",
+      "description": "Chat Studio 0.2.2 版本更新",
+      "environment": "development",
+      "versionType": "patch",
+      "isPrerelease": false,
+      "features": [
+        "✨ 支持kimi模型",
+        "🚀 Bubble内容可复制",
+        "🎯 文档管理界面更新，支持查看文档详情信息和分块信息"
+      ],
       "optimizations": [
       ],
       "bugfixes": [
       ],
-      "releaseDate": "2025-10-10",
-      "buildTime": "2025-10-10T03:46:03.747Z"
+      "releaseDate": "2025-10-11",
+      "buildTime": "2025-10-11T06:50:26.039Z"
     }
   }
 }
