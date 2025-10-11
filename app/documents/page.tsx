@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { Table, Button, Input, Tag, Space, Modal, message, Tooltip } from 'antd';
-import { UploadOutlined, DeleteOutlined, EditOutlined, FileTextOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons';
+import { UploadOutlined, DeleteOutlined, EyeOutlined, FileTextOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getDocumentPage, deleteDocument, type Document } from '@/lib/api';
 import DocumentUploadModal from '@/components/DocumentUploadModal';
+import DocumentDetailModal from '@/components/DocumentDetailModal';
 
 const { Search } = Input;
 
@@ -21,6 +22,8 @@ const DocumentsPageContent: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [searchValue, setSearchValue] = useState('');
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
   // 获取文档数据
   const fetchDocuments = async (pageNum = 1, keyword = '') => {
@@ -132,6 +135,12 @@ const DocumentsPageContent: React.FC = () => {
   // 返回知识库
   const handleBack = () => {
     router.push('/knowledgebase');
+  };
+
+  // 处理查看详情
+  const handleViewDetail = (record: Document) => {
+    setSelectedDocId(record.id.toString());
+    setDetailModalVisible(true);
   };
 
   if (!kbId) {
@@ -296,9 +305,16 @@ const DocumentsPageContent: React.FC = () => {
                width: 120,
                render: (_, record: Document) => (
                  <Space>
-                   <Button type="text" icon={<EditOutlined />} size="small">
-                     修改
-                   </Button>
+                   {record.status === 'COMPLETED' && (
+                     <Button 
+                       type="text" 
+                       icon={<EyeOutlined />} 
+                       size="small"
+                       onClick={() => handleViewDetail(record)}
+                     >
+                       详情
+                     </Button>
+                   )}
                    <Button 
                      type="text" 
                      icon={<DeleteOutlined />} 
@@ -324,6 +340,16 @@ const DocumentsPageContent: React.FC = () => {
           fetchDocuments(currentPage, searchValue);
         }}
         kbId={kbId || ''}
+      />
+
+      {/* 文档详情模态框 */}
+      <DocumentDetailModal
+        visible={detailModalVisible}
+        onClose={() => {
+          setDetailModalVisible(false);
+          setSelectedDocId(null);
+        }}
+        docId={selectedDocId}
       />
     </div>
   );

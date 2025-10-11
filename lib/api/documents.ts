@@ -140,3 +140,36 @@ export const uploadDocumentWithForm = async (
     }
   });
 };
+
+// 文件上传信息类型
+export interface FileUpload {
+  originalName: string;
+  storageType: string;
+  storagePath: string;
+  contentType: string;
+  size: number;
+  createdTime: string;
+}
+
+// 文档详情数据类型
+export interface DocumentDetail {
+  docId: string;
+  title: string;
+  sourceType: string;
+  inputTokenCount: number | null;
+  outputTokenCount: number | null;
+  totalTokenCount: number | null;
+  description: string | null;
+  chunkSize: number;
+  tags: string[];
+  fileUploads: FileUpload;
+}
+
+// 获取文档详情
+export const getDocumentInfo = async (docId: string): Promise<DocumentDetail> => {
+  return await request.get('/doc/info', {
+    params: {
+      id: docId
+    }
+  });
+};
