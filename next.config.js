@@ -26,7 +26,8 @@ const nextConfig = {
       'admin',
       'dict',
       'tags',
-      'session'
+      'session',
+      'monitor'
     ];
 
     return apiPaths.map(createProxyRule);

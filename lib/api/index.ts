@@ -5,4 +5,5 @@ export * from './knowledgebase';
 export * from './documents';
 export * from './models';
 export * from './admin';
+export * from './monitor';
 export { default as request } from './request';

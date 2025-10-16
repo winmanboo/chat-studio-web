@@ -1,6 +1,6 @@
 {
-  "version": "0.2.2",
-  "buildTime": "2025-10-11T06:50:26.039Z",
+  "version": "0.3.0",
+  "buildTime": "2025-10-16T03:59:07.855Z",
   "updateNotes": {
     "0.1.0": {
       "title": "版本更新",
@@ -88,12 +88,28 @@
         "🚀 Bubble内容可复制",
         "🎯 文档管理界面更新，支持查看文档详情信息和分块信息"
       ],
+      "optimizations": [],
+      "bugfixes": [],
+      "releaseDate": "2025-10-11",
+      "buildTime": "2025-10-11T06:50:26.039Z"
+    },
+    "0.3.0": {
+      "title": "版本更新",
+      "description": "Chat Studio 0.3.0 版本更新",
+      "environment": "development",
+      "versionType": "minor",
+      "isPrerelease": false,
+      "features": [
+        "✨ 新增Token监控功能",
+        "🚀 支持修改会话标题",
+        "✨ 支持OpenAI模型"
+      ],
       "optimizations": [
       ],
       "bugfixes": [
       ],
-      "releaseDate": "2025-10-11",
-      "buildTime": "2025-10-11T06:50:26.039Z"
+      "releaseDate": "2025-10-16",
+      "buildTime": "2025-10-16T03:59:07.855Z"
     }
   }
 }
