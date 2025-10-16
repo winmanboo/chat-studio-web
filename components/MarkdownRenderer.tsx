@@ -65,58 +65,29 @@ const md = new MarkdownIt({
 
 // 添加复制功能到全局
 if (typeof window !== 'undefined') {
-  (window as typeof window & { copyCodeToClipboard: (button: HTMLButtonElement) => void }).copyCodeToClipboard = function(button: HTMLButtonElement) {
+  (window as typeof window & { copyCodeToClipboard: (button: HTMLButtonElement) => void }).copyCodeToClipboard = async function(button: HTMLButtonElement) {
+    const { copyToClipboard, showCopyButtonFeedback, extractCodeBlockText } = await import('@/lib/utils/clipboardUtils');
+    
     const codeContainer = button.closest('.code-block-container, .mermaid-container');
     if (!codeContainer) return;
     
-    let textToCopy = '';
+    const textToCopy = extractCodeBlockText(codeContainer);
+    if (!textToCopy) return;
     
-    if (codeContainer.classList.contains('mermaid-container')) {
-      // 对于Mermaid图表，复制原始代码
-      const mermaidElement = codeContainer.querySelector('.mermaid');
-      textToCopy = mermaidElement?.textContent || '';
-    } else {
-      // 对于普通代码块，复制代码内容
-      const codeContent = codeContainer.querySelector('.code-content');
-      if (codeContent) {
-        const codeLines = codeContent.querySelectorAll('.code-line');
-        textToCopy = Array.from(codeLines).map(line => line.textContent || '').join('\n');
-      }
+    try {
+      await copyToClipboard(textToCopy, {
+        onSuccess: () => showCopyButtonFeedback(button),
+        onError: (error) => {
+          console.error('复制失败:', error);
+          button.textContent = '复制失败';
+          setTimeout(() => {
+            button.textContent = '复制';
+          }, 2000);
+        }
+      });
+    } catch (error) {
+      // 错误已在 onError 回调中处理
     }
-    
-    // 使用现代的Clipboard API
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      button.classList.add('copied');
-      const originalText = button.textContent;
-      button.textContent = '已复制';
-      
-      setTimeout(() => {
-        button.classList.remove('copied');
-        button.textContent = originalText;
-      }, 2000);
-    }).catch(err => {
-      console.error('复制失败:', err);
-      // 降级处理：使用旧的复制方法
-      try {
-        const textArea = document.createElement('textarea');
-        textArea.value = textToCopy;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        button.classList.add('copied');
-        const originalText = button.textContent;
-        button.textContent = '已复制';
-        
-        setTimeout(() => {
-          button.classList.remove('copied');
-          button.textContent = originalText;
-        }, 2000);
-      } catch (fallbackErr) {
-        console.error('降级复制也失败:', fallbackErr);
-      }
-    });
   };
 }
 

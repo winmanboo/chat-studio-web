@@ -49,13 +49,21 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
   const { token } = theme.useToken();
 
   // 复制消息内容的处理函数
-  const onCopy = (messageContext: ChatMessage) => {
+  const onCopy = async (messageContext: ChatMessage) => {
+    const { copyToClipboard } = await import('@/lib/utils/clipboardUtils');
     const textToCopy = messageContext.displayContent || messageContext.content;
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      message.success('已复制到剪贴板');
-    }).catch(() => {
-      message.error('复制失败');
-    });
+    
+    try {
+      await copyToClipboard(textToCopy, {
+        onSuccess: () => message.success('已复制到剪贴板'),
+        onError: (error) => {
+          console.error('复制失败:', error);
+          message.error('复制失败');
+        }
+      });
+    } catch (error) {
+      // 错误已在 onError 回调中处理
+    }
   };
   return (
     <Bubble.List
