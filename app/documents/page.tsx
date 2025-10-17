@@ -198,7 +198,10 @@ const DocumentsPageContent: React.FC = () => {
           dataSource={documents}
           loading={loading}
           rowKey="id"
-          scroll={{ y: 'calc(100vh - 320px)' }}
+          scroll={{ 
+            x: 1080, // 设置最小宽度，确保所有列都能显示
+            y: 'calc(100vh - 320px)' 
+          }}
           pagination={{
             current: currentPage,
             pageSize: pageSize,
@@ -228,7 +231,9 @@ const DocumentsPageContent: React.FC = () => {
               title: '文档名称',
               dataIndex: 'title',
               key: 'title',
-              width: 200,
+              width: 220,
+              minWidth: 180,
+              ellipsis: true,
               render: (title: string, record: Document) => (
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <FileTextOutlined style={{ fontSize: 16, color: '#1890ff', marginRight: 8 }} />
@@ -245,7 +250,8 @@ const DocumentsPageContent: React.FC = () => {
                title: '处理状态',
                dataIndex: 'status',
                key: 'status',
-               width: 100,
+               width: 110,
+               minWidth: 90,
                render: (status: string, record: Document) => (
                  getStatusTag(status, record.error)
                )
@@ -254,7 +260,9 @@ const DocumentsPageContent: React.FC = () => {
                title: '标签',
                dataIndex: 'tags',
                key: 'tags',
-               width: 200,
+               width: 180,
+               minWidth: 120,
+               ellipsis: true,
                render: (tags: string[]) => (
                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                    {tags.length > 0 ? (
@@ -271,14 +279,16 @@ const DocumentsPageContent: React.FC = () => {
                title: '分块数',
                dataIndex: 'chunkSize',
                key: 'chunkSize',
-               width: 80,
+               width: 90,
+               minWidth: 70,
                align: 'center'
              },
              {
                title: 'Token用量',
                dataIndex: 'totalTokenCount',
                key: 'totalTokenCount',
-               width: 100,
+               width: 110,
+               minWidth: 90,
                align: 'center',
                render: (totalTokenCount: number | null) => (
                  totalTokenCount !== null ? totalTokenCount.toLocaleString() : '-'
@@ -289,13 +299,15 @@ const DocumentsPageContent: React.FC = () => {
                dataIndex: 'size',
                key: 'size',
                width: 100,
+               minWidth: 80,
                render: (size: number) => formatFileSize(size)
              },
              {
                title: '上传时间',
                dataIndex: 'uploadTime',
                key: 'uploadTime',
-               width: 160,
+               width: 150,
+               minWidth: 130,
                render: (time: string) => formatTime(time)
             },
             
@@ -303,6 +315,8 @@ const DocumentsPageContent: React.FC = () => {
                title: '操作',
                key: 'action',
                width: 120,
+               minWidth: 100,
+               fixed: 'right',
                render: (_, record: Document) => (
                  <Space>
                    {record.status === 'COMPLETED' && (
