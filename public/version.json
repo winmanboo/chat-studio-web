@@ -105,8 +105,11 @@
         "✨ 支持OpenAI模型"
       ],
       "optimizations": [
+        "🔄 聊天实时渲染 markdown 更加丝滑",
+        "💾 聊天交互更舒畅"
       ],
       "bugfixes": [
+        "🐛 修复无法复制聊天内容的问题"
       ],
       "releaseDate": "2025-10-16",
       "buildTime": "2025-10-16T03:59:07.855Z"
