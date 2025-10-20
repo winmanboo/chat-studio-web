@@ -1,10 +1,15 @@
 import React from "react";
 import { Bubble } from "@ant-design/x";
 import { Button, Space, theme, message } from "antd";
-import { UserOutlined, RobotOutlined, CopyOutlined, SyncOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  RobotOutlined,
+  CopyOutlined,
+  SyncOutlined,
+} from "@ant-design/icons";
 import { renderMarkdown } from "@/components/MarkdownRenderer";
 import RetrieveResultsDisplay from "@/components/RetrieveResultsDisplay";
-import ThinkingSection from "@/components/ThinkingSection";
+import ThinkingRenderer from "@/components/ThinkingRenderer";
 import { extractThinkingContent } from "@/lib/utils/thinkingUtils";
 
 // 样式常量
@@ -48,140 +53,158 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
 }) => {
   const { token } = theme.useToken();
 
-  // 复制消息内容的处理函数
-  const onCopy = async (messageContext: ChatMessage) => {
-    const { copyToClipboard } = await import('@/lib/utils/clipboardUtils');
-    const textToCopy = messageContext.displayContent || messageContext.content;
-    
-    try {
-      await copyToClipboard(textToCopy, {
-        onSuccess: () => message.success('已复制到剪贴板'),
-        onError: (error) => {
-          console.error('复制失败:', error);
-          message.error('复制失败');
-        }
-      });
-    } catch (error) {
-      // 错误已在 onError 回调中处理
+  // 组件内样式定义
+  const assistantBubbleStyles = `
+    .assistant-bubble .ant-bubble-content {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
     }
+  `;
+
+  const onCopy = (msg: ChatMessage) => {
+    navigator.clipboard.writeText(msg.content).then(
+      () => {
+        message.success("已复制到剪贴板");
+      },
+      (error) => {
+        console.error("复制失败:", error);
+        message.error("复制失败");
+      }
+    );
   };
+
   return (
-    <Bubble.List
-      items={messages.map((msg, index) => ({
-        key: index,
-        content: msg, // 传递完整的消息对象
-        role: msg.role,
-        avatar:
-          msg.role === "user"
-            ? { icon: <UserOutlined />, style: USER_AVATAR_STYLE }
-            : {
-                icon: <RobotOutlined />,
-                style: ASSISTANT_AVATAR_STYLE,
-              },
-        loading: msg.isLoading,
-        variant: msg.role === "user" ? "filled" : "outlined",
-      }))}
-      roles={{
-        user: {
-          placement: "end",
-          messageRender: (content) => {
-            const msg = content as ChatMessage;
-            return (
-              <div
-                style={{
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  lineHeight: "1.5",
-                }}
-              >
-                {msg.displayContent || msg.content}
-              </div>
-            );
+    <>
+      <style dangerouslySetInnerHTML={{ __html: assistantBubbleStyles }} />
+      <Bubble.List
+        items={messages.map((msg, index) => ({
+          key: index,
+          content: { ...msg, messageIndex: index },
+          role: msg.role,
+          avatar:
+            msg.role === "user"
+              ? { icon: <UserOutlined />, style: USER_AVATAR_STYLE }
+              : {
+                  icon: <RobotOutlined />,
+                  style: ASSISTANT_AVATAR_STYLE,
+                },
+          loading: msg.isLoading,
+          variant: msg.role === "user" ? "filled" : "outlined",
+        }))}
+        roles={{
+          user: {
+            placement: "end",
+            messageRender: (content) => {
+              const msg = content as ChatMessage & { messageIndex: number };
+              return (
+                <div
+                  style={{
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  {msg.displayContent || msg.content}
+                </div>
+              );
+            },
+            footer: (messageContext) => (
+              <Space size={token.paddingXXS}>
+                <Button
+                  color="default"
+                  variant="text"
+                  size="small"
+                  icon={<SyncOutlined />}
+                />
+                <Button
+                  color="default"
+                  variant="text"
+                  size="small"
+                  onClick={() => onCopy(messageContext as ChatMessage)}
+                  icon={<CopyOutlined />}
+                />
+              </Space>
+            ),
+            avatar: {
+              icon: <UserOutlined />,
+              style: USER_AVATAR_STYLE,
+            },
+            className: "user-bubble",
           },
-          footer: (messageContext) => (
-            <Space size={token.paddingXXS}>
-              <Button color="default" variant="text" size="small" icon={<SyncOutlined />} />
-              <Button
-                color="default"
-                variant="text"
-                size="small"
-                onClick={() => onCopy(messageContext as ChatMessage)}
-                icon={<CopyOutlined />}
-              />
-            </Space>
-          ),
-          avatar: {
-            icon: <UserOutlined />,
-            style: USER_AVATAR_STYLE,
+          assistant: {
+            placement: "start",
+            messageRender: (content) => {
+              const msg = content as ChatMessage & { messageIndex: number };
+
+              // 优先使用thinking字段，如果没有则从content中提取
+              let thinkingText = msg.thinking;
+              let remainingContent = msg.displayContent || msg.content;
+
+              // 如果没有thinking字段，则尝试从content中提取
+              if (!thinkingText) {
+                const extracted = extractThinkingContent(
+                  msg.displayContent || msg.content
+                );
+                thinkingText = extracted.thinkingText;
+                remainingContent = extracted.remainingContent;
+              }
+
+              return (
+                <div>
+                  {/* 深度思考区域 */}
+                  {thinkingText && (
+                    <ThinkingRenderer
+                      content={thinkingText}
+                      duration={msg.thinkingDuration}
+                    />
+                  )}
+
+                  {/* 检索结果显示 */}
+                  {msg.retrieveMode && msg.kbName && msg.retrieves && (
+                    <RetrieveResultsDisplay
+                      kbName={msg.kbName}
+                      retrieves={msg.retrieves}
+                    />
+                  )}
+
+                  {/* 消息内容 */}
+                  {remainingContent && renderMarkdown(remainingContent)}
+                </div>
+              );
+            },
+            footer: (messageContext) => (
+              <Space size={token.paddingXXS}>
+                <Button
+                  color="default"
+                  variant="text"
+                  size="small"
+                  icon={<SyncOutlined />}
+                />
+                <Button
+                  color="default"
+                  variant="text"
+                  size="small"
+                  onClick={() => onCopy(messageContext as ChatMessage)}
+                  icon={<CopyOutlined />}
+                />
+              </Space>
+            ),
+            avatar: {
+              icon: <RobotOutlined />,
+              style: ASSISTANT_AVATAR_STYLE,
+            },
+            className: "assistant-bubble",
           },
-          className: "user-bubble",
-        },
-        assistant: {
-          placement: "start",
-          messageRender: (content) => {
-            const msg = content as ChatMessage;
-            
-            // 优先使用thinking字段，如果没有则从content中提取
-            let thinkingText = msg.thinking;
-            let remainingContent = msg.displayContent || msg.content;
-            
-            // 如果没有thinking字段，则尝试从content中提取
-            if (!thinkingText) {
-              const extracted = extractThinkingContent(msg.displayContent || msg.content);
-              thinkingText = extracted.thinkingText;
-              remainingContent = extracted.remainingContent;
-            }
-            
-            return (
-              <div>
-                {/* 深度思考区域 */}
-                {thinkingText && (
-                  <ThinkingSection 
-                    content={thinkingText} 
-                    defaultExpanded={false} // 统一设置为默认不展开
-                    duration={msg.thinkingDuration}
-                  />
-                )}
-                
-                {/* 检索结果显示 */}
-                {msg.retrieveMode && msg.kbName && msg.retrieves && (
-                  <RetrieveResultsDisplay
-                    kbName={msg.kbName}
-                    retrieves={msg.retrieves}
-                  />
-                )}
-                
-                {/* 消息内容 */}
-                {remainingContent && renderMarkdown(remainingContent)}
-              </div>
-            );
-          },
-          footer: (messageContext) => (
-            <Space size={token.paddingXXS}>
-              <Button color="default" variant="text" size="small" icon={<SyncOutlined />} />
-              <Button
-                color="default"
-                variant="text"
-                size="small"
-                onClick={() => onCopy(messageContext as ChatMessage)}
-                icon={<CopyOutlined />}
-              />
-            </Space>
-          ),
-          avatar: {
-            icon: <RobotOutlined />,
-            style: ASSISTANT_AVATAR_STYLE,
-          },
-          className: "assistant-bubble",
-        },
-      }}
-      style={{
-        width: "100%",
-        minHeight: "100%",
-        ...style,
-      }}
-      className={className}
-    />
+        }}
+        style={{
+          width: "100%",
+          minHeight: "100%",
+          ...style,
+        }}
+        className={className}
+      />
+    </>
   );
 };
 

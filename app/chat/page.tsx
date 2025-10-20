@@ -36,7 +36,6 @@ import ChatMessageInput from "@/components/chat/ChatMessageInput";
 import ChatMessageList from "@/components/chat/ChatMessageList";
 import { KnowledgeBase } from "@/lib/api/knowledgebase";
 import {
-  InstalledModel,
   getDefaultModel,
   DefaultModel,
   ModelListItem,
@@ -362,7 +361,7 @@ const ChatPage: React.FC = () => {
 
   // 监听消息变化，自动滚动到底部
   useEffect(() => {
-    scrollToBottom();
+    scrollToBottom(true); // 强制滚动到底部，不管用户是否在滚动
   }, [messages]);
 
   // 监听用户滚动行为
