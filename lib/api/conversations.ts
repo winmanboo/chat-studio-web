@@ -80,6 +80,7 @@ export const chatStream = async (data: ChatRequest): Promise<ReadableStreamDefau
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Accept-Encoding': 'gzip',
       ...(token ? { 'Auth-Token': token } : {}),
     },
     body: JSON.stringify(data),
