@@ -228,6 +228,7 @@ const ChatPage: React.FC = () => {
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const [isUserJustSent, setIsUserJustSent] = useState(false); // 跟踪用户是否刚发送消息
   const bubbleListRef = useRef<HTMLDivElement>(null);
   const [hasStarted, setHasStarted] = useState(false);
   const [editingConversation, setEditingConversation] = useState<{
@@ -345,6 +346,13 @@ const ChatPage: React.FC = () => {
   }, [hasStarted]);
 
   // 自动滚动到底部的函数
+  // 检查用户是否在底部
+  const isAtBottom = () => {
+    if (!bubbleListRef.current) return true;
+    const container = bubbleListRef.current;
+    return container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
+  };
+
   const scrollToBottom = (force = false, smooth = false) => {
     if (bubbleListRef.current && (!isUserScrolling || force)) {
       const container = bubbleListRef.current;
@@ -361,16 +369,25 @@ const ChatPage: React.FC = () => {
 
   // 监听消息变化，自动滚动到底部
   useEffect(() => {
-    scrollToBottom(true); // 强制滚动到底部，不管用户是否在滚动
+    if (isUserJustSent) {
+      // 用户刚发送消息，强制滚动到底部
+      scrollToBottom(true);
+      setIsUserJustSent(false); // 重置状态
+    } else {
+      // 实时渲染时，只有当用户在底部时才自动滚动
+      if (!isUserScrolling || isAtBottom()) {
+        scrollToBottom(true);
+      }
+    }
   }, [messages]);
 
   // 监听用户滚动行为
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
-    const isAtBottom =
+    const userIsAtBottom =
       container.scrollHeight - container.scrollTop <=
       container.clientHeight + 50;
-    setIsUserScrolling(!isAtBottom);
+    setIsUserScrolling(!userIsAtBottom);
   };
 
 
@@ -574,6 +591,7 @@ const ChatPage: React.FC = () => {
     };
 
     // 添加用户消息和AI回复占位符
+    setIsUserJustSent(true); // 标记用户刚发送消息
     setMessages((prev) => [...prev, userMessage, aiMessage]);
 
     try {
