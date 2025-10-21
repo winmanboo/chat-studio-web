@@ -23,7 +23,6 @@ const StreamdownRenderer: React.FC<{ content: string }> = React.memo(
             table: true,
             mermaid: true,
           }}
-          isAnimating={true}
         >
           {content}
         </Streamdown>
