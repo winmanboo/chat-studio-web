@@ -145,7 +145,7 @@ const convertSessionToConversation = (
     key: session.sessionId,
     label: session.sessionTitle,
     icon: "💬", // 默认图标
-    group: getTimeGroup(session.createdAt),
+    group: getTimeGroup(session.updatedAt),
   };
 };
 

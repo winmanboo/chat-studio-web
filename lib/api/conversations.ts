@@ -7,7 +7,7 @@ export type SessionId = string;
 export interface SessionItem {
   sessionId: string;
   sessionTitle: string;
-  createdAt: number;
+  updatedAt: number;
 }
 
 // 检索结果类型定义

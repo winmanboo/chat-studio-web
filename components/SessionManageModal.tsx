@@ -74,7 +74,7 @@ const SessionManageModal: React.FC<SessionManageModalProps> = ({
       const sessionList = await getSessionList();
       const extendedSessions = sessionList.map(session => ({
         ...session,
-        lastUpdateTime: formatTime(session.createdAt),
+        lastUpdateTime: formatTime(session.updatedAt),
       }));
       setSessions(extendedSessions);
       setFilteredSessions(extendedSessions);
