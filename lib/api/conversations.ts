@@ -71,7 +71,7 @@ export interface ChatRequest {
 export type ChatResponse = string;
 
 // 流式聊天接口
-export const chatStream = async (data: ChatRequest): Promise<ReadableStreamDefaultReader<Uint8Array>> => {
+export const chatStream = async (data: ChatRequest, signal?: AbortSignal): Promise<ReadableStreamDefaultReader<Uint8Array>> => {
   // 使用fetch API处理流式响应，因为axios在浏览器中不支持stream
   const baseUrl = '/api';
   const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : '';
@@ -84,6 +84,7 @@ export const chatStream = async (data: ChatRequest): Promise<ReadableStreamDefau
       ...(token ? { 'Auth-Token': token } : {}),
     },
     body: JSON.stringify(data),
+    signal, // 添加 AbortSignal 支持
   });
 
   if (!response.ok) {

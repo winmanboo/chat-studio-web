@@ -245,6 +245,9 @@ const ChatPage: React.FC = () => {
   // 检索模式
   const [searchMode, setSearchMode] = useState<null | "web" | "kb">(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [sendingLoading, setSendingLoading] = useState<boolean>(false); // 发送消息的 loading 状态
+  const [abortController, setAbortController] = useState<AbortController | null>(null); // 用于取消 SSE 连接
+  const [userCancelled, setUserCancelled] = useState<boolean>(false); // 用户是否主动取消
   const [sessionManageModalVisible, setSessionManageModalVisible] =
     useState<boolean>(false);
   const [kbSelectModalVisible, setKbSelectModalVisible] =
@@ -551,8 +554,28 @@ const ChatPage: React.FC = () => {
     setSearchMode("kb");
   };
 
+  // 取消发送
+  const handleCancel = () => {
+    // 设置用户取消标志
+    setUserCancelled(true);
+    
+    // 如果有正在进行的 SSE 连接，则取消它
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
+    }
+    
+    setSendingLoading(false);
+  };
+
   // 发送消息
   const handleSubmit = async (message: string) => {
+    // 重置用户取消标志
+    setUserCancelled(false);
+    
+    // 设置发送状态为 loading
+    setSendingLoading(true);
+    
     // 如果还没有开始对话，设置为已开始状态
     if (!hasStarted) {
       setHasStarted(true);
@@ -620,8 +643,12 @@ const ChatPage: React.FC = () => {
         }
       }
 
+      // 创建 AbortController 用于取消请求
+      const controller = new AbortController();
+      setAbortController(controller);
+
       // 发起流式请求（现在在API层处理）
-      const reader = await chatStream(requestData);
+      const reader = await chatStream(requestData, controller.signal);
 
       const decoder = new TextDecoder();
 
@@ -701,6 +728,9 @@ const ChatPage: React.FC = () => {
             }
           }
 
+          // 发送完成，设置 loading 为 false 并清理 AbortController
+          setSendingLoading(false);
+          setAbortController(null);
           break;
         }
 
@@ -772,21 +802,42 @@ const ChatPage: React.FC = () => {
         }
       }
     } catch (error: unknown) {
-      console.error("消息发送失败:", error); // 在控制台输出详细错误信息
-      const errorMessage = error instanceof Error ? error.message : "未知错误";
-      antdMessage.error("消息发送失败: " + errorMessage);
-      // 更新AI消息状态为错误
-      setMessages((prev) =>
-        prev.map((msg, idx) =>
-          idx === prev.length - 1
-            ? {
-                ...msg,
-                isLoading: false,
-                content: "抱歉，消息发送失败，请稍后重试。",
-              }
-            : msg
-        )
-      );
+      // 如果是用户主动取消的请求，保留已输出的内容
+      if (error instanceof Error && error.name === 'AbortError' && userCancelled) {
+        // 更新最后一条 AI 消息，停止 loading 状态，保留已输出的内容
+        setMessages((prev) =>
+          prev.map((msg, idx) =>
+            idx === prev.length - 1
+              ? {
+                  ...msg,
+                  isLoading: false,
+                  // 如果有 displayContent，使用它作为最终内容；否则保持原有内容
+                  content: msg.displayContent || msg.content,
+                  displayContent: undefined, // 清除 displayContent
+                }
+              : msg
+          )
+        );
+      } else {
+        console.error("消息发送失败:", error); // 在控制台输出详细错误信息
+        const errorMessage = error instanceof Error ? error.message : "未知错误";
+        antdMessage.error("消息发送失败: " + errorMessage);
+        // 更新AI消息状态为错误
+        setMessages((prev) =>
+          prev.map((msg, idx) =>
+            idx === prev.length - 1
+              ? {
+                  ...msg,
+                  isLoading: false,
+                  content: "抱歉，消息发送失败，请稍后重试。",
+                }
+              : msg
+          )
+        );
+      }
+      // 发送失败，设置 loading 为 false 并清理 AbortController
+      setSendingLoading(false);
+      setAbortController(null);
     }
   };
 
@@ -872,6 +923,8 @@ const ChatPage: React.FC = () => {
                   handleSubmit(val);
                   setInputValue(""); // 提交后清空输入框
                 }}
+                loading={sendingLoading}
+                onCancel={handleCancel}
                 searchMode={searchMode}
                 selectedKb={selectedKb}
                 onSearchModeChange={setSearchMode}
@@ -942,6 +995,8 @@ const ChatPage: React.FC = () => {
                     handleSubmit(val);
                     setInputValue(""); // 提交后清空输入框
                   }}
+                  loading={sendingLoading}
+                  onCancel={handleCancel}
                   searchMode={searchMode}
                   selectedKb={selectedKb}
                   onSearchModeChange={setSearchMode}

@@ -31,6 +31,8 @@ interface ChatMessageInputProps {
   onKbSelectModalOpen: () => void;
   placeholder?: string;
   disabled?: boolean;
+  loading?: boolean;
+  onCancel?: () => void;
 }
 
 const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
@@ -43,6 +45,8 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
   onKbSelectModalOpen,
   placeholder = "请输入内容并回车...",
   disabled = false,
+  loading = false,
+  onCancel,
 }) => {
   const { token } = theme.useToken();
 
@@ -110,14 +114,16 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      allowSpeech={false}
+      allowSpeech={true}
+      readOnly={loading}
       actions={false}
       disabled={disabled}
       onSubmit={(val) => {
         onSubmit(val);
       }}
+      onCancel={onCancel}
       footer={({ components }) => {
-        const { SendButton, SpeechButton } = components;
+        const { SendButton, SpeechButton, LoadingButton, ClearButton } = components;
         return (
           <Flex justify="space-between" align="center">
             {/* 左侧：检索模式 */}
@@ -179,7 +185,11 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
                 }}
               />
               <Divider type="vertical" />
-              <SendButton type="primary" disabled={disabled} />
+              {loading ? (
+                <LoadingButton type="default" />
+              ) : (
+                <SendButton type="primary" disabled={disabled} />
+              )}
             </Flex>
           </Flex>
         );
