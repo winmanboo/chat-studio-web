@@ -175,6 +175,15 @@ const convertSessionMessageToChatMessage = (
     chatMessage.retrieves = sessionMessage.retrieves;
   }
 
+  // 如果是AI消息且包含工具调用信息，添加toolNames字段
+  if (
+    sessionMessage.messageType === "ASSISTANT" &&
+    sessionMessage.toolNames &&
+    sessionMessage.toolNames.length > 0
+  ) {
+    chatMessage.toolNames = sessionMessage.toolNames;
+  }
+
   return chatMessage;
 };
 
@@ -213,6 +222,7 @@ interface ChatMessage {
   retrieves?: RetrieveResult[]; // 检索结果
   thinking?: string; // 深度思考内容
   thinkingDuration?: number; // 深度思考耗时，单位为秒
+  toolNames?: string[]; // 调用的工具名称列表，仅在ASSISTANT消息中存在
 }
 
 // 定义会话项类型

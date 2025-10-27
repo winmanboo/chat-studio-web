@@ -28,6 +28,7 @@ export interface SessionMessage {
   parentId: number;
   kbName?: string; // 知识库名称，仅在ASSISTANT消息中存在
   retrieves?: RetrieveResult[]; // 检索结果，仅在ASSISTANT消息中存在
+  toolNames?: string[]; // 调用的工具名称列表，仅在ASSISTANT消息中存在
 }
 
 // 创建会话接口

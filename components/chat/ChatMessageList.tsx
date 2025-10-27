@@ -1,16 +1,19 @@
 import React from "react";
 import { Bubble } from "@ant-design/x";
-import { Button, Space, theme, message } from "antd";
+import { Button, Space, theme, message, Tag } from "antd";
 import {
   UserOutlined,
   RobotOutlined,
   CopyOutlined,
   SyncOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 import { renderMarkdown } from "@/components/MarkdownRenderer";
 import RetrieveResultsDisplay from "@/components/RetrieveResultsDisplay";
 import ThinkingRenderer from "@/components/ThinkingRenderer";
+import ToolRenderer from "@/components/chat/ToolRenderer";
 import { extractThinkingContent } from "@/lib/utils/thinkingUtils";
+import { extractToolContent, parseToolNames } from "@/lib/utils/toolUtils";
 
 // 样式常量
 const USER_AVATAR_STYLE = { backgroundColor: "#1890ff", color: "white" };
@@ -36,6 +39,7 @@ export interface ChatMessage {
   retrieves?: RetrieveResult[]; // 检索结果
   thinking?: string; // 深度思考内容
   thinkingDuration?: number; // 深度思考耗时，单位为秒
+  toolNames?: string[]; // 调用的工具名称列表，仅在ASSISTANT消息中存在
 }
 
 // 组件属性接口
@@ -150,6 +154,23 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
                 remainingContent = extracted.remainingContent;
               }
 
+              // 处理工具调用内容
+              let toolNamesFromContent: string[] = [];
+              let finalContent = remainingContent;
+
+              // 从流式内容中提取工具调用信息
+              const toolExtracted = extractToolContent(remainingContent);
+              if (toolExtracted.toolText) {
+                toolNamesFromContent = parseToolNames(toolExtracted.toolText);
+                finalContent = toolExtracted.remainingContent;
+              }
+
+              // 合并工具名称：优先使用从内容中提取的，然后是字段中的
+              const allToolNames = [
+                ...toolNamesFromContent,
+                ...(msg.toolNames || [])
+              ].filter((name, index, arr) => arr.indexOf(name) === index); // 去重
+
               return (
                 <div>
                   {/* 深度思考区域 */}
@@ -168,8 +189,13 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
                     />
                   )}
 
+                  {/* 工具调用显示 */}
+                  {allToolNames.length > 0 && (
+                    <ToolRenderer toolNames={allToolNames} />
+                  )}
+
                   {/* 消息内容 */}
-                  {remainingContent && renderMarkdown(remainingContent)}
+                  {finalContent && renderMarkdown(finalContent)}
                 </div>
               );
             },
