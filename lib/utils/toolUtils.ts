@@ -63,3 +63,53 @@ export function parseToolNames(toolText: string): string[] {
   
   return lines;
 }
+
+/**
+ * 从内容中提取所有工具名称（支持多个独立的<tool>标签）
+ * @param content 原始内容
+ * @returns 工具名称列表
+ */
+export function extractAllToolNames(content: string): string[] {
+  const toolRegex = /<tool>([\s\S]*?)<\/tool>/g;
+  const toolNames: string[] = [];
+  let match;
+  
+  // 提取所有 <tool> 标签中的工具名称
+  while ((match = toolRegex.exec(content)) !== null) {
+    const toolContent = match[1].trim();
+    if (toolContent && !toolNames.includes(toolContent)) {
+      toolNames.push(toolContent);
+    }
+  }
+  
+  return toolNames;
+}
+
+/**
+ * 增量解析工具调用内容，避免重复解析
+ * @param previousTools 之前解析的工具列表
+ * @param newContent 新接收的内容
+ * @returns 更新后的工具名称列表
+ */
+export function incrementalParseTools(
+  previousTools: string[], 
+  newContent: string
+): string[] {
+  if (!newContent) return previousTools;
+  
+  // 提取完整的工具内容（包括之前可能已经解析过的）
+  const { toolText } = extractToolContent(newContent);
+  if (!toolText) return previousTools;
+  
+  // 解析当前完整的工具列表
+  const currentTools = parseToolNames(toolText);
+  
+  // 如果当前解析的工具数量与之前相同，说明没有新工具，直接返回之前的列表
+  if (currentTools.length === previousTools.length) {
+    return previousTools;
+  }
+  
+  // 如果有新工具，返回完整的当前工具列表
+  // 这样可以确保工具顺序和完整性
+  return currentTools;
+}

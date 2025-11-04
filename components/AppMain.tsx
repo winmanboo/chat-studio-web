@@ -30,6 +30,7 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
   const getSelectedTab = () => {
     if (pathname.startsWith('/chat')) return 'chat';
     if (pathname.startsWith('/knowledgebase') || pathname.startsWith('/documents')) return 'kb';
+    if (pathname.startsWith('/mcp')) return 'mcp';
     return 'chat'; // 默认选中chat
   };
 
@@ -115,7 +116,7 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
       <HeaderComponent 
         selectedTab={getSelectedTab()} 
         onUserClick={handleUserClick}
@@ -124,7 +125,7 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
         onLogout={handleLogout}
         userInfo={userInfo}
       />
-      <main style={{ flex: 1, width: '100%', alignSelf: 'stretch', display: 'flex', minHeight: 0, overflow: 'hidden' }}>
+      <main style={{ flex: 1, width: '100%', alignSelf: 'stretch', display: 'flex', minHeight: 0 }}>
         <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
           {children}
         </div>

@@ -6,4 +6,5 @@ export * from './documents';
 export * from './models';
 export * from './admin';
 export * from './monitor';
+export * from './mcp';
 export { default as request } from './request';

@@ -27,7 +27,8 @@ const nextConfig = {
       'dict',
       'tags',
       'session',
-      'monitor'
+      'monitor',
+      'mcp'
     ];
 
     return apiPaths.map(createProxyRule);

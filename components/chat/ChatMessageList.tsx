@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Bubble } from "@ant-design/x";
 import { Button, Space, theme, message, Tag } from "antd";
 import {
@@ -6,14 +6,13 @@ import {
   RobotOutlined,
   CopyOutlined,
   SyncOutlined,
-  ToolOutlined,
 } from "@ant-design/icons";
 import { renderMarkdown } from "@/components/MarkdownRenderer";
 import RetrieveResultsDisplay from "@/components/RetrieveResultsDisplay";
 import ThinkingRenderer from "@/components/ThinkingRenderer";
 import ToolRenderer from "@/components/chat/ToolRenderer";
 import { extractThinkingContent } from "@/lib/utils/thinkingUtils";
-import { extractToolContent, parseToolNames } from "@/lib/utils/toolUtils";
+import { extractToolContent, incrementalParseTools, extractAllToolNames } from "@/lib/utils/toolUtils";
 
 // 样式常量
 const USER_AVATAR_STYLE = { backgroundColor: "#1890ff", color: "white" };
@@ -56,6 +55,52 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
   className,
 }) => {
   const { token } = theme.useToken();
+  
+  // 用于跟踪每条消息的工具解析状态
+  const [messageToolStates, setMessageToolStates] = useState<Record<number, string[]>>({});
+
+  // 初始化工具状态
+  useEffect(() => {
+    setMessageToolStates(prev => {
+      const newStates: Record<number, string[]> = {};
+      messages.forEach((_, index) => {
+        if (prev[index]) {
+          newStates[index] = prev[index];
+        }
+      });
+      return newStates;
+    });
+  }, [messages]);
+
+  // 处理工具状态更新，避免在渲染函数中直接调用setState
+  useEffect(() => {
+    let hasChanges = false;
+    const newToolStates: Record<number, string[]> = {};
+    
+    messages.forEach((msg, index) => {
+      const remainingContent = msg.displayContent || msg.content;
+      
+      // 使用新的函数直接提取所有工具名称
+      const toolNamesFromContent = extractAllToolNames(remainingContent);
+      
+      if (toolNamesFromContent.length > 0) {
+        const previousTools = messageToolStates[index] || [];
+        
+        // 只有当工具列表发生变化时才更新状态
+        if (JSON.stringify(toolNamesFromContent) !== JSON.stringify(previousTools)) {
+          newToolStates[index] = toolNamesFromContent;
+          hasChanges = true;
+        }
+      }
+    });
+    
+    if (hasChanges) {
+      setMessageToolStates(prev => ({
+        ...prev,
+        ...newToolStates
+      }));
+    }
+  }, [messages]);
 
   // 组件内样式定义
   const assistantBubbleStyles = `
@@ -158,10 +203,13 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
               let toolNamesFromContent: string[] = [];
               let finalContent = remainingContent;
 
-              // 从流式内容中提取工具调用信息
-              const toolExtracted = extractToolContent(remainingContent);
-              if (toolExtracted.toolText) {
-                toolNamesFromContent = parseToolNames(toolExtracted.toolText);
+              // 使用新的函数直接提取所有工具名称
+              const extractedToolNames = extractAllToolNames(remainingContent);
+              if (extractedToolNames.length > 0) {
+                // 使用已缓存的工具状态，避免在渲染函数中解析和更新状态
+                toolNamesFromContent = messageToolStates[msg.messageIndex] || extractedToolNames;
+                // 移除工具标签后的内容
+                const toolExtracted = extractToolContent(remainingContent);
                 finalContent = toolExtracted.remainingContent;
               }
 

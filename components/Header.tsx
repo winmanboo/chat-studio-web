@@ -31,7 +31,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
     { key: 'mcp', icon: '🔗', label: 'MCP' },
     { key: 'workflow', icon: '⚡', label: '工作流' },
     { key: 'bi', icon: '📊', label: 'BI' },
-    { key: 'news', icon: '📰', label: 'News' },
+    { key: 'news', icon: '📰', label: 'AI 情报' },
   ];
 
   const handleNewFeatureClick = (featureName: string) => {
@@ -41,11 +41,14 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
   const handleTabChange = (tab: string) => {
     const routeMap: Record<string, string> = {
       'chat': '/chat',
-      'kb': '/knowledgebase'
+      'kb': '/knowledgebase',
+      'mcp': '/mcp'
     };
     const route = routeMap[tab];
     if (route) {
       router.push(route);
+    } else {
+      handleNewFeatureClick(tab);
     }
   };
 
@@ -103,7 +106,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
         zIndex: 10,
       }}>
         {capsuleTabs.map((tab, idx) => {
-          const isNewFeature = ['agent', 'mcp', 'workflow', 'bi', 'news'].includes(tab.key);
+          const isNewFeature = ['agent', 'workflow', 'bi', 'news'].includes(tab.key);
           return (
             <Button
               key={tab.key}

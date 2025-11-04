@@ -116,6 +116,7 @@
   }
   body {
     @apply bg-secondary dark:bg-background text-foreground;
+    overflow-x: hidden;
   }
   .bg-dashed {
     background-image: linear-gradient(45deg, var(--border) 12.5%, transparent 12.5%, transparent 50%, var(--border) 50%, var(--border) 62.5%, transparent 62.5%, transparent 100%);
