@@ -1,6 +1,6 @@
 {
-  "version": "0.3.1",
-  "buildTime": "2025-10-21T12:38:44.864Z",
+  "version": "0.4.0",
+  "buildTime": "2025-11-04T12:36:32.263Z",
   "updateNotes": {
     "0.1.0": {
       "title": "版本更新",
@@ -120,8 +120,7 @@
       "environment": "development",
       "versionType": "patch",
       "isPrerelease": false,
-      "features": [
-      ],
+      "features": [],
       "optimizations": [
         "⚡ 聊天接口性能优化"
       ],
@@ -132,6 +131,24 @@
       ],
       "releaseDate": "2025-10-21",
       "buildTime": "2025-10-21T12:38:44.864Z"
+    },
+    "0.4.0": {
+      "title": "版本更新",
+      "description": "Chat Studio 0.4.0 版本更新",
+      "environment": "development",
+      "versionType": "minor",
+      "isPrerelease": false,
+      "features": [
+        "✨ 支持停止模型输出",
+        "🚀 支持工具调用",
+        "🎯 支持 mcp 功能！"
+      ],
+      "optimizations": [
+      ],
+      "bugfixes": [
+      ],
+      "releaseDate": "2025-11-04",
+      "buildTime": "2025-11-04T12:36:32.263Z"
     }
   }
 }
