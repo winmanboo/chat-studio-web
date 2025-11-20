@@ -146,14 +146,20 @@ const KnowledgeBasePage: React.FC = () => {
       key: 'edit',
       label: '修改',
       icon: <EditOutlined />,
-      onClick: () => handleMenuClick('edit', knowledgeBase),
+      onClick: (e) => {
+        e.domEvent.stopPropagation();
+        handleMenuClick('edit', knowledgeBase);
+      },
     },
     {
       key: 'delete',
       label: '删除',
       icon: <DeleteOutlined />,
       danger: true,
-      onClick: () => handleMenuClick('delete', knowledgeBase),
+      onClick: (e) => {
+        e.domEvent.stopPropagation();
+        handleMenuClick('delete', knowledgeBase);
+      },
     },
   ];
 
