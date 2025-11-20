@@ -707,6 +707,7 @@ const KnowledgeBasePage: React.FC = () => {
                  tooltip={{ formatter: (value) => `TopK: ${value}` }}
                  trackStyle={{ backgroundColor: '#52c41a' }}
                  handleStyle={{ borderColor: '#52c41a' }}
+                 onChange={(value) => form.setFieldValue('topK', value)}
                />
              </div>
            </Form.Item>
