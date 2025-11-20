@@ -320,24 +320,26 @@ const DocumentsPageContent: React.FC = () => {
                render: (_, record: Document) => (
                  <Space>
                    {record.status === 'COMPLETED' && (
-                     <Button 
-                       type="text" 
-                       icon={<EyeOutlined />} 
+                     <Button
+                       type="text"
+                       icon={<EyeOutlined />}
                        size="small"
                        onClick={() => handleViewDetail(record)}
                      >
                        详情
                      </Button>
                    )}
-                   <Button 
-                     type="text" 
-                     icon={<DeleteOutlined />} 
-                     size="small"
-                     danger
-                     onClick={() => handleDelete(record)}
-                   >
-                     删除
-                   </Button>
+                   {(record.status === 'COMPLETED' || record.status === 'FAILED') && (
+                     <Button
+                       type="text"
+                       icon={<DeleteOutlined />}
+                       size="small"
+                       danger
+                       onClick={() => handleDelete(record)}
+                     >
+                       删除
+                     </Button>
+                   )}
                  </Space>
                )
              }
