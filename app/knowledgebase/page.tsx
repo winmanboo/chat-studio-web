@@ -30,6 +30,12 @@ const KnowledgeBasePage: React.FC = () => {
   const [rerankEnabledState, setRerankEnabledState] = useState(false);
   const rerankEnabled = Form.useWatch('rerankEnabled', form);
 
+  // 监听其他滑块字段
+  const topKValue = Form.useWatch('topK', form);
+  const embedMinScoreValue = Form.useWatch('embedMinScore', form);
+  const topNValue = Form.useWatch('topN', form);
+  const rerankMinScoreValue = Form.useWatch('rerankMinScore', form);
+
   // 同步 rerankEnabled 状态
   useEffect(() => {
     if (rerankEnabled !== undefined) {
@@ -731,6 +737,7 @@ const KnowledgeBasePage: React.FC = () => {
                  min={1}
                  max={20}
                  defaultValue={5}
+                 value={topKValue}
                  marks={{
                    1: { style: { fontSize: '12px' }, label: '1' },
                    5: { style: { fontSize: '12px' }, label: '5' },
@@ -757,6 +764,7 @@ const KnowledgeBasePage: React.FC = () => {
                  max={0.95}
                  step={0.01}
                  defaultValue={0.5}
+                 value={embedMinScoreValue}
                  marks={{
                    0.5: { style: { fontSize: '12px' }, label: '0.5' },
                    0.7: { style: { fontSize: '12px' }, label: '0.7' },
@@ -780,6 +788,7 @@ const KnowledgeBasePage: React.FC = () => {
              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                <Switch
                  size="default"
+                 checked={rerankEnabled}
                  onChange={(checked) => {
                    form.setFieldValue('rerankEnabled', checked);
                    setRerankEnabledState(checked);
@@ -804,6 +813,7 @@ const KnowledgeBasePage: React.FC = () => {
                      min={1}
                      max={20}
                      defaultValue={5}
+                     value={topNValue}
                      marks={{
                        1: { style: { fontSize: '12px' }, label: '1' },
                        5: { style: { fontSize: '12px' }, label: '5' },
@@ -829,6 +839,7 @@ const KnowledgeBasePage: React.FC = () => {
                      max={0.95}
                      step={0.01}
                      defaultValue={0.35}
+                     value={rerankMinScoreValue}
                      marks={{
                        0.35: { style: { fontSize: '12px' }, label: '0.35' },
                        0.6: { style: { fontSize: '12px' }, label: '0.6' },
