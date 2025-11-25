@@ -13,6 +13,9 @@ export interface KnowledgeBase {
   splitStrategy?: string;
   topK?: number;
   rerankEnabled?: boolean;
+  embedMinScore?: number;
+  topN?: number;
+  rerankMinScore?: number;
 }
 
 // 分页响应类型
@@ -57,6 +60,9 @@ export interface CreateKnowledgeBaseParams {
   splitStrategy: string;
   topK: number;
   rerankEnabled: boolean;
+  embedMinScore: number;
+  topN?: number;
+  rerankMinScore?: number;
   tags?: Array<{ id?: number; name: string }>;
 }
 

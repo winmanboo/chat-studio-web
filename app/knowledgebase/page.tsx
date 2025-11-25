@@ -26,6 +26,17 @@ const KnowledgeBasePage: React.FC = () => {
   const [editingKnowledgeBase, setEditingKnowledgeBase] = useState<KnowledgeBase | null>(null);
   const [form] = Form.useForm();
 
+  // 监听 rerankEnabled 字段变化，使用状态确保及时更新
+  const [rerankEnabledState, setRerankEnabledState] = useState(false);
+  const rerankEnabled = Form.useWatch('rerankEnabled', form);
+
+  // 同步 rerankEnabled 状态
+  useEffect(() => {
+    if (rerankEnabled !== undefined) {
+      setRerankEnabledState(rerankEnabled);
+    }
+  }, [rerankEnabled]);
+
   // 获取知识库数据
   const fetchKnowledgeBases = async (isLoadMore = false) => {
     try {
@@ -175,9 +186,13 @@ const KnowledgeBasePage: React.FC = () => {
     // 设置默认值
     form.setFieldsValue({
       topK: 5,
+      embedMinScore: 0.5,
       rerankEnabled: false,
+      topN: 5,
+      rerankMinScore: 0.35,
       tags: []
     });
+    setRerankEnabledState(false);
   };
 
   // 编辑知识库
@@ -188,22 +203,30 @@ const KnowledgeBasePage: React.FC = () => {
       
       // 获取知识库详情
       const knowledgeBaseInfo = await getKnowledgeBaseInfo(id);
-      
+
       setIsEditMode(true);
       setEditingKnowledgeBase(knowledgeBaseInfo);
       setCreateModalVisible(true);
-      
+
       // 回显数据到表单
-      const tagsForForm = knowledgeBaseInfo.tags.map(tag => JSON.stringify(tag));
-      form.setFieldsValue({
+      const tagsForForm = knowledgeBaseInfo.tags?.map(tag => JSON.stringify(tag)) || [];
+
+      // 构建表单数据，处理可能为空的字段
+      const formData = {
         name: knowledgeBaseInfo.name,
-        description: knowledgeBaseInfo.description,
+        description: knowledgeBaseInfo.description || '',
         retrievalMode: knowledgeBaseInfo.retrievalMode,
         splitStrategy: knowledgeBaseInfo.splitStrategy,
-        topK: knowledgeBaseInfo.topK,
-        rerankEnabled: knowledgeBaseInfo.rerankEnabled,
+        topK: knowledgeBaseInfo.topK || 5,
+        embedMinScore: knowledgeBaseInfo.embedMinScore || 0.5,
+        rerankEnabled: knowledgeBaseInfo.rerankEnabled || false,
+        topN: knowledgeBaseInfo.topN || 5,
+        rerankMinScore: knowledgeBaseInfo.rerankMinScore || 0.35,
         tags: tagsForForm
-      });
+      };
+
+      form.setFieldsValue(formData);
+      setRerankEnabledState(knowledgeBaseInfo.rerankEnabled || false);
     } catch (error) {
       console.error('Failed to fetch knowledge base info:', error);
       message.error('获取知识库信息失败');
@@ -234,6 +257,9 @@ const KnowledgeBasePage: React.FC = () => {
         splitStrategy: values.splitStrategy,
         topK: values.topK,
         rerankEnabled: values.rerankEnabled,
+        embedMinScore: values.embedMinScore,
+        topN: values.rerankEnabled ? values.topN : undefined,
+        rerankMinScore: values.rerankEnabled ? values.rerankMinScore : undefined,
         tags: processedTags
       };
       
@@ -249,6 +275,7 @@ const KnowledgeBasePage: React.FC = () => {
       form.resetFields();
       setIsEditMode(false);
       setEditingKnowledgeBase(null);
+      setRerankEnabledState(false);
       fetchKnowledgeBases(); // 刷新列表
     } catch (error) {
       console.error('Failed to save knowledge base:', error);
@@ -262,6 +289,7 @@ const KnowledgeBasePage: React.FC = () => {
   const handleCreateCancel = () => {
     setCreateModalVisible(false);
     form.resetFields();
+    setRerankEnabledState(false);
   };
 
   return (
@@ -711,9 +739,33 @@ const KnowledgeBasePage: React.FC = () => {
                    20: { style: { fontSize: '12px' }, label: '20' }
                  }}
                  tooltip={{ formatter: (value) => `TopK: ${value}` }}
-                 trackStyle={{ backgroundColor: '#52c41a' }}
-                 handleStyle={{ borderColor: '#52c41a' }}
+                 styles={{ track: { backgroundColor: '#52c41a' }, handle: { borderColor: '#52c41a' } }}
                  onChange={(value) => form.setFieldValue('topK', value)}
+               />
+             </div>
+           </Form.Item>
+
+           <Form.Item
+             label="向量最低分数"
+             name="embedMinScore"
+             rules={[{ required: true, message: '请设置向量最低分数' }]}
+             style={{ marginBottom: '20px' }}
+           >
+             <div style={{ padding: '0 8px' }}>
+               <Slider
+                 min={0.5}
+                 max={0.95}
+                 step={0.01}
+                 defaultValue={0.5}
+                 marks={{
+                   0.5: { style: { fontSize: '12px' }, label: '0.5' },
+                   0.7: { style: { fontSize: '12px' }, label: '0.7' },
+                   0.9: { style: { fontSize: '12px' }, label: '0.9' },
+                   0.95: { style: { fontSize: '12px' }, label: '0.95' }
+                 }}
+                 tooltip={{ formatter: (value) => `向量最低分数: ${value}` }}
+                 styles={{ track: { backgroundColor: '#1890ff' }, handle: { borderColor: '#1890ff' } }}
+                 onChange={(value) => form.setFieldValue('embedMinScore', value)}
                />
              </div>
            </Form.Item>
@@ -723,15 +775,74 @@ const KnowledgeBasePage: React.FC = () => {
              name="rerankEnabled"
              valuePropName="checked"
              rules={[{ required: true, message: '请选择是否启用Rerank' }]}
-             style={{ marginBottom: '0' }}
+             style={{ marginBottom: rerankEnabledState ? '20px' : '0' }}
            >
              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-               <Switch size="default" />
+               <Switch
+                 size="default"
+                 onChange={(checked) => {
+                   form.setFieldValue('rerankEnabled', checked);
+                   setRerankEnabledState(checked);
+                 }}
+               />
                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>
                  开启后将对检索结果进行重新排序
                </span>
              </div>
            </Form.Item>
+
+           {rerankEnabledState && (
+             <>
+               <Form.Item
+                 label="Rerank数量"
+                 name="topN"
+                 rules={[{ required: true, message: '请设置Rerank数量' }]}
+                 style={{ marginBottom: '20px' }}
+               >
+                 <div style={{ padding: '0 8px' }}>
+                   <Slider
+                     min={1}
+                     max={20}
+                     defaultValue={5}
+                     marks={{
+                       1: { style: { fontSize: '12px' }, label: '1' },
+                       5: { style: { fontSize: '12px' }, label: '5' },
+                       10: { style: { fontSize: '12px' }, label: '10' },
+                       15: { style: { fontSize: '12px' }, label: '15' },
+                       20: { style: { fontSize: '12px' }, label: '20' }
+                     }}
+                     tooltip={{ formatter: (value) => `Rerank数量: ${value}` }}
+                     styles={{ track: { backgroundColor: '#fa8c16' }, handle: { borderColor: '#fa8c16' } }}
+                     onChange={(value) => form.setFieldValue('topN', value)}
+                   />
+                 </div>
+               </Form.Item>
+
+               <Form.Item
+                 label="Rerank最低分数"
+                 name="rerankMinScore"
+                 style={{ marginBottom: '0' }}
+               >
+                 <div style={{ padding: '0 8px' }}>
+                   <Slider
+                     min={0.35}
+                     max={0.95}
+                     step={0.01}
+                     defaultValue={0.35}
+                     marks={{
+                       0.35: { style: { fontSize: '12px' }, label: '0.35' },
+                       0.6: { style: { fontSize: '12px' }, label: '0.6' },
+                       0.8: { style: { fontSize: '12px' }, label: '0.8' },
+                       0.95: { style: { fontSize: '12px' }, label: '0.95' }
+                     }}
+                     tooltip={{ formatter: (value) => `Rerank最低分数: ${value}` }}
+                     styles={{ track: { backgroundColor: '#fa8c16' }, handle: { borderColor: '#fa8c16' } }}
+                     onChange={(value) => form.setFieldValue('rerankMinScore', value)}
+                   />
+                 </div>
+               </Form.Item>
+             </>
+           )}
           </div>
         </Form>
       </Modal>
