@@ -753,9 +753,9 @@ const KnowledgeBasePage: React.FC = () => {
            </Form.Item>
 
            <Form.Item
-             label="向量最低分数"
+             label="向量召回阈值"
              name="embedMinScore"
-             rules={[{ required: true, message: '请设置向量最低分数' }]}
+             rules={[{ required: true, message: '请设置向量召回阈值' }]}
              style={{ marginBottom: '20px' }}
            >
              <div style={{ padding: '0 8px' }}>
@@ -771,7 +771,7 @@ const KnowledgeBasePage: React.FC = () => {
                    0.9: { style: { fontSize: '12px' }, label: '0.9' },
                    0.95: { style: { fontSize: '12px' }, label: '0.95' }
                  }}
-                 tooltip={{ formatter: (value) => `向量最低分数: ${value}` }}
+                 tooltip={{ formatter: (value) => `向量召回阈值: ${value}` }}
                  styles={{ track: { backgroundColor: '#1890ff' }, handle: { borderColor: '#1890ff' } }}
                  onChange={(value) => form.setFieldValue('embedMinScore', value)}
                />
@@ -829,7 +829,7 @@ const KnowledgeBasePage: React.FC = () => {
                </Form.Item>
 
                <Form.Item
-                 label="Rerank最低分数"
+                 label="Rerank召回阈值"
                  name="rerankMinScore"
                  style={{ marginBottom: '0' }}
                >
@@ -846,7 +846,7 @@ const KnowledgeBasePage: React.FC = () => {
                        0.8: { style: { fontSize: '12px' }, label: '0.8' },
                        0.95: { style: { fontSize: '12px' }, label: '0.95' }
                      }}
-                     tooltip={{ formatter: (value) => `Rerank最低分数: ${value}` }}
+                     tooltip={{ formatter: (value) => `Rerank召回阈值: ${value}` }}
                      styles={{ track: { backgroundColor: '#fa8c16' }, handle: { borderColor: '#fa8c16' } }}
                      onChange={(value) => form.setFieldValue('rerankMinScore', value)}
                    />

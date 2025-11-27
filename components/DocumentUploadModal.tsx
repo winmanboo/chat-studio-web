@@ -192,13 +192,13 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
         </Form.Item>
 
         <Form.Item
-          label="来源类型"
+          label="文件来源"
           name="sourceType"
-          rules={[{ required: true, message: '请选择来源类型' }]}
+          rules={[{ required: true, message: '请选择文件来源类型' }]}
           style={{ marginBottom: 20 }}
         >
           <Select 
-            placeholder="请选择来源类型"
+            placeholder="请选择文件来源类型"
             size="large"
             onChange={(value) => setSourceType(value)}
           >

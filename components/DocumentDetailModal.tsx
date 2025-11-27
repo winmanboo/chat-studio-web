@@ -130,7 +130,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
                 {documentDetail.title}
               </Descriptions.Item>
               
-              <Descriptions.Item label="来源类型">
+              <Descriptions.Item label="文件来源">
                 <Tag color="blue">{documentDetail.sourceType}</Tag>
               </Descriptions.Item>
               
