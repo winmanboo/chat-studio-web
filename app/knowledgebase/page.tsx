@@ -20,7 +20,6 @@ const KnowledgeBasePage: React.FC = () => {
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [retrievalModes, setRetrievalModes] = useState<DictItem[]>([]);
-  const [splitStrategies, setSplitStrategies] = useState<DictItem[]>([]);
   const [availableTags, setAvailableTags] = useState<TagItem[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingKnowledgeBase, setEditingKnowledgeBase] = useState<KnowledgeBase | null>(null);
@@ -91,13 +90,11 @@ const KnowledgeBasePage: React.FC = () => {
   // 获取字典数据
   const fetchDictData = async () => {
     try {
-      const [retrievalData, splitData, tagsData] = await Promise.all([
+      const [retrievalData, tagsData] = await Promise.all([
         getDictItems('retrieval_mode'),
-        getDictItems('split_strategy'),
         getKnowledgeBaseTags()
       ]);
       setRetrievalModes(retrievalData);
-      setSplitStrategies(splitData);
       setAvailableTags(tagsData);
     } catch (error) {
       console.error('Failed to fetch dict data:', error);
@@ -222,7 +219,6 @@ const KnowledgeBasePage: React.FC = () => {
         name: knowledgeBaseInfo.name,
         description: knowledgeBaseInfo.description || '',
         retrievalMode: knowledgeBaseInfo.retrievalMode,
-        splitStrategy: knowledgeBaseInfo.splitStrategy,
         topK: knowledgeBaseInfo.topK || 5,
         embedMinScore: knowledgeBaseInfo.embedMinScore || 0.5,
         rerankEnabled: knowledgeBaseInfo.rerankEnabled || false,
@@ -260,7 +256,6 @@ const KnowledgeBasePage: React.FC = () => {
         name: values.name,
         description: values.description,
         retrievalMode: values.retrievalMode,
-        splitStrategy: values.splitStrategy,
         topK: values.topK,
         rerankEnabled: values.rerankEnabled,
         embedMinScore: values.embedMinScore,
@@ -696,29 +691,11 @@ const KnowledgeBasePage: React.FC = () => {
              rules={[{ required: true, message: '请选择检索模式' }]}
              style={{ marginBottom: '20px' }}
            >
-             <Select 
+             <Select
                placeholder="请选择检索模式"
                style={{ borderRadius: '6px' }}
              >
                {retrievalModes.map(item => (
-                 <Select.Option key={item.code} value={item.code}>
-                   {item.name}
-                 </Select.Option>
-               ))}
-             </Select>
-           </Form.Item>
-
-           <Form.Item
-             label="分块策略"
-             name="splitStrategy"
-             rules={[{ required: true, message: '请选择分块策略' }]}
-             style={{ marginBottom: '20px' }}
-           >
-             <Select 
-               placeholder="请选择分块策略"
-               style={{ borderRadius: '6px' }}
-             >
-               {splitStrategies.map(item => (
                  <Select.Option key={item.code} value={item.code}>
                    {item.name}
                  </Select.Option>
@@ -742,8 +719,6 @@ const KnowledgeBasePage: React.FC = () => {
                    1: { style: { fontSize: '12px' }, label: '1' },
                    5: { style: { fontSize: '12px' }, label: '5' },
                    10: { style: { fontSize: '12px' }, label: '10' },
-                   15: { style: { fontSize: '12px' }, label: '15' },
-                   20: { style: { fontSize: '12px' }, label: '20' }
                  }}
                  tooltip={{ formatter: (value) => `TopK: ${value}` }}
                  styles={{ track: { backgroundColor: '#52c41a' }, handle: { borderColor: '#52c41a' } }}
@@ -818,8 +793,6 @@ const KnowledgeBasePage: React.FC = () => {
                        1: { style: { fontSize: '12px' }, label: '1' },
                        5: { style: { fontSize: '12px' }, label: '5' },
                        10: { style: { fontSize: '12px' }, label: '10' },
-                       15: { style: { fontSize: '12px' }, label: '15' },
-                       20: { style: { fontSize: '12px' }, label: '20' }
                      }}
                      tooltip={{ formatter: (value) => `Rerank数量: ${value}` }}
                      styles={{ track: { backgroundColor: '#fa8c16' }, handle: { borderColor: '#fa8c16' } }}

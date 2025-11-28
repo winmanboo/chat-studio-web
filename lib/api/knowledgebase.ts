@@ -10,7 +10,6 @@ export interface KnowledgeBase {
   docCount: number;
   tags: Array<{ id: number; name: string }>;
   retrievalMode?: string;
-  splitStrategy?: string;
   topK?: number;
   rerankEnabled?: boolean;
   embedMinScore?: number;
@@ -57,7 +56,6 @@ export interface CreateKnowledgeBaseParams {
   name: string;
   description?: string;
   retrievalMode: string;
-  splitStrategy: string;
   topK: number;
   rerankEnabled: boolean;
   embedMinScore: number;
