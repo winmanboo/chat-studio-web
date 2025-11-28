@@ -735,7 +735,7 @@ const KnowledgeBasePage: React.FC = () => {
              <div style={{ padding: '0 8px' }}>
                <Slider
                  min={1}
-                 max={20}
+                 max={10}
                  defaultValue={5}
                  value={topKValue}
                  marks={{
@@ -811,7 +811,7 @@ const KnowledgeBasePage: React.FC = () => {
                  <div style={{ padding: '0 8px' }}>
                    <Slider
                      min={1}
-                     max={20}
+                     max={10}
                      defaultValue={5}
                      value={topNValue}
                      marks={{
