@@ -153,7 +153,7 @@ const DocumentsPageContent: React.FC = () => {
   }
 
   return (
-    <div style={{ height: '100vh', width: '100%', background: '#fff', color: '#222', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100%', width: '100%', background: '#fff', color: '#222', display: 'flex', flexDirection: 'column' }}>
       {/* 头部 */}
       <div style={{ padding: 24, flexShrink: 0, borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
@@ -375,7 +375,7 @@ const DocumentsPage: React.FC = () => {
   return (
     <Suspense fallback={
       <div style={{ 
-        height: '100vh', 
+        height: '100%', 
         width: '100%', 
         background: '#fff', 
         display: 'flex', 

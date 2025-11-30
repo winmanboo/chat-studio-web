@@ -294,7 +294,7 @@ const KnowledgeBasePage: React.FC = () => {
   };
 
   return (
-    <div style={{ height: '100vh', width: '100%', background: '#fff', color: '#222', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100%', width: '100%', background: '#fff', color: '#222', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: 24, flexShrink: 0 }}>
         <h2 style={{ marginBottom: 16, color: '#222' }}>知识库管理</h2>
         <Space style={{ marginBottom: 16 }}>
