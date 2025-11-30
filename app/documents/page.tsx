@@ -198,10 +198,10 @@ const DocumentsPageContent: React.FC = () => {
           dataSource={documents}
           loading={loading}
           rowKey="id"
-          scroll={{ 
+          scroll={documents.length > 0 ? { 
             x: 1080, // 设置最小宽度，确保所有列都能显示
             y: 'calc(100vh - 320px)' 
-          }}
+          } : undefined}
           pagination={{
             current: currentPage,
             pageSize: pageSize,
