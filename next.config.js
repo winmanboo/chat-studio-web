@@ -11,27 +11,14 @@ const nextConfig = {
   async rewrites() {
     const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:8080';
     
-    // 创建代理配置的辅助函数
-    const createProxyRule = (apiPath) => ({
-      source: `/api/${apiPath}/:path*`,
-      destination: `${backendUrl}/${apiPath}/:path*`,
-    });
-
-    // 需要代理的 API 路径列表
-    const apiPaths = [
-      'models',
-      'auth', 
-      'doc',
-      'kb',
-      'admin',
-      'dict',
-      'tags',
-      'session',
-      'monitor',
-      'mcp'
+    return [
+      {
+        // 捕获所有 /api/ 开头的请求
+        source: '/api/:path*',
+        // 转发到后端对应路径
+        destination: `${backendUrl}/:path*`,
+      }
     ];
-
-    return apiPaths.map(createProxyRule);
   },
 };
 
