@@ -108,6 +108,12 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    .assistant-bubble {
+      width: 100% !important;
+      max-width: 100% !important;
     }
   `;
 
