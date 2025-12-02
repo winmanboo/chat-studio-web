@@ -1,10 +1,11 @@
 import React from 'react';
-import { Layout, Avatar, Button, Dropdown, message } from 'antd';
+import { Layout, Avatar, Button, Dropdown, message, theme, Divider, Tag, Flex, Typography } from 'antd';
 import type { MenuProps } from 'antd';
-import { UserOutlined, SettingOutlined, LogoutOutlined, CrownOutlined } from '@ant-design/icons';
+import { UserOutlined, SettingOutlined, LogoutOutlined, CrownOutlined, AppstoreOutlined, RocketOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
 const { Header } = Layout;
+const { Text } = Typography;
 
 interface UserInfo {
   userId: string;
@@ -25,11 +26,16 @@ interface HeaderProps {
 
 const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSettingsClick, isLogin, onLogout, userInfo }) => {
   const router = useRouter();
-  const capsuleTabs = [
+  const { token } = theme.useToken();
+
+  const workbenchTabs = [
     { key: 'chat', icon: '💬', label: '聊天' },
     { key: 'kb', icon: '📚', label: '知识库' },
-    { key: 'agent', icon: '🤖', label: '智能体' },
     { key: 'mcp', icon: '🔗', label: 'MCP' },
+  ];
+
+  const advancedTabs = [
+    { key: 'agent', icon: '🤖', label: '智能体' },
     { key: 'workflow', icon: '⚡', label: '工作流' },
     { key: 'bi', icon: '📊', label: 'BI' },
     { key: 'news', icon: '📰', label: 'AI 情报' },
@@ -37,20 +43,6 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
 
   const handleNewFeatureClick = (featureName: string) => {
     message.info(`${featureName}功能正在开发中`);
-  };
-
-  const handleTabChange = (tab: string) => {
-    const routeMap: Record<string, string> = {
-      'chat': '/chat',
-      'kb': '/knowledgebase',
-      'mcp': '/mcp'
-    };
-    const route = routeMap[tab];
-    if (route) {
-      router.push(route);
-    } else {
-      handleNewFeatureClick(tab);
-    }
   };
 
   const handleAdminClick = () => {
@@ -91,6 +83,51 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
     },
   ];
 
+  const renderTabButton = (tab: { key: string; icon: string; label: string }) => {
+    const isSelected = selectedTab === tab.key;
+    return (
+      <div style={{ position: 'relative' }} key={tab.key}>
+        <Button
+          type="text"
+          icon={<span style={{ fontSize: '16px' }}>{tab.icon}</span>}
+          onClick={() => {
+            if (tab.key === 'chat') router.push('/chat');
+            else if (tab.key === 'kb') router.push('/knowledgebase');
+            else if (tab.key === 'mcp') router.push('/mcp');
+            else handleNewFeatureClick(tab.label);
+          }}
+          style={{
+            height: 36,
+            borderRadius: 8,
+            padding: '0 16px',
+            background: isSelected ? token.colorPrimary : 'transparent',
+            color: isSelected ? '#fff' : token.colorTextSecondary,
+            fontWeight: isSelected ? 600 : 400,
+            border: 'none',
+            transition: 'all 0.3s ease',
+          }}
+        >
+          {tab.label}
+        </Button>
+        {isSelected && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: -4,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 20,
+              height: 3,
+              borderRadius: 2,
+              background: token.colorPrimary,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            }}
+          />
+        )}
+      </div>
+    );
+  };
+
   return (
     <Header
       style={{
@@ -98,45 +135,42 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 24px',
-        background: '#fff',
-        borderBottom: '1px solid #f0f0f0',
+        background: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(8px)',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
         height: 64,
         position: 'sticky',
         top: 0,
         zIndex: 1000,
       }}
     >
-      <div className="logo" style={{ fontSize: 20, fontWeight: 'bold', color: '#1677ff' }}>
+      <div className="logo" style={{ fontSize: 20, fontWeight: 'bold', color: token.colorPrimary, display: 'flex', alignItems: 'center', gap: 8 }}>
         Chat Studio
       </div>
 
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: 8 }}>
-        {capsuleTabs.map((tab) => {
-          const isSelected = selectedTab === tab.key;
-          return (
-            <Button
-              key={tab.key}
-              type={isSelected ? 'primary' : 'text'}
-              icon={<span>{tab.icon}</span>}
-              onClick={() => {
-                if (tab.key === 'chat') router.push('/chat');
-                else if (tab.key === 'kb') router.push('/knowledgebase');
-                else if (tab.key === 'mcp') router.push('/mcp');
-                else handleNewFeatureClick(tab.label);
-              }}
-              style={{
-                height: 40,
-                borderRadius: 8,
-                padding: '0 24px',
-                background: isSelected ? '#e6f4ff' : 'transparent',
-                color: isSelected ? '#1677ff' : '#666',
-                fontWeight: isSelected ? 500 : 400,
-              }}
-            >
-              {tab.label}
-            </Button>
-          );
-        })}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          background: token.colorFillQuaternary, 
+          padding: '4px 8px', 
+          borderRadius: 12,
+          gap: 12
+        }}>
+          {/* 工作台分组 */}
+          <Flex align="center" gap={4}>
+            <Text style={{ fontSize: 12, color: token.colorTextDescription, padding: '0 8px' }}>工作台</Text>
+            {workbenchTabs.map(renderTabButton)}
+          </Flex>
+
+          <Divider type="vertical" style={{ height: 24, margin: 0, borderColor: token.colorBorderSecondary }} />
+
+          {/* 高级功能分组 */}
+          <Flex align="center" gap={4}>
+            <Text style={{ fontSize: 12, color: token.colorTextDescription, padding: '0 8px' }}>高级功能</Text>
+            {advancedTabs.map(renderTabButton)}
+          </Flex>
+        </div>
       </div>
 
       {/* 右上角用户按钮 */}
@@ -150,14 +184,23 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
             <Avatar
               size={40}
               icon={<UserOutlined />}
-              style={{ cursor: 'pointer', background: '#e6f4ff', color: '#1677ff' }}
+              style={{ 
+                cursor: 'pointer', 
+                background: token.colorPrimaryBg, 
+                color: token.colorPrimary,
+                border: `1px solid ${token.colorPrimaryBorder}`
+              }}
             />
           </Dropdown>
         ) : (
           <Avatar
             size={40}
             icon={<UserOutlined />}
-            style={{ cursor: 'pointer', background: '#e6f4ff', color: '#1677ff' }}
+            style={{ 
+              cursor: 'pointer', 
+              background: token.colorFillSecondary, 
+              color: token.colorTextSecondary 
+            }}
             onClick={onUserClick}
           />
         )}

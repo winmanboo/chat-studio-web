@@ -24,37 +24,29 @@ import {
 } from "@/lib/api/conversations";
 import SessionManageModal from "@/components/SessionManageModal";
 import KnowledgeBaseSelectModal from "@/components/KnowledgeBaseSelectModal";
-import ModelSelectModal from "@/components/ModelSelectModal";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ChatMessageInput from "@/components/chat/ChatMessageInput";
 import ChatMessageList, { ChatMessage } from "@/components/chat/ChatMessageList";
+import PromptsView from "@/components/chat/PromptsView";
+import AnimatedTitle from "@/components/chat/AnimatedTitle";
 import { KnowledgeBase } from "@/lib/api/knowledgebase";
 import {
   getDefaultModel,
   DefaultModel,
   ModelListItem,
   setDefaultModel as setDefaultModelAPI,
+  ModelProviderWithModels,
+  getModelList,
 } from "@/lib/api/models";
 import { loginEventManager } from "@/lib/events/loginEvents";
 import { modelEventManager } from "@/lib/events/modelEvents";
 
-// 样式常量
-
-// Sender容器3D样式常量
-const SENDER_CONTAINER_STYLE = {
-  borderRadius: "16px",
-  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
-  border: "1px solid rgba(255, 255, 255, 0.8)",
-  backdropFilter: "blur(10px)",
-  transition: "all 0.3s ease",
-};
-
 // Chat Studio标题样式
 const CHAT_STUDIO_TITLE_STYLE = {
-  fontSize: 40,
-  fontWeight: 700,
+  fontSize: 32,
+  fontWeight: 600,
   color: "#222",
-  letterSpacing: 2,
+  letterSpacing: 1,
   textAlign: "center" as const,
   marginBottom: "40px",
 };
@@ -72,12 +64,11 @@ const CENTER_CONTAINER_STYLE = {
 
 // 中间Sender容器样式
 const MIDDLE_SENDER_CONTAINER_STYLE = {
-  width: "54%",
+  width: "70%",
   display: "flex",
   flexDirection: "column" as const,
   alignItems: "center",
   justifyContent: "center",
-  ...SENDER_CONTAINER_STYLE,
 };
 
 // 底部Sender容器样式
@@ -86,7 +77,6 @@ const BOTTOM_SENDER_CONTAINER_STYLE = {
   margin: "0 auto",
   display: "flex",
   justifyContent: "center",
-  ...SENDER_CONTAINER_STYLE,
 };
 
 // 模型选择组件的绝对定位样式
@@ -211,7 +201,7 @@ const ChatPage: React.FC = () => {
   const [senderHeight, setSenderHeight] = useState(100); // 跟踪Sender高度
 
   // 检索模式
-  const [searchMode, setSearchMode] = useState<null | "web" | "kb">(null);
+  const [searchMode, setSearchMode] = useState<null | "web"| 'think' | "kb">(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [sendingLoading, setSendingLoading] = useState<boolean>(false); // 发送消息的 loading 状态
   const [abortController, setAbortController] =
@@ -222,12 +212,12 @@ const ChatPage: React.FC = () => {
   const [kbSelectModalVisible, setKbSelectModalVisible] =
     useState<boolean>(false);
   const [selectedKb, setSelectedKb] = useState<KnowledgeBase | null>(null);
-  const [modelSelectModalVisible, setModelSelectModalVisible] =
-    useState<boolean>(false);
   const [selectedModel, setSelectedModel] = useState<ModelListItem | null>(
     null
   );
   const [defaultModel, setDefaultModel] = useState<DefaultModel | null>(null);
+  const [modelList, setModelList] = useState<ModelProviderWithModels[]>([]);
+  const [modelListLoading, setModelListLoading] = useState<boolean>(false);
 
   // 加载会话列表
   const loadSessionList = async () => {
@@ -265,6 +255,19 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  // 加载模型列表
+  const loadModelList = async () => {
+    try {
+      setModelListLoading(true);
+      const list = await getModelList();
+      setModelList(list);
+    } catch (error) {
+      console.error("加载模型列表失败:", error);
+    } finally {
+      setModelListLoading(false);
+    }
+  };
+
   // 加载默认模型
   const loadDefaultModel = async () => {
     try {
@@ -299,6 +302,7 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     loadSessionList();
     loadDefaultModel();
+    loadModelList();
   }, []);
 
   // 监听登录成功事件，自动刷新会话列表和默认模型
@@ -871,15 +875,20 @@ const ChatPage: React.FC = () => {
               <ModelSelectButton
                 selectedModel={selectedModel}
                 defaultModel={defaultModel}
-                onModelSelectClick={() => setModelSelectModalVisible(true)}
                 onSetDefaultClick={() => {
                   handleSetDefaultModel();
                 }}
                 showSetDefault={true}
+                modelList={modelList}
+                onModelSelect={setSelectedModel}
+                loading={modelListLoading}
               />
             </div>
 
-            <div style={CHAT_STUDIO_TITLE_STYLE}>Chat Studio</div>
+            <AnimatedTitle
+              text="这里是 Chat Studio，专属于你的聊天工作室！"
+              style={CHAT_STUDIO_TITLE_STYLE}
+            />
             <div style={MIDDLE_SENDER_CONTAINER_STYLE}>
               <ChatMessageInput
                 value={inputValue}
@@ -895,6 +904,14 @@ const ChatPage: React.FC = () => {
                 onSearchModeChange={setSearchMode}
                 onKbSelectModalOpen={() => setKbSelectModalVisible(true)}
                 placeholder="请输入内容并回车..."
+                welcomeMessage="欢迎使用 Chat Studio，我可以帮您解答问题、协助创作或提供建议。"
+              />
+            </div>
+            <div style={{ width: "70%", marginTop: "24px" }}>
+              <PromptsView
+                onItemClick={(prompt) => {
+                  setInputValue(prompt);
+                }}
               />
             </div>
           </div>
@@ -911,11 +928,13 @@ const ChatPage: React.FC = () => {
               <ModelSelectButton
                 selectedModel={selectedModel}
                 defaultModel={defaultModel}
-                onModelSelectClick={() => setModelSelectModalVisible(true)}
                 onSetDefaultClick={() => {
                   handleSetDefaultModel();
                 }}
-                showSetDefault={false}
+                showSetDefault={true}
+                modelList={modelList}
+                onModelSelect={setSelectedModel}
+                loading={modelListLoading}
               />
             </div>
 
@@ -1006,17 +1025,6 @@ const ChatPage: React.FC = () => {
         open={kbSelectModalVisible}
         onCancel={() => setKbSelectModalVisible(false)}
         onSelect={handleKbSelect}
-      />
-
-      {/* 模型选择模态框 */}
-      <ModelSelectModal
-        open={modelSelectModalVisible}
-        onCancel={() => setModelSelectModalVisible(false)}
-        onSelect={(model) => {
-          setSelectedModel(model);
-          setModelSelectModalVisible(false);
-        }}
-        selectedModel={selectedModel}
       />
     </div>
   );

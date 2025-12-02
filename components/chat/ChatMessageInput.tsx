@@ -1,21 +1,9 @@
-import React from "react";
-import { Sender } from "@ant-design/x";
-import {
-  SearchOutlined,
-  UploadOutlined,
-  GlobalOutlined,
-  DatabaseOutlined,
-} from "@ant-design/icons";
-import {
-  Button,
-  Divider,
-  Flex,
-  theme,
-  Dropdown,
-  Upload,
-  message as antdMessage,
-} from "antd";
-import { KnowledgeBase } from "@/lib/api/knowledgebase";
+import { Button, Divider, Flex, message as antdMessage, theme, Upload } from 'antd';
+import React from 'react';
+
+import { KnowledgeBase } from '@/lib/api/knowledgebase';
+import { UploadOutlined } from '@ant-design/icons';
+import { Sender } from '@ant-design/x';
 
 // 样式常量
 const ICON_SIZE = 15;
@@ -25,14 +13,15 @@ interface ChatMessageInputProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit: (message: string) => void;
-  searchMode: "web" | "kb" | null;
+  searchMode: "web" | "think" | "kb" | null;
   selectedKb: KnowledgeBase | null;
-  onSearchModeChange: (mode: "web" | "kb" | null) => void;
+  onSearchModeChange: (mode: "web" | "think" | "kb" | null) => void;
   onKbSelectModalOpen: () => void;
   placeholder?: string;
   disabled?: boolean;
   loading?: boolean;
   onCancel?: () => void;
+  welcomeMessage?: string;
 }
 
 const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
@@ -47,70 +36,60 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
   disabled = false,
   loading = false,
   onCancel,
+  welcomeMessage,
 }) => {
   const { token } = theme.useToken();
-
-  // 获取模式标签
-  const getModeLabel = () => {
-    if (searchMode === "web") return "Web搜索";
-    if (searchMode === "kb" && selectedKb) return selectedKb.name;
-    if (searchMode === "kb") return "知识库检索";
-    return "检索模式";
-  };
-
-  // 处理知识库选择
-  const handleKbSelect = () => {
-    if (searchMode === "kb") {
-      // 如果当前已选择知识库检索，则取消
-      onSearchModeChange(null);
-    } else {
-      // 否则弹出知识库选择模态框
-      onKbSelectModalOpen();
-    }
-  };
-
-  // 处理Web搜索选择
-  const handleWebSelect = () => {
-    if (searchMode === "web") {
-      // 如果当前已选择Web搜索，则取消
-      onSearchModeChange(null);
-    } else {
-      // 否则选择Web搜索
-      onSearchModeChange("web");
-    }
-  };
-
-  // 检索模式菜单
-  const searchMenu = {
-    items: [
-      {
-        key: "web",
-        icon: <GlobalOutlined />,
-        label: "Web搜索",
-        onClick: handleWebSelect,
-      },
-      {
-        key: "kb",
-        icon: <DatabaseOutlined />,
-        label: "知识库检索",
-        onClick: handleKbSelect,
-      },
-    ],
-  };
-
-  // 处理检索模式按钮点击
-  const handleSearchModeClick = () => {
-    if (searchMode) {
-      // 如果当前有选择的检索模式，则取消
-      onSearchModeChange(null);
-    }
-    // 如果没有选择模式，Dropdown会自动显示菜单
-  };
-
-  const modeLabel = getModeLabel();
+  const [focused, setFocused] = React.useState(false);
+  const [hovered, setHovered] = React.useState(false);
 
   return (
-    <Sender
+    <div
+      style={{
+        boxShadow: focused
+          ? `0 0 0 2px ${token.colorPrimaryBg}`
+          : hovered
+          ? "0 8px 24px rgba(0, 0, 0, 0.08)"
+          : "0 2px 8px rgba(0, 0, 0, 0.04)",
+        border: `1px solid ${
+          focused
+            ? token.colorPrimary
+            : hovered
+            ? token.colorPrimaryHover
+            : token.colorBorder
+        }`,
+        borderRadius: 12,
+        transition: "all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1)",
+        background: token.colorBgContainer,
+        width: '100%',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          setFocused(false);
+        }
+      }}
+    >
+      <Sender
+        style={{
+          background: 'transparent',
+          boxShadow: 'none',
+          border: 'none',
+        }}
+        header={
+        welcomeMessage ? (
+          <div
+            style={{
+              padding: "12px 20px 0 20px",
+              color: token.colorTextDescription,
+              fontSize: 14,
+            }}
+          >
+            {welcomeMessage}
+          </div>
+        ) : undefined
+      }
       value={value}
       onChange={onChange}
       placeholder={placeholder}
@@ -123,39 +102,52 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
       }}
       onCancel={onCancel}
       footer={(_, { components }) => {
-        const { SendButton, SpeechButton, LoadingButton } = components;
+        const { SendButton, LoadingButton } = components;
         return (
           <Flex justify="space-between" align="center">
-            {/* 左侧：检索模式 */}
+            {/* 左侧：Web搜索和知识库检索 */}
             <Flex gap="small" align="center">
-              <Dropdown
-                menu={searchMenu}
-                trigger={searchMode ? [] : ["click"]} // 已选择模式时不触发菜单
-                placement="topLeft"
-              >
-                <Button
-                  type="text"
-                  icon={
-                    <SearchOutlined
-                      style={{
-                        color: searchMode
-                          ? token.colorPrimary
-                          : token.colorText,
-                        fontSize: ICON_SIZE,
-                      }}
-                    />
+              <Sender.Switch
+                key="web"
+                value={searchMode === "web"}
+                onChange={() => {
+                  if (searchMode === "web") {
+                    onSearchModeChange(null);
+                  } else {
+                    onSearchModeChange("web");
                   }
-                  style={{
-                    fontSize: ICON_SIZE,
-                    color: searchMode
-                      ? token.colorPrimary
-                      : token.colorText,
-                  }}
-                  onClick={handleSearchModeClick}
-                >
-                  {modeLabel}
-                </Button>
-              </Dropdown>
+                }}
+              >
+                搜索
+              </Sender.Switch>
+              <Sender.Switch
+                key="think"
+                value={searchMode === "think"}
+                onChange={() => {
+                  if (searchMode === "think") {
+                    onSearchModeChange(null);
+                  } else {
+                    onSearchModeChange("think");
+                  }
+                }}
+              >
+                深度思考
+              </Sender.Switch>
+              <Sender.Switch
+                key="kb"
+                value={searchMode === "kb"}
+                onChange={() => {
+                  if (searchMode === "kb") {
+                    onSearchModeChange(null);
+                  } else {
+                    onKbSelectModalOpen();
+                  }
+                }}
+              >
+                {searchMode === "kb" && selectedKb
+                  ? "知识库：" + selectedKb.name
+                  : "知识库"}
+              </Sender.Switch>
             </Flex>
             {/* 右侧：上传附件（语音左侧） + 语音 + 发送 */}
             <Flex align="center" gap={8}>
@@ -168,22 +160,13 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
               >
                 <Button
                   type="text"
-                  icon={
-                    <UploadOutlined style={{ fontSize: ICON_SIZE }} />
-                  }
+                  icon={<UploadOutlined style={{ fontSize: ICON_SIZE }} />}
                   style={{
                     fontSize: BUTTON_SIZE,
                     color: token.colorText,
                   }}
                 />
               </Upload>
-              <Divider type="vertical" />
-              <SpeechButton
-                style={{
-                  fontSize: ICON_SIZE,
-                  color: token.colorText,
-                }}
-              />
               <Divider type="vertical" />
               {loading ? (
                 <LoadingButton type="default" />
@@ -195,6 +178,7 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
         );
       }}
     />
+    </div>
   );
 };
 

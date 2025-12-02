@@ -23,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body className={inter.variable} style={{ background: '#f5f6fa', minHeight: '100vh' }}>
+      <body className={inter.variable} style={{ background: '#F5F5F5', minHeight: '100vh' }}>
         <AntdRegistry>
           <AntdXProvider>
             <AppMain>{children}</AppMain>
