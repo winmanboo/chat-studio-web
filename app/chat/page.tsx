@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { ConversationsProps } from "@ant-design/x";
-import { useXChat, MessageInfo } from "@ant-design/x-sdk";
+import { MessageInfo } from "@ant-design/x-sdk";
 
 import ModelSelectButton from "@/components/ModelSelectButton";
 import {
@@ -12,9 +12,6 @@ import {
 } from "@ant-design/icons";
 import { message as antdMessage, Modal, Input, Space } from "antd";
 import {
-  createSession,
-  chatStream,
-  ChatRequest,
   getSessionList,
   SessionItem,
   getSessionMessages,
@@ -40,6 +37,7 @@ import {
 } from "@/lib/api/models";
 import { loginEventManager } from "@/lib/events/loginEvents";
 import { modelEventManager } from "@/lib/events/modelEvents";
+import { useChat } from "@/lib/hooks/useChat";
 
 // Chat Studio标题样式
 const CHAT_STUDIO_TITLE_STYLE = {
@@ -60,6 +58,7 @@ const CENTER_CONTAINER_STYLE = {
   justifyContent: "center",
   flex: 1,
   position: "relative" as const,
+  backgroundColor: "#fff",
 };
 
 // 中间Sender容器样式
@@ -141,6 +140,7 @@ const convertSessionMessageToChatMessage = (
     content: sessionMessage.message,
     role: sessionMessage.messageType === "USER" ? "user" : "assistant",
     avatar: sessionMessage.messageType === "USER" ? "👤" : "🤖",
+    modelName: sessionMessage.modelName,
   };
 
   // 如果是AI消息且包含thinking内容，添加thinking字段
@@ -189,24 +189,16 @@ const ChatPage: React.FC = () => {
     label: string;
   } | null>(null);
   const [newConversationName, setNewConversationName] = useState("");
-  const [sessionId, setSessionId] = useState<string | null>(null); // 用于存储会话ID
   
-  // 使用 useXChat 管理消息状态
-  const { messages, setMessages, onRequest } = useXChat<ChatMessage>({
-    // agent 可以配置，但由于我们需要处理复杂的 SSE 解析，暂时保留手动处理
-  });
-
-  const [inputValue, setInputValue] = useState(""); // 用于控制Sender输入框的值
+  // 用于控制Sender输入框的值
+  const [inputValue, setInputValue] = useState(""); 
   const senderRef = useRef<HTMLDivElement>(null);
   const [senderHeight, setSenderHeight] = useState(100); // 跟踪Sender高度
 
   // 检索模式
   const [searchMode, setSearchMode] = useState<null | "web"| 'think' | "kb">(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [sendingLoading, setSendingLoading] = useState<boolean>(false); // 发送消息的 loading 状态
-  const [abortController, setAbortController] =
-    useState<AbortController | null>(null); // 用于取消 SSE 连接
-  const [userCancelled, setUserCancelled] = useState<boolean>(false); // 用户是否主动取消
+  
   const [sessionManageModalVisible, setSessionManageModalVisible] =
     useState<boolean>(false);
   const [kbSelectModalVisible, setKbSelectModalVisible] =
@@ -232,6 +224,27 @@ const ChatPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // 使用自定义 Hook 管理聊天逻辑
+  const {
+    messages,
+    setMessages,
+    sessionId,
+    setSessionId,
+    sendingLoading,
+    handleSubmit,
+    handleCancel,
+  } = useChat({
+    initialSessionId: null,
+    onSessionCreated: async (newSessionId) => {
+      try {
+        await loadSessionList();
+        setSelectedId(newSessionId);
+      } catch (error) {
+        console.warn("刷新会话列表失败:", error);
+      }
+    },
+  });
 
   // 加载会话消息
   const loadSessionMessages = async (sessionId: string) => {
@@ -490,334 +503,13 @@ const ChatPage: React.FC = () => {
     setSearchMode("kb");
   };
 
-  // 取消发送
-  const handleCancel = () => {
-    // 设置用户取消标志
-    setUserCancelled(true);
-
-    // 如果有正在进行的 SSE 连接，则取消它
-    if (abortController) {
-      abortController.abort();
-      setAbortController(null);
-    }
-
-    setSendingLoading(false);
-  };
-
-  // 发送消息
-  const handleSubmit = async (message: string) => {
-    // 重置用户取消标志
-    setUserCancelled(false);
-
-    // 设置发送状态为 loading
-    setSendingLoading(true);
-
-    // 如果还没有开始对话，设置为已开始状态
+  // 发送消息的包装函数
+  const onSendMessage = (val: string) => {
     if (!hasStarted) {
-      setHasStarted(true);
+        setHasStarted(true);
     }
-
-    // 标记是否是新创建的会话（用于决定是否需要刷新会话列表）
-    let isNewSession = false;
-
-    // 如果还没有会话ID，则创建一个新会话
-    let currentSessionId = sessionId;
-    if (!currentSessionId) {
-      try {
-        currentSessionId = await createSession();
-        setSessionId(currentSessionId);
-        isNewSession = true;
-        // 注意：这里不再设置hasStarted，因为它应该在新建对话时就已经设置为true了
-      } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : "未知错误";
-        antdMessage.error("创建会话失败: " + errorMessage);
-        return;
-      }
-    }
-
-    const userMessage: ChatMessage = {
-      content: message,
-      role: "user",
-      avatar: "👤",
-    };
-    const aiMessage: ChatMessage = {
-      content: "",
-      role: "assistant",
-      avatar: "🤖",
-      isLoading: true,
-      displayContent: "",
-    };
-
-    // 添加用户消息和AI回复占位符
-    
-    const userMsgId = Date.now().toString();
-    const aiMsgId = (Date.now() + 1).toString();
-    
-    const wrappedUserMessage = { 
-      id: userMsgId, 
-      message: userMessage, 
-      status: 'success' as const 
-    };
-    const wrappedAiMessage = { 
-      id: aiMsgId, 
-      message: aiMessage, 
-      status: 'loading' as const 
-    };
-
-    // 使用 setMessages 更新消息列表
-    setMessages([...messages, wrappedUserMessage, wrappedAiMessage]);
-
-    try {
-      // 确定要使用的模型信息
-      const modelToUse = selectedModel || defaultModel;
-
-      // 准备请求参数
-      const requestData: ChatRequest = {
-        sessionId: currentSessionId, // 直接使用currentSessionId，确保它是有效的
-        prompt: message,
-        ...(modelToUse?.providerId && { providerId: modelToUse.providerId }),
-        ...(modelToUse?.modelName && { modelName: modelToUse.modelName }),
-        searchEnabled: searchMode === "web",
-        ragEnabled: searchMode === "kb",
-        ...(searchMode === "kb" && selectedKb && { kbId: selectedKb.id }),
-      };
-
-      // 如果是新创建的会话，在开始流式聊天前刷新会话列表
-      if (isNewSession) {
-        try {
-          await loadSessionList();
-          // 选中新创建的会话
-          setSelectedId(currentSessionId);
-        } catch (error) {
-          console.warn("刷新会话列表失败:", error);
-        }
-      }
-
-      // 创建 AbortController 用于取消请求
-      const controller = new AbortController();
-      setAbortController(controller);
-
-      // 发起流式请求（现在在API层处理）
-      const reader = await chatStream(requestData, controller.signal);
-
-      const decoder = new TextDecoder();
-
-      let fullContent = "";
-      
-      // 获取当前消息列表长度，用于更新 AI 消息
-      // 注意：由于 setMessages 是异步的，我们不能直接使用 messages.length
-      // 我们需要构造一个新的消息列表来更新
-      let currentMessages = [...messages, wrappedUserMessage, wrappedAiMessage];
-      const messageIndex = currentMessages.length - 1; // AI消息的索引
-
-      // 更新AI消息为加载状态 (其实已经设置了，这里是为了确保状态一致)
-      currentMessages[messageIndex] = {
-        ...currentMessages[messageIndex],
-        status: "loading",
-        message: {
-          ...currentMessages[messageIndex].message,
-          isLoading: false,
-        }
-      };
-      setMessages([...currentMessages]);
-
-      let accumulatedData = ""; // 用于累积数据块
-
-      // 使用流式数据更新内容
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          // 处理剩余的累积数据
-          if (accumulatedData.trim()) {
-            // 处理累积的数据，可能包含多个消息
-            const lines = accumulatedData.split("\n");
-            for (const line of lines) {
-              if (line.startsWith("data:")) {
-                // 提取data:后面的内容
-                const data = line.slice(5).trim();
-                if (data !== "[DONE]") {
-                  try {
-                    // 尝试解析JSON数据
-                    const jsonData = JSON.parse(data);
-
-                    // 处理检索模式的响应
-                    if (jsonData.retrieveMode === true) {
-                      // 这是检索结果，更新消息的检索信息
-                      currentMessages[messageIndex] = {
-                        ...currentMessages[messageIndex],
-                        message: {
-                          ...currentMessages[messageIndex].message,
-                          retrieveMode: true,
-                          kbName: jsonData.kbName,
-                          retrieves: jsonData.retrieves,
-                        }
-                      };
-                    } else if (jsonData.content) {
-                      fullContent += jsonData.content;
-                    }
-                  } catch {
-                    // 如果不是有效的JSON，直接使用原始数据
-                    fullContent += data;
-                  }
-                }
-              }
-            }
-
-            currentMessages[messageIndex] = {
-              ...currentMessages[messageIndex],
-              status: "success",
-              message: {
-                ...currentMessages[messageIndex].message,
-                content: fullContent,
-                displayContent: fullContent,
-              }
-            };
-            setMessages([...currentMessages]);
-          }
-
-          // 如果是新创建的会话，在SSE数据全部返回后再次刷新会话列表
-          if (isNewSession) {
-            try {
-              await loadSessionList();
-            } catch (error) {
-              console.warn("SSE完成后刷新会话列表失败:", error);
-            }
-          }
-
-          // 发送完成，设置 loading 为 false 并清理 AbortController
-          setSendingLoading(false);
-          setAbortController(null);
-          break;
-        }
-
-        const chunk = decoder.decode(value, { stream: true });
-        accumulatedData += chunk;
-
-        // 处理完整的行
-        let newlineIndex;
-        while ((newlineIndex = accumulatedData.indexOf("\n")) !== -1) {
-          const line = accumulatedData.substring(0, newlineIndex);
-          accumulatedData = accumulatedData.substring(newlineIndex + 1);
-
-          // 处理每个消息行
-          if (line.startsWith("data:")) {
-            // 提取data:后面的内容
-            const data = line.slice(5).trim();
-            if (data !== "[DONE]") {
-              try {
-                // 尝试解析JSON数据
-                const jsonData = JSON.parse(data);
-
-                // 处理检索模式的响应
-                if (jsonData.retrieveMode === true) {
-                  // 这是检索结果，只在第一个响应中出现
-                  currentMessages[messageIndex] = {
-                    ...currentMessages[messageIndex],
-                    message: {
-                      ...currentMessages[messageIndex].message,
-                      retrieveMode: true,
-                      kbName: jsonData.kbName,
-                      retrieves: jsonData.retrieves,
-                      content: fullContent,
-                      displayContent: fullContent,
-                    }
-                  };
-                } else if (jsonData.content) {
-                  // 这是普通的内容响应
-                  fullContent += jsonData.content;
-                  
-                  // 更新内容
-                  currentMessages[messageIndex] = {
-                    ...currentMessages[messageIndex],
-                    message: {
-                      ...currentMessages[messageIndex].message,
-                      content: fullContent,
-                      displayContent: fullContent,
-                    }
-                  };
-                } else if (jsonData.thinking) {
-                    // 处理思考过程
-                    const currentMsg: MessageInfo<ChatMessage> = currentMessages[messageIndex];
-                    const prevThinking = currentMsg.message.thinking || "";
-                    currentMessages[messageIndex] = {
-                        ...currentMsg,
-                        message: {
-                          ...currentMsg.message,
-                          thinking: prevThinking + jsonData.thinking,
-                        }
-                    };
-                }
-              } catch {
-                // 如果不是有效的JSON，直接使用原始数据
-                fullContent += data;
-                
-                currentMessages[messageIndex] = {
-                  ...currentMessages[messageIndex],
-                  message: {
-                    ...currentMessages[messageIndex].message,
-                    content: fullContent,
-                    displayContent: fullContent,
-                  }
-                };
-              }
-              // 更新UI
-              setMessages([...currentMessages]);
-            }
-          }
-        }
-      }
-    } catch (error: unknown) {
-      // 如果是用户主动取消的请求，保留已输出的内容
-      if (
-        error instanceof Error &&
-        error.name === "AbortError" &&
-        userCancelled
-      ) {
-        // 更新最后一条 AI 消息，停止 loading 状态，保留已输出的内容
-        setMessages((prev) =>
-          prev.map((msg, idx) =>
-            idx === prev.length - 1
-              ? {
-                  ...msg,
-                  status: "success",
-                  message: {
-                    ...msg.message,
-                    isLoading: false,
-                    // 如果有 displayContent，使用它作为最终内容；否则保持原有内容
-                    content: msg.message.displayContent || msg.message.content,
-                    displayContent: undefined, // 清除 displayContent
-                  }
-                }
-              : msg
-          )
-        );
-      } else {
-        console.error("消息发送失败:", error); // 在控制台输出详细错误信息
-        const errorMessage =
-          error instanceof Error ? error.message : "未知错误";
-        antdMessage.error("消息发送失败: " + errorMessage);
-        // 更新AI消息状态为错误
-        setMessages((prev) =>
-          prev.map((msg, idx) =>
-            idx === prev.length - 1
-              ? {
-                  ...msg,
-                  status: "error",
-                  message: {
-                    ...msg.message,
-                    isLoading: false,
-                    content: "抱歉，消息发送失败，请稍后重试。",
-                  }
-                }
-              : msg
-          )
-        );
-      }
-      // 发送失败，设置 loading 为 false 并清理 AbortController
-      setSendingLoading(false);
-      setAbortController(null);
-    }
+    handleSubmit(val, selectedModel || defaultModel, searchMode, selectedKb);
+    setInputValue(""); // 提交后清空输入框
   };
 
   return (
@@ -893,10 +585,7 @@ const ChatPage: React.FC = () => {
               <ChatMessageInput
                 value={inputValue}
                 onChange={setInputValue}
-                onSubmit={(val) => {
-                  handleSubmit(val);
-                  setInputValue(""); // 提交后清空输入框
-                }}
+                onSubmit={onSendMessage}
                 loading={sendingLoading}
                 onCancel={handleCancel}
                 searchMode={searchMode}
@@ -971,10 +660,7 @@ const ChatPage: React.FC = () => {
                 <ChatMessageInput
                   value={inputValue}
                   onChange={setInputValue}
-                  onSubmit={(val) => {
-                    handleSubmit(val);
-                    setInputValue(""); // 提交后清空输入框
-                  }}
+                  onSubmit={onSendMessage}
                   loading={sendingLoading}
                   onCancel={handleCancel}
                   searchMode={searchMode}

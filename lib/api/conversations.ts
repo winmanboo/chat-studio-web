@@ -26,6 +26,7 @@ export interface SessionMessage {
   thinking?: string; // 深度思考内容，仅在ASSISTANT消息中存在
   messageType: 'USER' | 'ASSISTANT';
   parentId: number;
+  modelName?: string; // 模型名称  
   kbName?: string; // 知识库名称，仅在ASSISTANT消息中存在
   retrieves?: RetrieveResult[]; // 检索结果，仅在ASSISTANT消息中存在
   toolNames?: string[]; // 调用的工具名称列表，仅在ASSISTANT消息中存在

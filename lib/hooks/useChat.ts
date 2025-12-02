@@ -1,0 +1,283 @@
+import { useState, useCallback, useEffect } from "react";
+import { message as antdMessage } from "antd";
+import { useXChat, MessageInfo } from "@ant-design/x-sdk";
+import { ChatMessage } from "@/components/chat/ChatMessageList";
+import {
+  chatStream,
+  ChatRequest,
+  createSession,
+} from "@/lib/api/conversations";
+import { ModelListItem, DefaultModel } from "@/lib/api/models";
+import { KnowledgeBase } from "@/lib/api/knowledgebase";
+
+interface UseChatProps {
+  initialSessionId: string | null;
+  onSessionCreated?: (sessionId: string) => void;
+}
+
+export const useChat = ({
+  initialSessionId,
+  onSessionCreated,
+}: UseChatProps) => {
+  const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
+  const { messages, setMessages } = useXChat<ChatMessage>({});
+
+  const [sendingLoading, setSendingLoading] = useState<boolean>(false);
+  const [abortController, setAbortController] = useState<AbortController | null>(
+    null
+  );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [userCancelled, setUserCancelled] = useState<boolean>(false);
+
+  useEffect(() => {
+    setSessionId(initialSessionId);
+  }, [initialSessionId]);
+
+  const handleCancel = useCallback(() => {
+    setUserCancelled(true);
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
+    }
+    setSendingLoading(false);
+  }, [abortController]);
+
+  const handleSubmit = useCallback(
+    async (
+      message: string,
+      modelToUse: ModelListItem | DefaultModel | null,
+      searchMode: "web" | "kb" | "think" | null,
+      selectedKb: KnowledgeBase | null
+    ) => {
+      setUserCancelled(false);
+      setSendingLoading(true);
+
+      let currentSessionId = sessionId;
+
+      // Create session if needed
+      if (!currentSessionId) {
+        try {
+          currentSessionId = await createSession();
+          setSessionId(currentSessionId);
+          if (onSessionCreated) {
+            onSessionCreated(currentSessionId);
+          }
+        } catch (error: unknown) {
+          const errorMessage =
+            error instanceof Error ? error.message : "未知错误";
+          antdMessage.error("创建会话失败: " + errorMessage);
+          setSendingLoading(false);
+          return;
+        }
+      }
+
+      const userMsgId = Date.now().toString();
+      const aiMsgId = (Date.now() + 1).toString();
+
+      const userMessage: MessageInfo<ChatMessage> = {
+        id: userMsgId,
+        message: {
+          content: message,
+          role: "user",
+          avatar: "👤",
+        },
+        status: "success",
+      };
+
+      const aiMessage: MessageInfo<ChatMessage> = {
+        id: aiMsgId,
+        message: {
+          content: "",
+          role: "assistant",
+          avatar: "🤖",
+          isLoading: true,
+          displayContent: "",
+          modelName: modelToUse?.modelName || undefined,
+        },
+        status: "loading",
+      };
+
+      // Use functional update to ensure we are appending to the latest state
+      setMessages((prevMessages) => [...prevMessages, userMessage, aiMessage]);
+
+      try {
+        const requestData: ChatRequest = {
+          sessionId: currentSessionId,
+          prompt: message,
+          ...(modelToUse?.providerId && { providerId: modelToUse.providerId }),
+          ...(modelToUse?.modelName && { modelName: modelToUse.modelName }),
+          searchEnabled: searchMode === "web",
+          ragEnabled: searchMode === "kb",
+          ...(searchMode === "kb" && selectedKb && { kbId: selectedKb.id }),
+        };
+
+        const controller = new AbortController();
+        setAbortController(controller);
+
+        const reader = await chatStream(requestData, controller.signal);
+
+        let fullContent = "";
+        let fullThinking = "";
+        let retrieveData: Partial<ChatMessage> | undefined;
+
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let isFirstUpdate = true;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+
+          const chunk = decoder.decode(value, { stream: true });
+          buffer += chunk;
+
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || ""; // Keep incomplete line
+
+          let chunkContentDelta = "";
+          let chunkThinkingDelta = "";
+          let chunkRetrieveData: Partial<ChatMessage> | undefined;
+          let hasUpdates = false;
+
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            const data = line.slice(5).trim();
+            if (!data || data === "[DONE]") continue;
+
+            try {
+              const jsonData = JSON.parse(data);
+              if (jsonData.retrieveMode === true) {
+                chunkRetrieveData = {
+                  retrieveMode: true,
+                  kbName: jsonData.kbName,
+                  retrieves: jsonData.retrieves,
+                };
+                hasUpdates = true;
+              } else if (jsonData.content) {
+                chunkContentDelta += jsonData.content;
+                hasUpdates = true;
+              } else if (jsonData.thinking) {
+                chunkThinkingDelta += jsonData.thinking;
+                hasUpdates = true;
+              }
+            } catch {
+              // Fallback for non-JSON
+              chunkContentDelta += data;
+              hasUpdates = true;
+            }
+          }
+
+          // If it's the first update or we have content updates, we should update the state
+          if (hasUpdates || isFirstUpdate) {
+            fullContent += chunkContentDelta;
+            fullThinking += chunkThinkingDelta;
+            if (chunkRetrieveData) {
+              retrieveData = { ...retrieveData, ...chunkRetrieveData };
+            }
+            
+            isFirstUpdate = false;
+
+            // Use functional update to update the specific AI message
+            setMessages((prevMessages) => {
+              return prevMessages.map((msg) => {
+                if (msg.id === aiMsgId) {
+                  return {
+                    ...msg,
+                    status: "loading", // Still loading stream
+                    message: {
+                      ...msg.message,
+                      content: fullContent,
+                      displayContent: fullContent,
+                      thinking: fullThinking || undefined,
+                      isLoading: false, // IMPORTANT: Set isLoading to false once we start receiving data
+                      ...(retrieveData || {}),
+                    },
+                  };
+                }
+                return msg;
+              });
+            });
+          }
+        }
+
+        // Final success state
+        setMessages((prevMessages) => {
+          return prevMessages.map((msg) => {
+            if (msg.id === aiMsgId) {
+              return {
+                ...msg,
+                status: "success",
+                message: {
+                  ...msg.message,
+                  isLoading: false,
+                  content: fullContent,
+                  displayContent: fullContent,
+                  thinking: fullThinking || undefined,
+                  ...(retrieveData || {}),
+                },
+              };
+            }
+            return msg;
+          });
+        });
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
+          // Handle cancellation: keep current content, remove loading
+          setMessages((prevMessages) => {
+            return prevMessages.map((msg) => {
+              if (msg.id === aiMsgId) {
+                return {
+                  ...msg,
+                  status: "success",
+                  message: {
+                    ...msg.message,
+                    isLoading: false,
+                  },
+                };
+              }
+              return msg;
+            });
+          });
+        } else {
+          console.error("消息发送失败:", error);
+          const errorMessage =
+            error instanceof Error ? error.message : "未知错误";
+          antdMessage.error("消息发送失败: " + errorMessage);
+
+          setMessages((prevMessages) => {
+            return prevMessages.map((msg) => {
+              if (msg.id === aiMsgId) {
+                return {
+                  ...msg,
+                  status: "error",
+                  message: {
+                    ...msg.message,
+                    isLoading: false,
+                    content: "抱歉，消息发送失败，请稍后重试。",
+                  },
+                };
+              }
+              return msg;
+            });
+          });
+        }
+      } finally {
+        setSendingLoading(false);
+        setAbortController(null);
+      }
+    },
+    [sessionId, onSessionCreated, setMessages]
+  );
+
+  return {
+    messages,
+    setMessages,
+    sessionId,
+    setSessionId,
+    sendingLoading,
+    handleSubmit,
+    handleCancel,
+  };
+};

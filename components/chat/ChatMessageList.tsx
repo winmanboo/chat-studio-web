@@ -35,6 +35,7 @@ export interface ChatMessage {
   thinking?: string; // 深度思考内容
   thinkingDuration?: number; // 深度思考耗时，单位为秒
   toolNames?: string[]; // 调用的工具名称列表，仅在ASSISTANT消息中存在
+  modelName?: string; // 模型名称
 }
 
 // 组件属性接口
@@ -58,6 +59,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
           key: index,
           content: { ...msg, messageIndex: index },
           role: msg.role,
+          header: msg.role === "assistant" ? msg.modelName : undefined,
           loading: msg.isLoading,
           variant: msg.role === "user" ? "filled" : "borderless",
         }))}
