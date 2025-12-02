@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import {
-  ConversationsProps,
-} from "@ant-design/x";
+import { ConversationsProps } from "@ant-design/x";
+import { useXChat, MessageInfo } from "@ant-design/x-sdk";
 
 import ModelSelectButton from "@/components/ModelSelectButton";
 import {
@@ -11,12 +10,7 @@ import {
   DeleteOutlined,
   CommentOutlined,
 } from "@ant-design/icons";
-import {
-  message as antdMessage,
-  Modal,
-  Input,
-  Space,
-} from "antd";
+import { message as antdMessage, Modal, Input, Space } from "antd";
 import {
   createSession,
   chatStream,
@@ -33,7 +27,7 @@ import KnowledgeBaseSelectModal from "@/components/KnowledgeBaseSelectModal";
 import ModelSelectModal from "@/components/ModelSelectModal";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ChatMessageInput from "@/components/chat/ChatMessageInput";
-import ChatMessageList from "@/components/chat/ChatMessageList";
+import ChatMessageList, { ChatMessage } from "@/components/chat/ChatMessageList";
 import { KnowledgeBase } from "@/lib/api/knowledgebase";
 import {
   getDefaultModel,
@@ -187,44 +181,6 @@ const convertSessionMessageToChatMessage = (
   return chatMessage;
 };
 
-// 加载会话消息
-const loadSessionMessages = async (
-  sessionId: string
-): Promise<ChatMessage[]> => {
-  try {
-    const sessionMessages = await getSessionMessages(sessionId);
-    // 按照parentId关系排序消息，确保消息顺序正确
-    const sortedMessages = sessionMessages.sort((a, b) => a.id - b.id);
-    return sortedMessages.map(convertSessionMessageToChatMessage);
-  } catch (error) {
-    console.error("加载会话消息失败:", error);
-    throw error;
-  }
-};
-
-// 检索结果类型定义
-interface RetrieveResult {
-  chunkIndexs: string[];
-  docId: string;
-  kbId: number;
-  title: string;
-}
-
-// 聊天消息类型定义
-interface ChatMessage {
-  content: string;
-  role: "user" | "assistant";
-  avatar?: string;
-  isLoading?: boolean;
-  displayContent?: string; // 用于打字机效果的显示内容
-  retrieveMode?: boolean; // 是否是检索模式
-  kbName?: string; // 知识库名称
-  retrieves?: RetrieveResult[]; // 检索结果
-  thinking?: string; // 深度思考内容
-  thinkingDuration?: number; // 深度思考耗时，单位为秒
-  toolNames?: string[]; // 调用的工具名称列表，仅在ASSISTANT消息中存在
-}
-
 // 定义会话项类型
 interface ConversationItem {
   key: string;
@@ -237,9 +193,6 @@ const ChatPage: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
-  const [isUserScrolling, setIsUserScrolling] = useState(false);
-  const [isUserJustSent, setIsUserJustSent] = useState(false); // 跟踪用户是否刚发送消息
-  const bubbleListRef = useRef<HTMLDivElement>(null);
   const [hasStarted, setHasStarted] = useState(false);
   const [editingConversation, setEditingConversation] = useState<{
     key: string;
@@ -247,7 +200,12 @@ const ChatPage: React.FC = () => {
   } | null>(null);
   const [newConversationName, setNewConversationName] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null); // 用于存储会话ID
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  
+  // 使用 useXChat 管理消息状态
+  const { messages, setMessages, onRequest } = useXChat<ChatMessage>({
+    // agent 可以配置，但由于我们需要处理复杂的 SSE 解析，暂时保留手动处理
+  });
+
   const [inputValue, setInputValue] = useState(""); // 用于控制Sender输入框的值
   const senderRef = useRef<HTMLDivElement>(null);
   const [senderHeight, setSenderHeight] = useState(100); // 跟踪Sender高度
@@ -256,7 +214,8 @@ const ChatPage: React.FC = () => {
   const [searchMode, setSearchMode] = useState<null | "web" | "kb">(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [sendingLoading, setSendingLoading] = useState<boolean>(false); // 发送消息的 loading 状态
-  const [abortController, setAbortController] = useState<AbortController | null>(null); // 用于取消 SSE 连接
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null); // 用于取消 SSE 连接
   const [userCancelled, setUserCancelled] = useState<boolean>(false); // 用户是否主动取消
   const [sessionManageModalVisible, setSessionManageModalVisible] =
     useState<boolean>(false);
@@ -281,6 +240,28 @@ const ChatPage: React.FC = () => {
       console.error("加载会话列表失败:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 加载会话消息
+  const loadSessionMessages = async (sessionId: string) => {
+    try {
+      const sessionMessages = await getSessionMessages(sessionId);
+      // 按照parentId关系排序消息，确保消息顺序正确
+      const sortedMessages = sessionMessages.sort((a, b) => a.id - b.id);
+      
+      // useXChat 需要 MessageInfo<T> 格式
+      const messageInfos = sortedMessages.map(msg => ({
+        id: msg.id.toString(),
+        message: convertSessionMessageToChatMessage(msg),
+        status: 'success' as const
+      }));
+      
+      setMessages(messageInfos);
+      return sortedMessages.map(convertSessionMessageToChatMessage);
+    } catch (error) {
+      console.error("加载会话消息失败:", error);
+      throw error;
     }
   };
 
@@ -358,53 +339,6 @@ const ChatPage: React.FC = () => {
     };
   }, [hasStarted]);
 
-  // 自动滚动到底部的函数
-  // 检查用户是否在底部
-  const isAtBottom = () => {
-    if (!bubbleListRef.current) return true;
-    const container = bubbleListRef.current;
-    return container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
-  };
-
-  const scrollToBottom = (force = false, smooth = false) => {
-    if (bubbleListRef.current && (!isUserScrolling || force)) {
-      const container = bubbleListRef.current;
-      if (smooth) {
-        container.scrollTo({
-          top: container.scrollHeight,
-          behavior: "smooth",
-        });
-      } else {
-        container.scrollTop = container.scrollHeight;
-      }
-    }
-  };
-
-  // 监听消息变化，自动滚动到底部
-  useEffect(() => {
-    if (isUserJustSent) {
-      // 用户刚发送消息，强制滚动到底部
-      scrollToBottom(true);
-      setIsUserJustSent(false); // 重置状态
-    } else {
-      // 实时渲染时，只有当用户在底部时才自动滚动
-      if (!isUserScrolling || isAtBottom()) {
-        scrollToBottom(true);
-      }
-    }
-  }, [messages]);
-
-  // 监听用户滚动行为
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const container = e.currentTarget;
-    const userIsAtBottom =
-      container.scrollHeight - container.scrollTop <=
-      container.clientHeight + 50;
-    setIsUserScrolling(!userIsAtBottom);
-  };
-
-
-
   // 修改会话名称
   const handleEditConversation = (key: string, currentLabel: string) => {
     setEditingConversation({ key, label: currentLabel });
@@ -416,8 +350,11 @@ const ChatPage: React.FC = () => {
     if (editingConversation && newConversationName.trim()) {
       try {
         // 调用API更新会话标题
-        await updateSessionTitle(editingConversation.key, newConversationName.trim());
-        
+        await updateSessionTitle(
+          editingConversation.key,
+          newConversationName.trim()
+        );
+
         // 更新本地状态
         setConversations((prev) =>
           prev.map((conv) =>
@@ -426,13 +363,16 @@ const ChatPage: React.FC = () => {
               : conv
           )
         );
-        
+
         antdMessage.success("会话名称已更新");
         setEditingConversation(null);
         setNewConversationName("");
       } catch (error) {
         console.error("更新会话名称失败:", error);
-        antdMessage.error("更新会话名称失败: " + (error instanceof Error ? error.message : "未知错误"));
+        antdMessage.error(
+          "更新会话名称失败: " +
+            (error instanceof Error ? error.message : "未知错误")
+        );
       }
     }
   };
@@ -514,33 +454,15 @@ const ChatPage: React.FC = () => {
 
   // 分组排序和标题自定义
   const groupable: ConversationsProps["groupable"] = {
-    sort: (a: string, b: string): number => {
-      // 定义分组的顺序
-      const groupOrder: Record<string, number> = {
-        今天: 0,
-        昨天: 1,
-        三天前: 2,
-        一周前: 3,
-        一个月前: 4,
-        更早: 5,
-      };
-
-      const orderA = groupOrder[a] !== undefined ? groupOrder[a] : Infinity;
-      const orderB = groupOrder[b] !== undefined ? groupOrder[b] : Infinity;
-
-      return orderA - orderB;
-    },
-    title: (group, { components: { GroupTitle } }) =>
+    label: (group: string) =>
       group ? (
-        <GroupTitle>
-          <Space>
-            <CommentOutlined />
-            <span>{group}</span>
-          </Space>
-        </GroupTitle>
-      ) : (
-        <GroupTitle />
-      ),
+        <Space>
+          <CommentOutlined />
+          <span>{group}</span>
+        </Space>
+      ) : null,
+    collapsible: true,
+    defaultExpandedKeys: ['今天']
   };
 
   // 新建对话逻辑：切换到初始聊天状态
@@ -568,13 +490,13 @@ const ChatPage: React.FC = () => {
   const handleCancel = () => {
     // 设置用户取消标志
     setUserCancelled(true);
-    
+
     // 如果有正在进行的 SSE 连接，则取消它
     if (abortController) {
       abortController.abort();
       setAbortController(null);
     }
-    
+
     setSendingLoading(false);
   };
 
@@ -582,10 +504,10 @@ const ChatPage: React.FC = () => {
   const handleSubmit = async (message: string) => {
     // 重置用户取消标志
     setUserCancelled(false);
-    
+
     // 设置发送状态为 loading
     setSendingLoading(true);
-    
+
     // 如果还没有开始对话，设置为已开始状态
     if (!hasStarted) {
       setHasStarted(true);
@@ -624,8 +546,23 @@ const ChatPage: React.FC = () => {
     };
 
     // 添加用户消息和AI回复占位符
-    setIsUserJustSent(true); // 标记用户刚发送消息
-    setMessages((prev) => [...prev, userMessage, aiMessage]);
+    
+    const userMsgId = Date.now().toString();
+    const aiMsgId = (Date.now() + 1).toString();
+    
+    const wrappedUserMessage = { 
+      id: userMsgId, 
+      message: userMessage, 
+      status: 'success' as const 
+    };
+    const wrappedAiMessage = { 
+      id: aiMsgId, 
+      message: aiMessage, 
+      status: 'loading' as const 
+    };
+
+    // 使用 setMessages 更新消息列表
+    setMessages([...messages, wrappedUserMessage, wrappedAiMessage]);
 
     try {
       // 确定要使用的模型信息
@@ -663,17 +600,23 @@ const ChatPage: React.FC = () => {
       const decoder = new TextDecoder();
 
       let fullContent = "";
-      const messageIndex = messages.length + 1; // AI消息的索引
+      
+      // 获取当前消息列表长度，用于更新 AI 消息
+      // 注意：由于 setMessages 是异步的，我们不能直接使用 messages.length
+      // 我们需要构造一个新的消息列表来更新
+      let currentMessages = [...messages, wrappedUserMessage, wrappedAiMessage];
+      const messageIndex = currentMessages.length - 1; // AI消息的索引
 
-      // 更新AI消息为加载状态
-      setMessages((prev) => {
-        const newMessages = [...prev];
-        newMessages[messageIndex] = {
-          ...newMessages[messageIndex],
+      // 更新AI消息为加载状态 (其实已经设置了，这里是为了确保状态一致)
+      currentMessages[messageIndex] = {
+        ...currentMessages[messageIndex],
+        status: "loading",
+        message: {
+          ...currentMessages[messageIndex].message,
           isLoading: false,
-        };
-        return newMessages;
-      });
+        }
+      };
+      setMessages([...currentMessages]);
 
       let accumulatedData = ""; // 用于累积数据块
 
@@ -697,16 +640,15 @@ const ChatPage: React.FC = () => {
                     // 处理检索模式的响应
                     if (jsonData.retrieveMode === true) {
                       // 这是检索结果，更新消息的检索信息
-                      setMessages((prev) => {
-                        const newMessages = [...prev];
-                        newMessages[messageIndex] = {
-                          ...newMessages[messageIndex],
+                      currentMessages[messageIndex] = {
+                        ...currentMessages[messageIndex],
+                        message: {
+                          ...currentMessages[messageIndex].message,
                           retrieveMode: true,
                           kbName: jsonData.kbName,
                           retrieves: jsonData.retrieves,
-                        };
-                        return newMessages;
-                      });
+                        }
+                      };
                     } else if (jsonData.content) {
                       fullContent += jsonData.content;
                     }
@@ -718,15 +660,16 @@ const ChatPage: React.FC = () => {
               }
             }
 
-            setMessages((prev) => {
-              const newMessages = [...prev];
-              newMessages[messageIndex] = {
-                ...newMessages[messageIndex],
+            currentMessages[messageIndex] = {
+              ...currentMessages[messageIndex],
+              status: "success",
+              message: {
+                ...currentMessages[messageIndex].message,
                 content: fullContent,
                 displayContent: fullContent,
-              };
-              return newMessages;
-            });
+              }
+            };
+            setMessages([...currentMessages]);
           }
 
           // 如果是新创建的会话，在SSE数据全部返回后再次刷新会话列表
@@ -765,72 +708,90 @@ const ChatPage: React.FC = () => {
                 // 处理检索模式的响应
                 if (jsonData.retrieveMode === true) {
                   // 这是检索结果，只在第一个响应中出现
-                  setMessages((prev) => {
-                    const newMessages = [...prev];
-                    newMessages[messageIndex] = {
-                      ...newMessages[messageIndex],
+                  currentMessages[messageIndex] = {
+                    ...currentMessages[messageIndex],
+                    message: {
+                      ...currentMessages[messageIndex].message,
                       retrieveMode: true,
                       kbName: jsonData.kbName,
                       retrieves: jsonData.retrieves,
                       content: fullContent,
                       displayContent: fullContent,
-                    };
-                    return newMessages;
-                  });
+                    }
+                  };
                 } else if (jsonData.content) {
                   // 这是普通的内容响应
                   fullContent += jsonData.content;
-
-                  // 流式更新消息内容
-                  setMessages((prev) => {
-                    const newMessages = [...prev];
-                    newMessages[messageIndex] = {
-                      ...newMessages[messageIndex],
+                  
+                  // 更新内容
+                  currentMessages[messageIndex] = {
+                    ...currentMessages[messageIndex],
+                    message: {
+                      ...currentMessages[messageIndex].message,
                       content: fullContent,
                       displayContent: fullContent,
+                    }
+                  };
+                } else if (jsonData.thinking) {
+                    // 处理思考过程
+                    const currentMsg: MessageInfo<ChatMessage> = currentMessages[messageIndex];
+                    const prevThinking = currentMsg.message.thinking || "";
+                    currentMessages[messageIndex] = {
+                        ...currentMsg,
+                        message: {
+                          ...currentMsg.message,
+                          thinking: prevThinking + jsonData.thinking,
+                        }
                     };
-                    return newMessages;
-                  });
                 }
               } catch {
                 // 如果不是有效的JSON，直接使用原始数据
                 fullContent += data;
-
-                // 流式更新消息内容
-                setMessages((prev) => {
-                  const newMessages = [...prev];
-                  newMessages[messageIndex] = {
-                    ...newMessages[messageIndex],
+                
+                currentMessages[messageIndex] = {
+                  ...currentMessages[messageIndex],
+                  message: {
+                    ...currentMessages[messageIndex].message,
                     content: fullContent,
                     displayContent: fullContent,
-                  };
-                  return newMessages;
-                });
+                  }
+                };
               }
+              // 更新UI
+              setMessages([...currentMessages]);
             }
           }
         }
       }
     } catch (error: unknown) {
       // 如果是用户主动取消的请求，保留已输出的内容
-      if (error instanceof Error && error.name === 'AbortError' && userCancelled) {
+      if (
+        error instanceof Error &&
+        error.name === "AbortError" &&
+        userCancelled
+      ) {
         // 更新最后一条 AI 消息，停止 loading 状态，保留已输出的内容
         setMessages((prev) =>
           prev.map((msg, idx) =>
             idx === prev.length - 1
               ? {
                   ...msg,
-                  isLoading: false,
-                  // 如果有 displayContent，使用它作为最终内容；否则保持原有内容
-                  content: msg.displayContent || msg.content,
-                  displayContent: undefined, // 清除 displayContent
+                  status: "success",
+                  message: {
+                    ...msg.message,
+                    isLoading: false,
+                    // 如果有 displayContent，使用它作为最终内容；否则保持原有内容
+                    content: msg.message.displayContent || msg.message.content,
+                    displayContent: undefined, // 清除 displayContent
+                  }
                 }
               : msg
           )
         );
       } else {
         console.error("消息发送失败:", error); // 在控制台输出详细错误信息
-        const errorMessage = error instanceof Error ? error.message : "未知错误";
+        const errorMessage =
+          error instanceof Error ? error.message : "未知错误";
         antdMessage.error("消息发送失败: " + errorMessage);
         // 更新AI消息状态为错误
         setMessages((prev) =>
@@ -838,8 +799,12 @@ const ChatPage: React.FC = () => {
             idx === prev.length - 1
               ? {
                   ...msg,
-                  isLoading: false,
-                  content: "抱歉，消息发送失败，请稍后重试。",
+                  status: "error",
+                  message: {
+                    ...msg.message,
+                    isLoading: false,
+                    content: "抱歉，消息发送失败，请稍后重试。",
+                  }
                 }
               : msg
           )
@@ -868,7 +833,6 @@ const ChatPage: React.FC = () => {
         conversations={conversations}
         selectedId={selectedId}
         loading={loading}
-        onAddConversation={handleAddConversation}
         onSettingsClick={() => setSessionManageModalVisible(true)}
         onConversationSelect={async (key) => {
           try {
@@ -877,18 +841,8 @@ const ChatPage: React.FC = () => {
             setHasStarted(true);
 
             // 加载该会话的历史消息
-            const historyMessages = await loadSessionMessages(key);
-            setMessages(historyMessages);
+            await loadSessionMessages(key);
 
-            // 重置用户滚动状态，允许自动滚动
-            setIsUserScrolling(false);
-
-            // 使用requestAnimationFrame确保DOM更新后再滚动，避免闪烁
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                scrollToBottom(true, true); // 使用平滑滚动
-              });
-            });
           } catch (error) {
             console.error("切换会话失败:", error);
             antdMessage.error("切换会话失败，请重试");
@@ -898,6 +852,7 @@ const ChatPage: React.FC = () => {
         }}
         conversationMenu={conversationMenu}
         groupable={groupable}
+        onAddConversation={handleAddConversation}
       />
       {/* 右侧聊天区 */}
       <div
@@ -966,20 +921,16 @@ const ChatPage: React.FC = () => {
 
             {/* BubbleList 区域 */}
             <div
-              ref={bubbleListRef}
-              onScroll={handleScroll}
               style={{
                 position: "absolute",
                 top: "40px", // 增加顶部间距为模型选择按钮留出空间
                 left: 0,
                 right: 0,
                 bottom: `${senderHeight + 30}px`, // 动态调整为Sender的实际高度并增加底部间距
-                overflow: "auto",
-                padding: "0 10%", // 使用padding控制内容宽度，与Sender的80%宽度对应
               }}
             >
-              <ChatMessageList 
-                messages={messages} 
+              <ChatMessageList
+                messages={messages.map(m => m.message)}
                 isViewingHistory={!!selectedId} // 如果有选中的会话ID，说明在查看历史消息
               />
             </div>

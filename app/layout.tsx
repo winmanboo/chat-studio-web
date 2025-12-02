@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "../styles/globals.css";
 import React from "react";
+import { AntdRegistry } from '@ant-design/nextjs-registry';
+import { AntdXProvider } from "../components/AntdXProvider";
 import AppMain from "../components/AppMain";
 const inter = Inter({
   subsets: ["latin"],
@@ -22,7 +24,11 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className={inter.variable} style={{ background: '#f5f6fa', minHeight: '100vh' }}>
-        <AppMain>{children}</AppMain>
+        <AntdRegistry>
+          <AntdXProvider>
+            <AppMain>{children}</AppMain>
+          </AntdXProvider>
+        </AntdRegistry>
       </body>
     </html>
   );

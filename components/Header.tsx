@@ -1,5 +1,6 @@
 import React from 'react';
-import { Layout, Avatar, Button, Dropdown, Menu, message } from 'antd';
+import { Layout, Avatar, Button, Dropdown, message } from 'antd';
+import type { MenuProps } from 'antd';
 import { UserOutlined, SettingOutlined, LogoutOutlined, CrownOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
@@ -56,79 +57,82 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
     router.push('/admin');
   };
 
+  const menuItems: MenuProps['items'] = [
+    {
+      key: 'settings',
+      label: '设置',
+      icon: <SettingOutlined />,
+      onClick: onSettingsClick,
+    },
+    ...(userInfo?.userRole === 'ADMIN' ? [{
+      key: 'admin',
+      label: '管理员设置',
+      icon: <CrownOutlined />,
+      onClick: handleAdminClick,
+    }] : []),
+    {
+      key: 'logout',
+      label: '登出',
+      icon: <LogoutOutlined />,
+      onClick: onLogout,
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'online',
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 8, height: 8, backgroundColor: '#52c41a', borderRadius: '50%' }}></div>
+          当前在线用户: 1
+        </div>
+      ),
+      disabled: true,
+    },
+  ];
+
   return (
-    <Header 
-      style={{ 
-        background: '#fff', 
-        padding: '0 24px', 
-        position: 'relative', 
-        height: 64, 
-        boxShadow: '0 2px 8px #f0f1f2',
+    <Header
+      style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        padding: '0 24px',
+        background: '#fff',
+        borderBottom: '1px solid #f0f0f0',
+        height: 64,
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
       }}
     >
-      {/* 左上角Logo */}
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <div style={{
-          width: 32,
-          height: 32,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: 8,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: 16,
-          fontWeight: 'bold',
-          marginRight: 12
-        }}>
-          AI
-        </div>
-        <span style={{ fontSize: 18, fontWeight: 'bold', color: '#333' }}>
-          Chat Studio
-        </span>
+      <div className="logo" style={{ fontSize: 20, fontWeight: 'bold', color: '#1677ff' }}>
+        Chat Studio
       </div>
 
-      {/* 悬浮胶囊按钮 */}
-      <div style={{
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        background: '#f5f5f5',
-        borderRadius: 32,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.10), 0 1.5px 6px rgba(0,0,0,0.08)',
-        display: 'flex',
-        alignItems: 'center',
-        padding: '4px 8px',
-        zIndex: 10,
-      }}>
-        {capsuleTabs.map((tab, idx) => {
-          const isNewFeature = ['agent', 'workflow', 'bi', 'news'].includes(tab.key);
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: 8 }}>
+        {capsuleTabs.map((tab) => {
+          const isSelected = selectedTab === tab.key;
           return (
             <Button
               key={tab.key}
-              type={selectedTab === tab.key ? 'primary' : 'text'}
-              style={{
-                borderRadius: 32,
-                marginLeft: idx === 0 ? 0 : 4,
-                marginRight: idx === capsuleTabs.length - 1 ? 0 : 4,
-                fontWeight: selectedTab === tab.key ? 'bold' : undefined,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4
-              }}
+              type={isSelected ? 'primary' : 'text'}
+              icon={<span>{tab.icon}</span>}
               onClick={() => {
-                if (isNewFeature) {
-                  handleNewFeatureClick(tab.label);
-                } else {
-                  handleTabChange(tab.key);
-                }
+                if (tab.key === 'chat') router.push('/chat');
+                else if (tab.key === 'kb') router.push('/knowledgebase');
+                else if (tab.key === 'mcp') router.push('/mcp');
+                else handleNewFeatureClick(tab.label);
+              }}
+              style={{
+                height: 40,
+                borderRadius: 8,
+                padding: '0 24px',
+                background: isSelected ? '#e6f4ff' : 'transparent',
+                color: isSelected ? '#1677ff' : '#666',
+                fontWeight: isSelected ? 500 : 400,
               }}
             >
-              <span>{tab.icon}</span>
               {tab.label}
             </Button>
           );
@@ -139,28 +143,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
       <div>
         {isLogin ? (
           <Dropdown
-            overlay={
-              <Menu style={{ width: 200 }}>
-                <Menu.Item key="settings" icon={<SettingOutlined />} onClick={onSettingsClick}>
-                  设置
-                </Menu.Item>
-                {userInfo?.userRole === 'ADMIN' && (
-                  <Menu.Item key="admin" icon={<CrownOutlined />} onClick={handleAdminClick}>
-                    管理员设置
-                  </Menu.Item>
-                )}
-                <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={onLogout}>
-                  登出
-                </Menu.Item>
-                <Menu.Divider />
-                <Menu.Item key="online" disabled>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 8, height: 8, backgroundColor: '#52c41a', borderRadius: '50%' }}></div>
-                    当前在线用户: 1
-                  </div>
-                </Menu.Item>
-              </Menu>
-            }
+            menu={{ items: menuItems, style: { width: 200 } }}
             trigger={['click']}
             placement="bottomRight"
           >

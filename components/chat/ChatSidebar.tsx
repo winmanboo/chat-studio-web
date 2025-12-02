@@ -1,18 +1,11 @@
-import React from "react";
+import { Button, Spin, theme } from 'antd';
+import KeyCode from 'rc-util/lib/KeyCode';
+import React from 'react';
+
 import {
-  Button,
-  Flex,
-  Spin,
-  theme,
-} from "antd";
-import {
-  PlusOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  SettingOutlined,
-  CommentOutlined,
-} from "@ant-design/icons";
-import { Conversations, ConversationsProps } from "@ant-design/x";
+    CommentOutlined, MenuFoldOutlined, MenuUnfoldOutlined, PlusOutlined, SettingOutlined
+} from '@ant-design/icons';
+import { Conversations, ConversationsProps } from '@ant-design/x';
 
 export interface ConversationItem {
   key: string;
@@ -32,9 +25,8 @@ export interface ChatSidebarProps {
   onConversationSelect: (key: string) => void;
   conversationMenu: ConversationsProps["menu"];
   groupable: ConversationsProps["groupable"];
+  creation?: ConversationsProps["creation"];
 }
-
-const BOLD_BUTTON_STYLE = { fontWeight: "bold", fontSize: 18 };
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
   collapsed,
@@ -47,8 +39,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onConversationSelect,
   conversationMenu,
   groupable,
+  creation,
 }) => {
   const { token } = theme.useToken();
+
+  const items = React.useMemo(() => {
+    if (conversations.length === 0) return [];
+    return conversations;
+  }, [conversations]);
 
   return (
     <div
@@ -88,36 +86,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       ) : (
         // 展开状态显示完整内容
         <>
-          {/* 新建对话按钮（替换原顶部文字） */}
-          <div
-            style={{
-              width: "100%",
-              padding: "16px 0 8px 0",
-              textAlign: "center",
-              borderBottom: "1px solid #f0f0f0",
-              position: "relative",
-              color: "#222",
-            }}
-          >
-            <Flex justify="center" gap={8}>
-              <Button
-                type="text"
-                icon={<PlusOutlined />}
-                style={BOLD_BUTTON_STYLE}
-                onClick={onAddConversation}
-              >
-                新建对话
-              </Button>
-              <Button
-                type="text"
-                icon={<SettingOutlined />}
-                style={BOLD_BUTTON_STYLE}
-                onClick={onSettingsClick}
-              >
-                设置
-              </Button>
-            </Flex>
-          </div>
           <div
             style={{
               flex: 1,
@@ -157,9 +125,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     <div style={{ fontSize: "14px", marginBottom: "8px" }}>
                       暂无会话
                     </div>
-                    <div style={{ fontSize: "12px" }}>
-                      点击上方 + 按钮创建新会话
-                    </div>
                   </div>
                 );
               }
@@ -167,31 +132,47 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               return (
                 <Conversations
                   style={{ width: "100%", color: "#222" }}
-                  items={conversations}
+                  items={items}
                   activeKey={selectedId}
                   onActiveChange={onConversationSelect}
                   menu={conversationMenu}
                   groupable={groupable}
+                  creation={creation || {
+                    label: "新建对话",
+                    icon: <PlusOutlined />,
+                    onClick: onAddConversation,
+                  }}
+                  shortcutKeys={{
+                    creation: ["Meta", KeyCode.O],
+                    items: ["Alt", "number"],
+                  }}
                 />
               );
-            })()} 
+            })()}
           </div>
           <div
             style={{
               width: "100%",
               padding: 8,
               borderTop: "1px solid #f0f0f0",
-              textAlign: "center",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
             }}
           >
             <Button
               type="text"
               icon={<MenuFoldOutlined />}
               onClick={() => onCollapsedChange(true)}
-              style={{ width: "100%" }}
+              style={{ flex: 1 }}
             >
               收起
             </Button>
+            <Button
+              type="text"
+              icon={<SettingOutlined />}
+              onClick={onSettingsClick}
+            />
           </div>
         </>
       )}

@@ -116,14 +116,14 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
       placeholder={placeholder}
       allowSpeech={true}
       readOnly={loading}
-      actions={false}
       disabled={disabled}
+      suffix={false}
       onSubmit={(val) => {
         onSubmit(val);
       }}
       onCancel={onCancel}
-      footer={({ components }) => {
-        const { SendButton, SpeechButton, LoadingButton, ClearButton } = components;
+      footer={(_, { components }) => {
+        const { SendButton, SpeechButton, LoadingButton } = components;
         return (
           <Flex justify="space-between" align="center">
             {/* 左侧：检索模式 */}
