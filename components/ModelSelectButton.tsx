@@ -80,7 +80,7 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
               }} 
             />
           ) : <RobotOutlined />,
-          onClick: () => onModelSelect && onModelSelect({ ...model, icon: iconUrl }),
+          onClick: () => onModelSelect && onModelSelect({ ...model, icon: iconUrl, providerId: provider.providerId }),
         };
       })
     }));
