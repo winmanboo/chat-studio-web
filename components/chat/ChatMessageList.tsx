@@ -51,11 +51,11 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
         style={{
           height: "100%",
           overflow: "auto",
-          padding: "0 10%",
         }}
         autoScroll
         items={messages.map((msg, index) => ({
           key: index,
+          style: { padding: "0 10%" },
           content: { ...msg, messageIndex: index },
           role: msg.role,
           header: msg.role === "assistant" ? msg.modelName : undefined,
