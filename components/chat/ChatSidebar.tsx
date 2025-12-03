@@ -1,11 +1,15 @@
-import { Button, Spin, theme } from 'antd';
-import KeyCode from 'rc-util/lib/KeyCode';
-import React from 'react';
+import { Button, Spin, theme } from "antd";
+import KeyCode from "rc-util/lib/KeyCode";
+import React from "react";
 
 import {
-    CommentOutlined, MenuFoldOutlined, MenuUnfoldOutlined, PlusOutlined, SettingOutlined
-} from '@ant-design/icons';
-import { Conversations, ConversationsProps } from '@ant-design/x';
+  CommentOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  PlusOutlined,
+  SettingOutlined,
+} from "@ant-design/icons";
+import { Conversations, ConversationsProps } from "@ant-design/x";
 
 export interface ConversationItem {
   key: string;
@@ -63,13 +67,19 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     >
       {/* 顶部操作区 (仅在折叠时显示新建按钮) */}
       {collapsed && (
-        <div style={{ padding: '16px 0 8px', display: 'flex', justifyContent: 'center' }}>
+        <div
+          style={{
+            padding: "16px 0 8px",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
           <Button
             type="text"
             icon={<PlusOutlined />}
             onClick={onAddConversation}
-            style={{ 
-              fontSize: 18, 
+            style={{
+              fontSize: 18,
               color: token.colorText,
               width: 40,
               height: 40,
@@ -86,7 +96,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           overflowY: "auto",
           overflowX: "hidden",
           padding: collapsed ? 0 : 8,
-          display: collapsed ? 'none' : 'block',
+          display: collapsed ? "none" : "block",
         }}
       >
         {(() => {
@@ -94,7 +104,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
             return (
               <div style={{ textAlign: "center", padding: "20px" }}>
                 <Spin size="small" />
-                <div style={{ marginTop: "8px", color: token.colorTextDescription }}>
+                <div
+                  style={{
+                    marginTop: "8px",
+                    color: token.colorTextDescription,
+                  }}
+                >
                   加载中...
                 </div>
               </div>
@@ -132,11 +147,36 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               onActiveChange={onConversationSelect}
               menu={conversationMenu}
               groupable={groupable}
-              creation={creation || {
-                label: "新建对话",
-                icon: <PlusOutlined />,
-                onClick: onAddConversation,
-              }}
+              creation={
+                creation || {
+                  label: (
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        width: "100%",
+                      }}
+                    >
+                      <span>新建对话</span>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: token.colorTextTertiary,
+                          background: token.colorFillQuaternary,
+                          padding: "0 4px",
+                          borderRadius: 4,
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        ⌘ O
+                      </span>
+                    </div>
+                  ),
+                  icon: <PlusOutlined />,
+                  onClick: onAddConversation,
+                }
+              }
               shortcutKeys={{
                 creation: ["Meta", KeyCode.O],
                 items: ["Alt", "number"],
@@ -150,11 +190,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div
         style={{
           padding: 12,
-          borderTop: collapsed ? 'none' : `1px solid ${token.colorBorderSecondary}`,
+          borderTop: collapsed
+            ? "none"
+            : `1px solid ${token.colorBorderSecondary}`,
           display: "flex",
-          flexDirection: collapsed ? 'column' : 'row',
+          flexDirection: collapsed ? "column" : "row",
           alignItems: "center",
-          justifyContent: collapsed ? 'center' : 'space-between',
+          justifyContent: collapsed ? "center" : "space-between",
           gap: 8,
         }}
       >
@@ -162,20 +204,20 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           type="text"
           icon={<SettingOutlined />}
           onClick={onSettingsClick}
-          style={{ 
-            fontSize: 16, 
+          style={{
+            fontSize: 16,
             color: token.colorTextSecondary,
             width: collapsed ? 40 : undefined,
             height: collapsed ? 40 : undefined,
           }}
         />
-        
+
         <Button
           type="text"
           icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           onClick={() => onCollapsedChange(!collapsed)}
-          style={{ 
-            fontSize: 16, 
+          style={{
+            fontSize: 16,
             color: token.colorTextSecondary,
             width: collapsed ? 40 : undefined,
             height: collapsed ? 40 : undefined,

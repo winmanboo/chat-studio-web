@@ -72,7 +72,7 @@ const MIDDLE_SENDER_CONTAINER_STYLE = {
 
 // 底部Sender容器样式
 const BOTTOM_SENDER_CONTAINER_STYLE = {
-  width: "80%",
+  width: "85%",
   margin: "0 auto",
   display: "flex",
   justifyContent: "center",

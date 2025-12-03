@@ -10,6 +10,7 @@ import {
   UserOutlined,
   FileTextOutlined,
   ToolOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 import { Actions, Bubble, Think, Sources } from "@ant-design/x";
 
@@ -51,11 +52,12 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
         style={{
           height: "100%",
           overflow: "auto",
+          padding: "24px 0",
         }}
         autoScroll
         items={messages.map((msg, index) => ({
           key: index,
-          style: { padding: "0 10%" },
+          style: { padding: "12px 10%" },
           content: { ...msg, messageIndex: index },
           role: msg.role,
           header: msg.role === "assistant" ? msg.modelName : undefined,
@@ -85,9 +87,9 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
           assistant: {
             placement: "start",
             loadingRender: () => (
-              <Flex align="center" gap="small">
-                <Spin size="small" />
-                飞速加载中...
+              <Flex align="center" gap="small" style={{ opacity: 0.6 }}>
+                <LoadingOutlined spin style={{ fontSize: 16 }} />
+                <span style={{ fontSize: 14 }}>Thinking...</span>
               </Flex>
             ),
             contentRender: (content: any) => {
