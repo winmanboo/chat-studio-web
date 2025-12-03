@@ -114,11 +114,12 @@ export const getInstalledModels = async (): Promise<InstalledModel[]> => {
 };
 
 // 安装模型接口
-// 将路径参数改为通过请求体传递，包含 providerId 和 apiKey
-export const installModel = async (providerId: string, apiKey: string): Promise<void> => {
+// 将路径参数改为通过请求体传递，包含 providerId 和 apiKey 以及其他配置参数
+export const installModel = async (providerId: string, apiKey: string, settings?: Partial<ModelSettings>): Promise<void> => {
   await request.post('/models/install', {
     providerId,
-    apiKey
+    apiKey,
+    ...settings
   });
 };
 
@@ -138,12 +139,26 @@ export const setDefaultModel = async (modelId: number): Promise<void> => {
   await request.post(`/models/setDefault/${modelId}`);
 };
 
+// 模型设置接口
+export interface ModelSettings {
+  apiKey: string;
+  baseUrl: string;
+  useDefault?: boolean;
+  maxTokens?: number;
+  temperature?: number;
+  topK?: number;
+  topP?: number;
+  stopSequences?: string;
+  frequencyPenalty?: number;
+  presencePenalty?: number;
+}
+
 // 获取模型配置信息
-export const getModelSettings = async (providerId: string): Promise<{ apiKey: string; baseUrl: string }> => {
+export const getModelSettings = async (providerId: string): Promise<ModelSettings> => {
   try {
     // 响应拦截器已经处理了标准响应格式，直接返回data字段内容
     const data = await request.get(`/models/settings/info?providerId=${providerId}`);
-    return data as unknown as { apiKey: string; baseUrl: string };
+    return data as unknown as ModelSettings;
   } catch (error) {
     console.error('获取模型配置信息失败:', error);
     throw error;
@@ -154,21 +169,13 @@ export const getModelSettings = async (providerId: string): Promise<{ apiKey: st
 export const modifyModelSettings = async (
   modelInstalledId: number, 
   providerId: string, 
-  apiKey?: string, 
-  baseUrl?: string
+  settings: Partial<ModelSettings>
 ): Promise<void> => {
   const requestBody: any = {
     modelInstalledId,
-    providerId
+    providerId,
+    ...settings
   };
-  
-  if (apiKey !== undefined) {
-    requestBody.apiKey = apiKey;
-  }
-  
-  if (baseUrl !== undefined) {
-    requestBody.baseUrl = baseUrl;
-  }
   
   await request.put('/models/modify/settings', requestBody);
   // 响应拦截器会处理错误，成功时直接返回即可
