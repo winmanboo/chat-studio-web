@@ -10,25 +10,18 @@ import {
   Button,
   Space,
   message,
-  Divider,
   Typography,
   Alert,
   Tooltip,
-  Card,
-  Avatar
+  theme,
+  Divider
 } from 'antd';
 import { 
   LinkOutlined, 
-  TagOutlined, 
-  ClockCircleOutlined,
-  ShareAltOutlined,
-  CheckCircleOutlined,
-  LoadingOutlined,
-  DatabaseOutlined,
-  ThunderboltOutlined,
-  CloudOutlined,
+  DatabaseOutlined, 
   InfoCircleOutlined,
   SettingOutlined,
+  ShareAltOutlined,
   LockOutlined
 } from '@ant-design/icons';
 import { createMCPServer, testMCPServerConnection, CreateMCPServerRequest } from '@/lib/api/mcp';
@@ -47,6 +40,7 @@ const AddMCPServerModal: React.FC<AddMCPServerModalProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  const { token } = theme.useToken();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -119,52 +113,55 @@ const AddMCPServerModal: React.FC<AddMCPServerModalProps> = ({
   return (
     <Modal
       title={
-        <div className="flex items-center space-x-3 pb-4 border-b border-gray-100">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-            <DatabaseOutlined className="text-white text-lg" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+          <div style={{ 
+            width: 40, 
+            height: 40, 
+            background: token.colorPrimaryBg, 
+            borderRadius: token.borderRadius,
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center'
+          }}>
+            <DatabaseOutlined style={{ fontSize: 20, color: token.colorPrimary }} />
           </div>
           <div>
-            <Text strong className="text-lg text-gray-900">
+            <div style={{ fontSize: 16, fontWeight: 600, color: token.colorText }}>
               添加 MCP 服务器
-            </Text>
-            <br />
-            <Text className="text-sm text-gray-500">
+            </div>
+            <div style={{ fontSize: 12, color: token.colorTextSecondary, fontWeight: 'normal' }}>
               配置新的 Model Context Protocol 服务器
-            </Text>
+            </div>
           </div>
         </div>
       }
       open={visible}
       onCancel={handleCancel}
-      width={600}
-      centered
-      className="rounded-2xl"
+      width={640}
       styles={{
-        body: {
-          padding: 0,
-          maxHeight: '60vh',
-          overflowY: 'auto'
-        }
+        body: { padding: '24px 0 0 0' }
       }}
       footer={
-        <div className="flex justify-end items-center px-6 py-4 border-t border-gray-100 bg-gray-50">
-          <Space>
-            <Button onClick={handleCancel} className="rounded-lg">
-              取消
-            </Button>
-            <Button
-              type="primary"
-              onClick={handleSubmit}
-              loading={loading}
-              className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 border-0"
-            >
-              添加服务器
-            </Button>
-          </Space>
+        <div style={{ 
+          padding: '16px 24px', 
+          borderTop: `1px solid ${token.colorBorderSecondary}`,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: 8,
+          background: token.colorBgContainer
+        }}>
+          <Button onClick={handleCancel}>取消</Button>
+          <Button
+            type="primary"
+            onClick={handleSubmit}
+            loading={loading}
+          >
+            添加服务器
+          </Button>
         </div>
       }
     >
-      <div className="p-6 space-y-6">
+      <div style={{ padding: '0 24px 24px 24px' }}>
         {/* 连接测试结果 */}
         {testResult && (
           <Alert
@@ -172,14 +169,13 @@ const AddMCPServerModal: React.FC<AddMCPServerModalProps> = ({
             message={testResult.success ? '连接测试成功' : '连接测试失败'}
             description={testResult.message}
             showIcon
-            className="rounded-lg"
+            style={{ marginBottom: 24 }}
           />
         )}
 
         <Form
           form={form}
           layout="vertical"
-          className="space-y-2"
           initialValues={{
             timeout: 60,
             sseTimeout: 300,
@@ -187,11 +183,16 @@ const AddMCPServerModal: React.FC<AddMCPServerModalProps> = ({
           }}
         >
           {/* 基础信息 */}
-          <div className="bg-gray-50 rounded-xl p-5 space-y-3">
-            <Text strong className="text-gray-900 flex items-center text-base">
-              <DatabaseOutlined className="mr-2 text-blue-500" />
-              基础信息
-            </Text>
+          <div style={{ 
+            background: token.colorFillQuaternary, 
+            padding: 20, 
+            borderRadius: token.borderRadiusLG,
+            marginBottom: 24 
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+              <DatabaseOutlined style={{ marginRight: 8, color: token.colorPrimary }} />
+              <Text strong>基础信息</Text>
+            </div>
 
             <Form.Item
               name="endpoint"
@@ -200,17 +201,14 @@ const AddMCPServerModal: React.FC<AddMCPServerModalProps> = ({
                 { required: true, message: '请输入服务端点' },
                 { type: 'url', message: '请输入有效的 URL' },
               ]}
-              className="mb-3"
             >
               <Input
                 placeholder="https://your-mcp-server.com/api"
-                prefix={<LinkOutlined className="text-gray-400" />}
-                size="large"
-                className="rounded-lg"
+                prefix={<LinkOutlined style={{ color: token.colorTextPlaceholder }} />}
               />
             </Form.Item>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+            <div style={{ display: 'flex', gap: 16 }}>
               <Form.Item
                 name="serverName"
                 label="服务名称"
@@ -218,13 +216,9 @@ const AddMCPServerModal: React.FC<AddMCPServerModalProps> = ({
                   { required: true, message: '请输入服务名称' },
                   { max: 50, message: '服务名称不能超过50个字符' },
                 ]}
-                className="mb-3"
+                style={{ flex: 1 }}
               >
-                <Input 
-                  placeholder="GPT-4 MCP Server" 
-                  size="large"
-                  className="rounded-lg"
-                />
+                <Input placeholder="GPT-4 MCP Server" />
               </Form.Item>
 
               <Form.Item
@@ -233,7 +227,7 @@ const AddMCPServerModal: React.FC<AddMCPServerModalProps> = ({
                   <Space>
                     业务标识
                     <Tooltip title="用于标识模型的业务场景，例如 gpt-4-vision">
-                      <InfoCircleOutlined className="text-gray-400" />
+                      <InfoCircleOutlined style={{ color: token.colorTextPlaceholder }} />
                     </Tooltip>
                   </Space>
                 }
@@ -242,60 +236,59 @@ const AddMCPServerModal: React.FC<AddMCPServerModalProps> = ({
                   { max: 30, message: '业务标识不能超过30个字符' },
                   { pattern: /^[a-zA-Z0-9_-]+$/, message: '只能包含字母、数字、下划线和连字符' },
                 ]}
-                className="mb-3"
+                style={{ flex: 1 }}
               >
-                <Input 
-                  placeholder="gpt4_mcp" 
-                  size="large"
-                  className="rounded-lg"
-                />
+                <Input placeholder="gpt4_mcp" />
               </Form.Item>
             </div>
 
             <Form.Item
               name="description"
               label="描述信息"
-              className="mb-0"
+              style={{ marginBottom: 0 }}
             >
               <TextArea
                 rows={2}
                 placeholder="输入服务器描述信息（可选）"
                 maxLength={200}
                 showCount
-                className="rounded-lg"
+                style={{ resize: 'none' }}
               />
             </Form.Item>
           </div>
 
           {/* 高级配置 */}
-          <div className="bg-gray-50 rounded-xl p-5 space-y-3">
-            <Text strong className="text-gray-900 flex items-center text-base">
-              <SettingOutlined className="mr-2 text-orange-500" />
-              高级配置
-            </Text>
+          <div style={{ 
+            background: token.colorFillQuaternary, 
+            padding: 20, 
+            borderRadius: token.borderRadiusLG 
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+              <SettingOutlined style={{ marginRight: 8, color: token.colorWarning }} />
+              <Text strong>高级配置</Text>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+            <div style={{ display: 'flex', gap: 16 }}>
               <Form.Item
                 name="timeout"
                 label={
                   <Space>
                     请求超时 (秒)
                     <Tooltip title="等待服务器响应的超时时间">
-                      <InfoCircleOutlined className="text-gray-400" />
+                      <InfoCircleOutlined style={{ color: token.colorTextPlaceholder }} />
                     </Tooltip>
                   </Space>
                 }
                 rules={[
                   { type: 'number', min: 1, max: 300, message: '请输入1-300之间的数值' },
                 ]}
-                className="mb-3"
+                style={{ flex: 1 }}
               >
                 <InputNumber
                   min={1}
                   max={300}
                   placeholder="60"
-                  size="large"
-                  className="w-full rounded-lg"
+                  style={{ width: '100%' }}
                 />
               </Form.Item>
 
@@ -305,21 +298,20 @@ const AddMCPServerModal: React.FC<AddMCPServerModalProps> = ({
                   <Space>
                     SSE 超时 (秒)
                     <Tooltip title="服务器发送事件流的超时时间">
-                      <InfoCircleOutlined className="text-gray-400" />
+                      <InfoCircleOutlined style={{ color: token.colorTextPlaceholder }} />
                     </Tooltip>
                   </Space>
                 }
                 rules={[
                   { type: 'number', min: 1, max: 3600, message: '请输入1-3600之间的数值' },
                 ]}
-                className="mb-3"
+                style={{ flex: 1 }}
               >
                 <InputNumber
                   min={1}
                   max={3600}
                   placeholder="300"
-                  size="large"
-                  className="w-full rounded-lg"
+                  style={{ width: '100%' }}
                 />
               </Form.Item>
             </div>
@@ -328,14 +320,14 @@ const AddMCPServerModal: React.FC<AddMCPServerModalProps> = ({
               name="shared"
               label="共享设置"
               valuePropName="checked"
-              className="mb-0"
+              style={{ marginBottom: 0 }}
             >
-              <div className="flex items-center space-x-3">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Switch 
                   checkedChildren={<ShareAltOutlined />} 
                   unCheckedChildren={<LockOutlined />} 
                 />
-                <Text className="text-sm text-gray-600">
+                <Text type="secondary" style={{ fontSize: 12 }}>
                   允许其他用户使用此服务器
                 </Text>
               </div>
