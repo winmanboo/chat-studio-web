@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout, Avatar, Button, Dropdown, message, theme, Divider, Tag, Flex, Typography } from 'antd';
 import type { MenuProps } from 'antd';
-import { UserOutlined, SettingOutlined, LogoutOutlined, CrownOutlined, AppstoreOutlined, RocketOutlined } from '@ant-design/icons';
+import { UserOutlined, SettingOutlined, LogoutOutlined, CrownOutlined, AppstoreOutlined, RocketOutlined, UpOutlined, DownOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
 const { Header } = Layout;
@@ -27,6 +27,7 @@ interface HeaderProps {
 const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSettingsClick, isLogin, onLogout, userInfo }) => {
   const router = useRouter();
   const { token } = theme.useToken();
+  const [collapsed, setCollapsed] = React.useState(false);
 
   const workbenchTabs = [
     { key: 'chat', icon: '💬', label: '聊天' },
@@ -135,75 +136,117 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 24px',
-        background: 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(8px)',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-        height: 64,
+        background: collapsed ? 'transparent' : 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: collapsed ? 'none' : 'blur(8px)',
+        borderBottom: collapsed ? 'none' : '1px solid rgba(0, 0, 0, 0.06)',
+        height: collapsed ? 0 : 64,
         position: 'sticky',
         top: 0,
         zIndex: 1000,
+        transition: 'all 0.3s ease',
+        overflow: 'visible'
       }}
     >
-      <div className="logo" style={{ fontSize: 20, fontWeight: 'bold', color: token.colorPrimary, display: 'flex', alignItems: 'center', gap: 8 }}>
-        Chat Studio
-      </div>
-
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          background: token.colorFillQuaternary, 
-          padding: '4px 8px', 
-          borderRadius: 12,
-          gap: 12
-        }}>
-          {/* 工作台分组 */}
-          <Flex align="center" gap={4}>
-            <Text style={{ fontSize: 12, color: token.colorTextDescription, padding: '0 8px' }}>工作台</Text>
-            {workbenchTabs.map(renderTabButton)}
-          </Flex>
-
-          <Divider type="vertical" style={{ height: 24, margin: 0, borderColor: token.colorBorderSecondary }} />
-
-          {/* 高级功能分组 */}
-          <Flex align="center" gap={4}>
-            <Text style={{ fontSize: 12, color: token.colorTextDescription, padding: '0 8px' }}>高级功能</Text>
-            {advancedTabs.map(renderTabButton)}
-          </Flex>
+      <div style={{
+        display: 'flex',
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        opacity: collapsed ? 0 : 1,
+        transition: 'opacity 0.2s ease',
+        pointerEvents: collapsed ? 'none' : 'auto',
+      }}>
+        <div className="logo" style={{ fontSize: 20, fontWeight: 'bold', color: token.colorPrimary, display: 'flex', alignItems: 'center', gap: 8 }}>
+          Chat Studio
         </div>
-      </div>
 
-      {/* 右上角用户按钮 */}
-      <div>
-        {isLogin ? (
-          <Dropdown
-            menu={{ items: menuItems, style: { width: 200 } }}
-            trigger={['click']}
-            placement="bottomRight"
-          >
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            background: token.colorFillQuaternary, 
+            padding: '4px 8px', 
+            borderRadius: 12,
+            gap: 12
+          }}>
+            {/* 工作台分组 */}
+            <Flex align="center" gap={4}>
+              <Text style={{ fontSize: 12, color: token.colorTextDescription, padding: '0 8px' }}>工作台</Text>
+              {workbenchTabs.map(renderTabButton)}
+            </Flex>
+
+            <Divider type="vertical" style={{ height: 24, margin: 0, borderColor: token.colorBorderSecondary }} />
+
+            {/* 高级功能分组 */}
+            <Flex align="center" gap={4}>
+              <Text style={{ fontSize: 12, color: token.colorTextDescription, padding: '0 8px' }}>高级功能</Text>
+              {advancedTabs.map(renderTabButton)}
+            </Flex>
+          </div>
+        </div>
+
+        {/* 右上角用户按钮 */}
+        <div>
+          {isLogin ? (
+            <Dropdown
+              menu={{ items: menuItems, style: { width: 200 } }}
+              trigger={['click']}
+              placement="bottomRight"
+            >
+              <Avatar
+                size={40}
+                icon={<UserOutlined />}
+                style={{ 
+                  cursor: 'pointer', 
+                  background: token.colorPrimaryBg, 
+                  color: token.colorPrimary,
+                  border: `1px solid ${token.colorPrimaryBorder}`
+                }}
+              />
+            </Dropdown>
+          ) : (
             <Avatar
               size={40}
               icon={<UserOutlined />}
               style={{ 
                 cursor: 'pointer', 
-                background: token.colorPrimaryBg, 
-                color: token.colorPrimary,
-                border: `1px solid ${token.colorPrimaryBorder}`
+                background: token.colorFillSecondary, 
+                color: token.colorTextSecondary 
               }}
+              onClick={onUserClick}
             />
-          </Dropdown>
-        ) : (
-          <Avatar
-            size={40}
-            icon={<UserOutlined />}
-            style={{ 
-              cursor: 'pointer', 
-              background: token.colorFillSecondary, 
-              color: token.colorTextSecondary 
-            }}
-            onClick={onUserClick}
-          />
-        )}
+          )}
+        </div>
+      </div>
+
+      {/* 收起/展开按钮 */}
+      <div
+        onClick={() => setCollapsed(!collapsed)}
+        style={{
+          position: 'absolute',
+          bottom: -20,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 48,
+          height: 20,
+          background: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(0, 0, 0, 0.06)',
+          borderTop: 'none',
+          borderBottomLeftRadius: 12,
+          borderBottomRightRadius: 12,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          zIndex: 1001,
+          color: token.colorTextSecondary,
+          fontSize: 12,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.02)'
+        }}
+      >
+        {collapsed ? <DownOutlined /> : <UpOutlined />}
       </div>
     </Header>
   );
