@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, List, Input, Spin, message, Tag, Empty, Pagination } from 'antd';
-import { SearchOutlined, DatabaseOutlined } from '@ant-design/icons';
+import { Modal, List, Input, Spin, message, Tag, Empty, Pagination, theme, Typography, Flex, Avatar, Space } from 'antd';
+import { SearchOutlined, DatabaseOutlined, CalendarOutlined, FileTextOutlined } from '@ant-design/icons';
 import { getKnowledgeBasePage, KnowledgeBase, PageParams } from '@/lib/api/knowledgebase';
 
 const { Search } = Input;
+const { Text, Title } = Typography;
 
 interface KnowledgeBaseSelectModalProps {
   open: boolean;
@@ -16,6 +17,7 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
   onCancel,
   onSelect
 }) => {
+  const { token } = theme.useToken();
   const [loading, setLoading] = useState(false);
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
   const [searchValue, setSearchValue] = useState('');
@@ -33,14 +35,12 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
         ...(keyword && { keyword })
       };
       const response = await getKnowledgeBasePage(params);
-      // 确保records不为null，如果为null则设置为空数组
       setKnowledgeBases(response?.records || []);
       setTotal(response?.total || 0);
       setCurrentPage(page);
     } catch (error) {
       console.error('加载知识库列表失败:', error);
       message.error('加载知识库列表失败');
-      // 出错时也要确保设置为空数组而不是null
       setKnowledgeBases([]);
       setTotal(0);
     } finally {
@@ -74,7 +74,7 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
   }, [open]);
 
   // 模态框关闭时重置状态
-  const handleCancel = () => {
+  const handleCancelModal = () => {
     setSearchValue('');
     setCurrentPage(1);
     setKnowledgeBases([]);
@@ -84,19 +84,29 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
 
   return (
     <Modal
-      title="选择知识库"
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <DatabaseOutlined style={{ color: token.colorPrimary }} />
+          <span>选择知识库</span>
+        </div>
+      }
       open={open}
-      onCancel={handleCancel}
+      onCancel={handleCancelModal}
       footer={null}
-      width={600}
+      width={640}
       destroyOnClose
+      centered
+      styles={{
+        body: { padding: '24px' }
+      }}
     >
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 24 }}>
         <Search
-          placeholder="搜索知识库..."
+          placeholder="搜索知识库名称或描述..."
           allowClear
           enterButton={<SearchOutlined />}
           onSearch={handleSearch}
+          size="large"
           style={{ width: '100%' }}
         />
       </div>
@@ -104,68 +114,125 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
       <Spin spinning={loading}>
         {knowledgeBases.length === 0 && !loading ? (
           <Empty 
-            description="暂无知识库" 
-            style={{ margin: '40px 0' }}
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="暂无可选知识库" 
+            style={{ margin: '48px 0' }}
           />
         ) : (
-          <>
-            <List
-              dataSource={knowledgeBases}
-              renderItem={(item) => (
-                <List.Item
-                  key={item.id}
-                  onClick={() => handleSelectKb(item)}
-                  style={{
-                    cursor: 'pointer',
-                    padding: '12px 16px',
-                    borderRadius: '8px',
-                    marginBottom: '8px',
-                    border: '1px solid #f0f0f0',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f5f5f5';
-                    e.currentTarget.style.borderColor = '#d9d9d9';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.borderColor = '#f0f0f0';
-                  }}
-                >
-                  <List.Item.Meta
-                    avatar={<DatabaseOutlined style={{ fontSize: '20px', color: '#1890ff' }} />}
-                    title={
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 500 }}>{item.name}</span>
-                        <Tag color="blue">{item.docCount} 文档</Tag>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ maxHeight: '480px', overflowY: 'auto', paddingRight: 4 }}>
+              <List
+                dataSource={knowledgeBases}
+                split={false}
+                renderItem={(item) => (
+                  <List.Item
+                    key={item.id}
+                    onClick={() => handleSelectKb(item)}
+                    style={{
+                      cursor: 'pointer',
+                      padding: '16px',
+                      borderRadius: token.borderRadiusLG,
+                      border: `1px solid ${token.colorBorderSecondary}`,
+                      marginBottom: 12,
+                      backgroundColor: token.colorBgContainer,
+                      transition: 'all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1)',
+                    }}
+                    className="kb-item"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = token.colorPrimary;
+                      e.currentTarget.style.boxShadow = token.boxShadow;
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = token.colorBorderSecondary;
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.transform = 'none';
+                    }}
+                  >
+                    <Flex gap={16} style={{ width: '100%' }} align="start">
+                      {/* 图标区域 */}
+                      <div
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 12,
+                          backgroundColor: token.colorPrimaryBg,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <DatabaseOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
                       </div>
-                    }
-                    description={
-                      <div>
-                        <div style={{ marginBottom: '4px', color: '#666' }}>
-                          {item.description || '暂无描述'}
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#999' }}>
-                          创建时间: {new Date(item.createdTime).toLocaleString()}
-                        </div>
-                        {item.tags && item.tags.length > 0 && (
-                          <div style={{ marginTop: '4px' }}>
-                            {item.tags.map(tag => (
-                              <Tag key={tag.id} style={{ margin: '2px 4px 2px 0', fontSize: '12px' }}>
-                                {tag.name}
-                              </Tag>
-                            ))}
-                          </div>
-                        )}
+
+                      {/* 内容区域 */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <Flex justify="space-between" align="center" style={{ marginBottom: 4 }}>
+                          <Text strong style={{ fontSize: 16, color: token.colorText }}>
+                            {item.name}
+                          </Text>
+                          <Tag 
+                            color="blue" 
+                            icon={<FileTextOutlined />} 
+                            style={{ margin: 0, borderRadius: 12, padding: '0 10px' }}
+                          >
+                            {item.docCount} 文档
+                          </Tag>
+                        </Flex>
+
+                        <Text 
+                          type="secondary" 
+                          style={{ 
+                            display: 'block', 
+                            marginBottom: 12, 
+                            fontSize: 14,
+                            lineHeight: 1.5,
+                            ...(!item.description ? { fontStyle: 'italic', opacity: 0.6 } : {})
+                          }}
+                          ellipsis={{ tooltip: true }}
+                        >
+                          {item.description || '暂无描述信息'}
+                        </Text>
+
+                        <Flex justify="space-between" align="center">
+                          <Space size={[0, 8]} wrap style={{ flex: 1 }}>
+                            {item.tags && item.tags.length > 0 ? (
+                              item.tags.slice(0, 3).map(tag => (
+                                <Tag 
+                                  key={tag.id} 
+                                  bordered={false}
+                                  style={{ 
+                                    background: token.colorFillQuaternary,
+                                    color: token.colorTextSecondary,
+                                    marginRight: 4
+                                  }}
+                                >
+                                  {tag.name}
+                                </Tag>
+                              ))
+                            ) : (
+                              <span />
+                            )}
+                            {item.tags && item.tags.length > 3 && (
+                              <Text type="secondary" style={{ fontSize: 12 }}>+{item.tags.length - 3}</Text>
+                            )}
+                          </Space>
+
+                          <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <CalendarOutlined />
+                            {new Date(item.createdTime).toLocaleDateString()}
+                          </Text>
+                        </Flex>
                       </div>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
+                    </Flex>
+                  </List.Item>
+                )}
+              />
+            </div>
             
             {total > pageSize && (
-              <div style={{ textAlign: 'center', marginTop: '16px' }}>
+              <div style={{ textAlign: 'center', paddingTop: 16, borderTop: `1px solid ${token.colorBorderSecondary}` }}>
                 <Pagination
                   current={currentPage}
                   total={total}
@@ -173,11 +240,12 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
                   onChange={handlePageChange}
                   showSizeChanger={false}
                   showQuickJumper
-                  showTotal={(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`}
+                  size="small"
+                  showTotal={(total) => `共 ${total} 个知识库`}
                 />
               </div>
             )}
-          </>
+          </div>
         )}
       </Spin>
     </Modal>
