@@ -1,19 +1,29 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { Table, Button, Input, Tag, Space, Modal, message, Tooltip } from 'antd';
-import { UploadOutlined, DeleteOutlined, EyeOutlined, FileTextOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Table, Button, Input, Tag, Space, Modal, message, Tooltip, theme, Typography, Empty } from 'antd';
+import { 
+  UploadOutlined, 
+  DeleteOutlined, 
+  EyeOutlined, 
+  FileTextOutlined, 
+  ExclamationCircleOutlined, 
+  ReloadOutlined,
+  ArrowLeftOutlined,
+  SearchOutlined
+} from '@ant-design/icons';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getDocumentPage, deleteDocument, type Document } from '@/lib/api';
 import DocumentUploadModal from '@/components/DocumentUploadModal';
 import DocumentDetailModal from '@/components/DocumentDetailModal';
 
-const { Search } = Input;
+const { Title, Text } = Typography;
 
 const DocumentsPageContent: React.FC = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const kbId = searchParams.get('kbId');
+  const { token } = theme.useToken();
   
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
@@ -116,10 +126,11 @@ const DocumentsPageContent: React.FC = () => {
   const handleDelete = (doc: Document) => {
     Modal.confirm({
       title: '确认删除',
-      icon: <ExclamationCircleOutlined />,
+      icon: <ExclamationCircleOutlined style={{ color: token.colorError }} />,
       content: `确定要删除文档 "${doc.title}" 吗？此操作不可撤销。`,
       okText: '确认',
       cancelText: '取消',
+      okButtonProps: { danger: true },
       onOk: async () => {
         try {
           await deleteDocument(doc.id);
@@ -145,30 +156,65 @@ const DocumentsPageContent: React.FC = () => {
 
   if (!kbId) {
     return (
-      <div style={{ padding: 24, textAlign: 'center' }}>
-        <p>缺少知识库ID参数</p>
-        <Button onClick={handleBack}>返回知识库</Button>
+      <div style={{ 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        background: token.colorBgContainer 
+      }}>
+        <Empty
+          description={
+            <Space direction="vertical" align="center">
+              <Text>缺少知识库ID参数</Text>
+              <Button type="primary" onClick={handleBack}>返回知识库</Button>
+            </Space>
+          }
+        />
       </div>
     );
   }
 
   return (
-    <div style={{ height: '100%', width: '100%', background: '#fff', color: '#222', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ 
+      height: '100%', 
+      width: '100%', 
+      background: token.colorBgLayout, 
+      color: token.colorText, 
+      display: 'flex', 
+      flexDirection: 'column' 
+    }}>
       {/* 头部 */}
-      <div style={{ padding: 24, flexShrink: 0, borderBottom: '1px solid #f0f0f0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-          <Button type="text" onClick={handleBack} style={{ marginRight: 8 }}>
-            ← 返回知识库
-          </Button>
-          <h2 style={{ margin: 0, color: '#222' }}>文档管理</h2>
+      <div style={{ 
+        padding: '20px 32px', 
+        background: token.colorBgContainer,
+        borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexShrink: 0
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Button 
+            type="text" 
+            icon={<ArrowLeftOutlined />} 
+            onClick={handleBack} 
+            style={{ marginRight: 12, fontSize: 16 }}
+          />
+          <div>
+            <Title level={4} style={{ margin: 0, marginBottom: 2 }}>文档管理</Title>
+            <Text type="secondary" style={{ fontSize: 13 }}>统一管理知识库中的文档资源</Text>
+          </div>
         </div>
-        <Space style={{ marginBottom: 16 }}>
-          <Search
-            placeholder="搜索文档"
+        <Space size="middle">
+          <Input
+            prefix={<SearchOutlined style={{ color: token.colorTextPlaceholder }} />}
+            placeholder="搜索文档..."
             allowClear
-            style={{ width: 300 }}
-            onSearch={handleSearch}
-            onChange={(e) => setSearchValue(e.target.value)}
+            value={searchValue}
+            onChange={(e) => handleSearch(e.target.value)}
+            style={{ width: 260, borderRadius: token.borderRadius }}
           />
           <Button 
             icon={<ReloadOutlined />}
@@ -190,161 +236,193 @@ const DocumentsPageContent: React.FC = () => {
       <div 
         style={{ 
           flex: 1, 
-          overflowY: 'auto', 
-          padding: '0 24px 16px 24px'
+          overflowY: 'hidden', // 让 Table 自己处理滚动
+          padding: '24px',
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
-        <Table
-          dataSource={documents}
-          loading={loading}
-          rowKey="id"
-          scroll={documents.length > 0 ? { 
-            x: 1080, // 设置最小宽度，确保所有列都能显示
-            y: 'calc(100vh - 320px)' 
-          } : undefined}
-          pagination={{
-            current: currentPage,
-            pageSize: pageSize,
-            total: total,
-            onChange: handlePageChange,
-            showSizeChanger: false,
-            showQuickJumper: true,
-            showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
-            style: { marginTop: 16 },
-            hideOnSinglePage: false
-          }}
-          locale={{
-            emptyText: (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '60px 0',
-                color: '#8c8c8c'
-              }}>
-                <FileTextOutlined style={{ fontSize: 48, marginBottom: 16 }} />
-                <div style={{ fontSize: 16, marginBottom: 8 }}>暂无文档</div>
-                <div style={{ fontSize: 14 }}>点击上传按钮添加文档</div>
-              </div>
-            )
-          }}
-          columns={[
-            {
-              title: '文档名称',
-              dataIndex: 'title',
-              key: 'title',
-              width: 220,
-              minWidth: 180,
-              ellipsis: true,
-              render: (title: string, record: Document) => (
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <FileTextOutlined style={{ fontSize: 16, color: '#1890ff', marginRight: 8 }} />
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{title}</div>
-                    <div style={{ fontSize: 12, color: '#8c8c8c' }}>
-                      {record.sourceType.toUpperCase()}
+        <div style={{ 
+          background: token.colorBgContainer, 
+          padding: 24, 
+          borderRadius: token.borderRadiusLG,
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden', // 确保内容不溢出圆角
+          boxShadow: token.boxShadowTertiary
+        }}>
+          <Table
+            dataSource={documents}
+            loading={loading}
+            rowKey="id"
+            scroll={{ y: 'calc(100vh - 300px)' }}
+            pagination={{
+              current: currentPage,
+              pageSize: pageSize,
+              total: total,
+              onChange: handlePageChange,
+              showSizeChanger: false,
+              showQuickJumper: true,
+              showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+              style: { marginTop: 16, marginBottom: 0 },
+              hideOnSinglePage: false
+            }}
+            locale={{
+              emptyText: (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={
+                    <Space direction="vertical" size="small">
+                      <Text type="secondary">暂无文档</Text>
+                      <Button type="link" onClick={() => setUploadModalVisible(true)}>
+                        上传第一个文档
+                      </Button>
+                    </Space>
+                  }
+                />
+              )
+            }}
+            columns={[
+              {
+                title: '文档名称',
+                dataIndex: 'title',
+                key: 'title',
+                width: 280,
+                ellipsis: true,
+                render: (title: string, record: Document) => (
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ 
+                      width: 32, 
+                      height: 32, 
+                      background: token.colorPrimaryBg, 
+                      borderRadius: token.borderRadiusSM,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 12,
+                      flexShrink: 0
+                    }}>
+                      <FileTextOutlined style={{ fontSize: 18, color: token.colorPrimary }} />
+                    </div>
+                    <div style={{ overflow: 'hidden' }}>
+                      <Text strong ellipsis style={{ display: 'block', maxWidth: '100%' }}>{title}</Text>
+                      <Tag bordered={false} style={{ margin: 0, fontSize: 10, lineHeight: '16px', padding: '0 4px' }}>
+                        {record.sourceType.toUpperCase()}
+                      </Tag>
                     </div>
                   </div>
-                </div>
-              )
-            },
-            {
-               title: '处理状态',
-               dataIndex: 'status',
-               key: 'status',
-               width: 110,
-               minWidth: 90,
-               render: (status: string, record: Document) => (
-                 getStatusTag(status, record.error)
-               )
-             },
-             {
-               title: '标签',
-               dataIndex: 'tags',
-               key: 'tags',
-               width: 180,
-               minWidth: 120,
-               ellipsis: true,
-               render: (tags: string[]) => (
-                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                   {tags.length > 0 ? (
-                     tags.map((tag, index) => (
-                        <Tag key={index}>{tag}</Tag>
-                      ))
-                   ) : (
-                     <span style={{ color: '#8c8c8c', fontSize: 12 }}>无标签</span>
-                   )}
-                 </div>
-               )
-             },
-             {
-               title: '分块数',
-               dataIndex: 'chunkSize',
-               key: 'chunkSize',
-               width: 90,
-               minWidth: 70,
-               align: 'center'
-             },
-             {
-               title: 'Token用量',
-               dataIndex: 'totalTokenCount',
-               key: 'totalTokenCount',
-               width: 110,
-               minWidth: 90,
-               align: 'center',
-               render: (totalTokenCount: number | null) => (
-                 totalTokenCount !== null ? totalTokenCount.toLocaleString() : '-'
-               )
-             },
-             {
-               title: '文件大小',
-               dataIndex: 'size',
-               key: 'size',
-               width: 100,
-               minWidth: 80,
-               render: (size: number) => formatFileSize(size)
-             },
-             {
-               title: '上传时间',
-               dataIndex: 'uploadTime',
-               key: 'uploadTime',
-               width: 150,
-               minWidth: 130,
-               render: (time: string) => formatTime(time)
-            },
-            
-             {
-               title: '操作',
-               key: 'action',
-               width: 120,
-               minWidth: 100,
-               fixed: 'right',
-               render: (_, record: Document) => (
-                 <Space>
-                   {record.status === 'COMPLETED' && (
-                     <Button
-                       type="text"
-                       icon={<EyeOutlined />}
-                       size="small"
-                       onClick={() => handleViewDetail(record)}
-                     >
-                       详情
-                     </Button>
-                   )}
-                   {(record.status === 'COMPLETED' || record.status === 'FAILED') && (
-                     <Button
-                       type="text"
-                       icon={<DeleteOutlined />}
-                       size="small"
-                       danger
-                       onClick={() => handleDelete(record)}
-                     >
-                       删除
-                     </Button>
-                   )}
-                 </Space>
-               )
-             }
-          ]}
-        />
+                )
+              },
+              {
+                 title: '处理状态',
+                 dataIndex: 'status',
+                 key: 'status',
+                 width: 120,
+                 render: (status: string, record: Document) => (
+                   getStatusTag(status, record.error)
+                 )
+               },
+               {
+                 title: '标签',
+                 dataIndex: 'tags',
+                 key: 'tags',
+                 width: 200,
+                 ellipsis: true,
+                 render: (tags: string[]) => (
+                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                     {tags.length > 0 ? (
+                       tags.map((tag, index) => (
+                          <Tag key={index} bordered={false} style={{ background: token.colorFillQuaternary }}>{tag}</Tag>
+                        ))
+                     ) : (
+                       <Text type="secondary" style={{ fontSize: 12 }}>-</Text>
+                     )}
+                   </div>
+                 )
+               },
+               {
+                 title: '分块数',
+                 dataIndex: 'chunkSize',
+                 key: 'chunkSize',
+                 width: 100,
+                 align: 'center'
+               },
+               {
+                 title: 'Token用量',
+                 dataIndex: 'totalTokenCount',
+                 key: 'totalTokenCount',
+                 width: 120,
+                 align: 'center',
+                 render: (totalTokenCount: number | null) => (
+                   totalTokenCount !== null ? totalTokenCount.toLocaleString() : '-'
+                 )
+               },
+               {
+                 title: '文件大小',
+                 dataIndex: 'size',
+                 key: 'size',
+                 width: 110,
+                 render: (size: number) => formatFileSize(size)
+               },
+               {
+                 title: '上传时间',
+                 dataIndex: 'uploadTime',
+                 key: 'uploadTime',
+                 width: 180,
+                 render: (time: string) => (
+                    <Text type="secondary">{formatTime(time)}</Text>
+                 )
+              },
+              
+               {
+                 title: '操作',
+                 key: 'action',
+                 width: 140,
+                 fixed: 'right',
+                 render: (_, record: Document) => (
+                   <Space split={<span style={{ color: token.colorBorderSecondary }}>|</span>}>
+                     {record.status === 'COMPLETED' ? (
+                       <Typography.Link
+                         onClick={() => handleViewDetail(record)}
+                       >
+                         <Space size={4}>
+                           <EyeOutlined />
+                           详情
+                         </Space>
+                       </Typography.Link>
+                     ) : (
+                        <Text disabled>
+                          <Space size={4}>
+                            <EyeOutlined />
+                            详情
+                          </Space>
+                        </Text>
+                     )}
+                     {(record.status === 'COMPLETED' || record.status === 'FAILED') ? (
+                       <Typography.Link
+                         type="danger"
+                         onClick={() => handleDelete(record)}
+                       >
+                         <Space size={4}>
+                           <DeleteOutlined />
+                           删除
+                         </Space>
+                       </Typography.Link>
+                     ) : (
+                        <Text disabled>
+                          <Space size={4}>
+                            <DeleteOutlined />
+                            删除
+                          </Space>
+                        </Text>
+                     )}
+                   </Space>
+                 )
+               }
+            ]}
+          />
+        </div>
       </div>
 
       {/* 上传文档模态框 */}
@@ -372,19 +450,19 @@ const DocumentsPageContent: React.FC = () => {
 };
 
 const DocumentsPage: React.FC = () => {
+  const { token } = theme.useToken();
+
   return (
     <Suspense fallback={
       <div style={{ 
         height: '100%', 
         width: '100%', 
-        background: '#fff', 
+        background: token.colorBgContainer, 
         display: 'flex', 
         alignItems: 'center', 
-        justifyContent: 'center',
-        fontSize: 16,
-        color: '#666'
+        justifyContent: 'center'
       }}>
-        加载中...
+        <Empty description="加载中..." />
       </div>
     }>
       <DocumentsPageContent />

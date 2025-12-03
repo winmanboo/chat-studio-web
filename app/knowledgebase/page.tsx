@@ -1,16 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Input, Tag, Space, Dropdown, Modal, message, Spin, Form, Select, Slider, Switch } from 'antd';
-import { PlusOutlined, MoreOutlined, FileTextOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Card, Button, Input, Tag, Space, Dropdown, Modal, message, Spin, Form, Select, Slider, Switch, Typography, theme, Empty, Row, Col, Avatar, Tooltip, Divider } from 'antd';
+import { PlusOutlined, MoreOutlined, FileTextOutlined, EditOutlined, DeleteOutlined, SearchOutlined, DatabaseOutlined, CloudServerOutlined, AppstoreOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useRouter } from 'next/navigation';
 import { getKnowledgeBasePage, deleteKnowledgeBase, createKnowledgeBase, updateKnowledgeBase, getKnowledgeBaseInfo, getDictItems, getKnowledgeBaseTags, type KnowledgeBase, type CreateKnowledgeBaseParams, type DictItem, type TagItem } from '@/lib/api';
 
 const { Search } = Input;
+const { Title, Text, Paragraph } = Typography;
 
 const KnowledgeBasePage: React.FC = () => {
   const router = useRouter();
+  const { token } = theme.useToken();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [searchValue, setSearchValue] = useState('');
@@ -140,6 +142,7 @@ const KnowledgeBasePage: React.FC = () => {
           content: `确定要删除知识库 "${knowledgeBase.name}" 吗？此操作不可撤销。`,
           okText: '确认',
           cancelText: '取消',
+          okButtonProps: { danger: true },
           onOk: async () => {
             try {
               await deleteKnowledgeBase(knowledgeBase.id);
@@ -158,7 +161,7 @@ const KnowledgeBasePage: React.FC = () => {
   const getMenuItems = (knowledgeBase: KnowledgeBase): MenuProps['items'] => [
     {
       key: 'edit',
-      label: '修改',
+      label: '修改配置',
       icon: <EditOutlined />,
       onClick: (e) => {
         e.domEvent.stopPropagation();
@@ -166,8 +169,11 @@ const KnowledgeBasePage: React.FC = () => {
       },
     },
     {
+      type: 'divider',
+    },
+    {
       key: 'delete',
-      label: '删除',
+      label: '删除知识库',
       icon: <DeleteOutlined />,
       danger: true,
       onClick: (e) => {
@@ -293,541 +299,390 @@ const KnowledgeBasePage: React.FC = () => {
     setRerankEnabledState(false);
   };
 
-  return (
-    <div style={{ height: '100%', width: '100%', background: '#fff', color: '#222', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: 24, flexShrink: 0 }}>
-        <h2 style={{ marginBottom: 16, color: '#222' }}>知识库管理</h2>
-        <Space style={{ marginBottom: 16 }}>
-          <Search
-            placeholder="搜索知识库"
-            allowClear
-            style={{ width: 300 }}
-            onSearch={handleSearch}
-            onChange={(e) => setSearchValue(e.target.value)}
-          />
-
-        </Space>
+  // 渲染顶部区域
+  const renderHeader = () => (
+    <div style={{ 
+      padding: '24px 32px', 
+      background: token.colorBgContainer,
+      borderBottom: `1px solid ${token.colorBorderSecondary}`,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexShrink: 0
+    }}>
+      <div>
+        <Title level={4} style={{ margin: 0, marginBottom: 4 }}>知识库管理</Title>
+        <Text type="secondary">统一管理您的文档知识，构建专属的 AI 知识引擎</Text>
       </div>
-      <div 
-        style={{ 
-          flex: 1, 
-          overflowY: 'auto', 
-          padding: '0 24px 16px 24px'
-        }}
-        onScroll={(e) => {
-          const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-          const isNearBottom = scrollHeight - scrollTop <= clientHeight + 100;
-          
-          if (isNearBottom && hasMore && !loading) {
-            loadMore();
-          }
-        }}
-      >
-        <Spin spinning={loading}>
+      <Space size="middle">
+        <Input
+          prefix={<SearchOutlined style={{ color: token.colorTextPlaceholder }} />}
+          placeholder="搜索知识库..."
+          allowClear
+          onChange={(e) => handleSearch(e.target.value)}
+          style={{ width: 280, borderRadius: token.borderRadius }}
+          size="middle"
+        />
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          onClick={handleAddKnowledgeBase}
+          size="middle"
+        >
+          新建知识库
+        </Button>
+      </Space>
+    </div>
+  );
+
+  // 渲染卡片网格
+  const renderContent = () => (
+    <div 
+      style={{ 
+        flex: 1, 
+        overflowY: 'auto', 
+        padding: '24px 32px',
+        background: token.colorBgLayout
+      }}
+      onScroll={(e) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+        const isNearBottom = scrollHeight - scrollTop <= clientHeight + 100;
+        
+        if (isNearBottom && hasMore && !loading) {
+          loadMore();
+        }
+      }}
+    >
+      <Spin spinning={loading && knowledgeBases.length === 0}>
+        {knowledgeBases.length > 0 ? (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-            gap: 16,
-            paddingBottom: 16
+            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            gap: 24,
+            paddingBottom: 24
           }}>
-          {/* 添加知识库卡片 */}
-          <Card
-            hoverable
-            style={{
-              borderRadius: 12,
-              border: '2px dashed #d9d9d9',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: 200,
-              cursor: 'pointer'
-            }}
-            onClick={handleAddKnowledgeBase}
-          >
-            <div style={{ textAlign: 'center', color: '#999' }}>
-              <PlusOutlined style={{ fontSize: 32, marginBottom: 8 }} />
-              <div>添加知识库</div>
-            </div>
-          </Card>
+            {knowledgeBases.map((kb) => (
+              <Card
+                key={kb.id}
+                hoverable
+                style={{ 
+                  borderRadius: token.borderRadiusLG, 
+                  border: 'none',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
+                }}
+                bodyStyle={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column' }}
+                onClick={() => router.push(`/documents?kbId=${kb.id}`)}
+              >
+                {/* 顶部区域 */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <Avatar 
+                      shape="square" 
+                      size={48} 
+                      icon={<FileTextOutlined style={{ fontSize: 24 }} />} 
+                      style={{ 
+                        backgroundColor: token.colorPrimaryBg, 
+                        color: token.colorPrimary,
+                        borderRadius: token.borderRadiusLG
+                      }} 
+                    />
+                    <div>
+                      <Title level={5} style={{ margin: 0, marginBottom: 4, maxWidth: 180 }} ellipsis={{ tooltip: kb.name }}>
+                        {kb.name}
+                      </Title>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        ID: {kb.id}
+                      </Text>
+                    </div>
+                  </div>
+                  <Dropdown
+                    menu={{ items: getMenuItems(kb) }}
+                    trigger={['click']}
+                    placement="bottomRight"
+                  >
+                    <Button 
+                      type="text" 
+                      icon={<MoreOutlined />} 
+                      size="small"
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ color: token.colorTextTertiary }}
+                    />
+                  </Dropdown>
+                </div>
 
-          {/* 知识库卡片 */}
-           {knowledgeBases?.map((kb) => (
-             <Card
-               key={kb.id}
-               hoverable
-               style={{ 
-                 borderRadius: 16, 
-                 minHeight: 220, 
-                 position: 'relative',
-                 boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                 border: '1px solid #f0f0f0',
-                 transition: 'all 0.3s ease',
-                 cursor: 'pointer'
-               }}
-               bodyStyle={{ padding: '20px' }}
-               onClick={() => router.push(`/documents?kbId=${kb.id}`)}
-             >
-               {/* 右上角菜单按钮 */}
-               <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1 }}>
-                 <Dropdown
-                   menu={{ items: getMenuItems(kb) }}
-                   trigger={['click']}
-                   placement="bottomRight"
-                 >
-                   <Button 
-                     type="text" 
-                     icon={<MoreOutlined />} 
-                     size="small" 
-                     style={{ 
-                       color: '#8c8c8c',
-                       borderRadius: '6px'
-                     }}
-                     onClick={(e) => e.stopPropagation()}
-                   />
-                 </Dropdown>
-               </div>
+                {/* 描述 */}
+                <Paragraph 
+                  type="secondary" 
+                  style={{ 
+                    fontSize: 14, 
+                    marginBottom: 24, 
+                    flex: 1,
+                    minHeight: 44
+                  }} 
+                  ellipsis={{ rows: 2 }}
+                >
+                  {kb.description || '暂无描述信息'}
+                </Paragraph>
 
-               {/* 标题区域 */}
-               <div style={{ marginBottom: 16, paddingRight: 40 }}>
-                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
-                   <div style={{
-                     width: 32,
-                     height: 32,
-                     borderRadius: '8px',
-                     backgroundColor: '#e6f7ff',
-                     display: 'flex',
-                     alignItems: 'center',
-                     justifyContent: 'center',
-                     marginRight: 12
-                   }}>
-                     <FileTextOutlined style={{ color: '#1890ff', fontSize: 16 }} />
-                   </div>
-                   <h3 style={{ 
-                     margin: 0, 
-                     fontSize: 18, 
-                     fontWeight: 600,
-                     color: '#262626',
-                     lineHeight: 1.3
-                   }}>
-                     {kb.name}
-                   </h3>
-                 </div>
-               </div>
-               
-               {/* 统计信息区域 */}
-               <div style={{ 
-                 display: 'flex', 
-                 justifyContent: 'space-between',
-                 marginBottom: 16,
-                 padding: '12px 16px',
-                 backgroundColor: '#fafafa',
-                 borderRadius: '8px'
-               }}>
-                 <div style={{ textAlign: 'center' }}>
-                   <div style={{ fontSize: 20, fontWeight: 600, color: '#1890ff' }}>{kb.docCount}</div>
-                   <div style={{ fontSize: 12, color: '#8c8c8c', marginTop: 2 }}>文档数</div>
-                 </div>
-                 <div style={{ textAlign: 'center' }}>
-                   <div style={{ fontSize: 12, color: '#8c8c8c' }}>更新时间</div>
-                   <div style={{ fontSize: 12, color: '#595959', marginTop: 2, fontWeight: 500 }}>
-                     {new Date(kb.updatedTime).toLocaleDateString()}
-                   </div>
-                 </div>
-               </div>
- 
-               {/* 标签区域 */}
-               <div style={{ marginBottom: 16, minHeight: 32 }}>
-                 <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8 }}>标签</div>
-                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', minHeight: 24 }}>
-                   {kb.tags && kb.tags.length > 0 ? (
-                     <>
-                       {kb.tags.slice(0, 3).map(tag => (
-                         <Tag 
-                           key={tag.id} 
-                           style={{ 
-                             margin: 0,
-                             borderRadius: '12px',
-                             fontSize: '11px',
-                             padding: '2px 8px',
-                             backgroundColor: '#f0f9ff',
-                             border: '1px solid #bae7ff',
-                             color: '#0958d9'
-                           }}
-                         >
-                           {tag.name}
-                         </Tag>
-                       ))}
-                       {kb.tags.length > 3 && (
-                         <Tag style={{ 
-                           margin: 0,
-                           borderRadius: '12px',
-                           fontSize: '11px',
-                           padding: '2px 8px',
-                           backgroundColor: '#f5f5f5',
-                           border: '1px solid #d9d9d9',
-                           color: '#8c8c8c'
-                         }}>
-                           +{kb.tags.length - 3}
-                         </Tag>
-                       )}
-                     </>
-                   ) : (
-                     <span style={{ 
-                       fontSize: '11px',
-                       color: '#bfbfbf',
-                       fontStyle: 'italic',
-                       lineHeight: '24px'
-                     }}>
-                       暂无标签
-                     </span>
-                   )}
-                 </div>
-               </div>
- 
-               {/* 描述区域 */}
-               <div style={{ minHeight: 40 }}>
-                 <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 6 }}>描述</div>
-                 <p style={{ 
-                   color: kb.description ? '#595959' : '#bfbfbf', 
-                   fontSize: 13, 
-                   margin: 0, 
-                   lineHeight: 1.5,
-                   overflow: 'hidden',
-                   textOverflow: 'ellipsis',
-                   whiteSpace: 'nowrap',
-                   fontStyle: kb.description ? 'normal' : 'italic'
-                 }}>
-                   {kb.description || '暂无描述信息'}
-                 </p>
-               </div>
-             </Card>
+                {/* 标签 */}
+                <div style={{ marginBottom: 20, minHeight: 22 }}>
+                  <Space size={[0, 8]} wrap>
+                    {kb.tags && kb.tags.length > 0 ? (
+                      kb.tags.slice(0, 3).map(tag => (
+                        <Tag 
+                          key={tag.id} 
+                          bordered={false}
+                          style={{ 
+                            marginRight: 8,
+                            backgroundColor: token.colorFillQuaternary,
+                            color: token.colorTextSecondary,
+                            borderRadius: 4
+                          }}
+                        >
+                          {tag.name}
+                        </Tag>
+                      ))
+                    ) : (
+                      <Text type="secondary" style={{ fontSize: 12 }}>无标签</Text>
+                    )}
+                  </Space>
+                </div>
+
+                {/* 底部统计 */}
+                <div style={{ 
+                  paddingTop: 16, 
+                  borderTop: `1px solid ${token.colorBorderSecondary}`,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <Space size="small">
+                    <DatabaseOutlined style={{ color: token.colorTextTertiary }} />
+                    <Text type="secondary" style={{ fontSize: 13 }}>
+                      {kb.docCount} 文档
+                    </Text>
+                  </Space>
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    {new Date(kb.updatedTime).toLocaleDateString()}
+                  </Text>
+                </div>
+              </Card>
             ))}
           </div>
-        </Spin>
-        
-        {/* 空状态占位符 */}
-        {!loading && knowledgeBases?.length === 0 && (
-          <div style={{
-            textAlign: 'center',
-            padding: '60px 20px',
-            color: '#8c8c8c'
-          }}>
-            <FileTextOutlined style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }} />
-            <div style={{ fontSize: 16, marginBottom: 8, color: '#595959' }}>暂无知识库</div>
-            <div style={{ fontSize: 14 }}>
-              {searchValue ? '没有找到相关的知识库，请尝试其他关键词' : '还没有创建任何知识库，点击上方按钮开始创建'}
-            </div>
-          </div>
-        )}
-        
-        {/* 加载更多提示 */}
-        {hasMore && !loading && knowledgeBases?.length > 0 && (
-          <div style={{ 
-            padding: '16px 0 24px', 
-            textAlign: 'center',
-            color: '#8c8c8c',
-            fontSize: '14px'
-          }}>
-            滚动到底部加载更多...
-          </div>
-        )}
-        
-        {!hasMore && knowledgeBases?.length > 0 && (
-          <div style={{ 
-            padding: '16px 0 24px', 
-            textAlign: 'center',
-            color: '#8c8c8c',
-            fontSize: '14px'
-          }}>
-            已加载全部数据
-          </div>
-        )}
-      </div>
-
-      {/* 新增知识库模态框 */}
-      <Modal
-          title={
+        ) : (
+          !loading && (
             <div style={{ 
               display: 'flex', 
+              justifyContent: 'center', 
               alignItems: 'center', 
-              gap: '8px',
-              fontSize: '16px',
-              fontWeight: 600,
-              color: '#262626'
+              height: '60vh' 
             }}>
-              {isEditMode ? (
-                <EditOutlined style={{ color: '#1890ff' }} />
-              ) : (
-                <FileTextOutlined style={{ color: '#1890ff' }} />
-              )}
-              {isEditMode ? '编辑知识库' : '新增知识库'}
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={
+                  <Space direction="vertical" align="center">
+                    <Text type="secondary">暂无知识库</Text>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={handleAddKnowledgeBase}>
+                      创建第一个知识库
+                    </Button>
+                  </Space>
+                }
+              />
             </div>
-          }
-          open={createModalVisible}
-          onOk={handleCreateSubmit}
-          onCancel={handleCreateCancel}
-          confirmLoading={createLoading}
-          width={680}
-          destroyOnHidden
-          okText="保存"
-          cancelText="关闭"
-          styles={{
-            body: { 
-              padding: '24px 0 8px',
-              maxHeight: '70vh',
-              overflowY: 'auto'
-            }
-          }}
-        >
+          )
+        )}
+
+        {/* 加载更多提示 */}
+        {hasMore && !loading && knowledgeBases.length > 0 && (
+          <div style={{ textAlign: 'center', padding: '16px 0', color: token.colorTextTertiary }}>
+            <Spin size="small" /> 加载更多...
+          </div>
+        )}
+        
+        {!hasMore && knowledgeBases.length > 0 && (
+          <Divider plain style={{ color: token.colorTextQuaternary, fontSize: 12, margin: '24px 0' }}>
+            已加载全部数据
+          </Divider>
+        )}
+      </Spin>
+    </div>
+  );
+
+  return (
+    <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', background: token.colorBgLayout }}>
+      {renderHeader()}
+      {renderContent()}
+
+      {/* 新增/编辑知识库模态框 */}
+      <Modal
+        title={
+          <Space>
+            {isEditMode ? <EditOutlined style={{ color: token.colorPrimary }} /> : <AppstoreOutlined style={{ color: token.colorPrimary }} />}
+            <span style={{ fontWeight: 600 }}>{isEditMode ? '编辑知识库' : '新建知识库'}</span>
+          </Space>
+        }
+        open={createModalVisible}
+        onOk={handleCreateSubmit}
+        onCancel={handleCreateCancel}
+        confirmLoading={createLoading}
+        width={640}
+        destroyOnHidden
+        maskClosable={false}
+        okText="保存"
+        cancelText="取消"
+        styles={{ body: { padding: '24px 0' } }}
+      >
         <Form
-           form={form}
-           layout="horizontal"
-           labelCol={{ span: 5 }}
-           wrapperCol={{ span: 19 }}
-           requiredMark={false}
-           style={{ padding: '0 24px' }}
-         >
-          {/* 基本信息分组 */}
-          <div style={{ 
-            marginBottom: '24px',
-            padding: '16px',
-            backgroundColor: '#fafafa',
-            borderRadius: '8px',
-            border: '1px solid #f0f0f0'
-          }}>
-            <div style={{ 
-              fontSize: '14px', 
-              fontWeight: 600, 
-              color: '#262626', 
-              marginBottom: '16px',
-              borderLeft: '3px solid #1890ff',
-              paddingLeft: '8px'
-            }}>
-              基本信息
-            </div>
+          form={form}
+          layout="vertical"
+          requiredMark="optional"
+          style={{ padding: '0 24px', maxHeight: '60vh', overflowY: 'auto' }}
+        >
+          <Row gutter={24}>
+            <Col span={24}>
+              <Title level={5} style={{ marginBottom: 16, fontSize: 14 }}>
+                <Space>
+                  <div style={{ width: 4, height: 14, background: token.colorPrimary, borderRadius: 2 }} />
+                  基本信息
+                </Space>
+              </Title>
+            </Col>
+            <Col span={24}>
+              <Form.Item
+                label="知识库名称"
+                name="name"
+                rules={[
+                  { required: true, message: '请输入知识库名称' },
+                  { max: 50, message: '知识库名称不能超过50个字符' }
+                ]}
+              >
+                <Input placeholder="给知识库起个名字，例如：产品文档" size="large" maxLength={50} showCount />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item label="知识库描述" name="description" rules={[{ max: 200, message: '描述不能超过200个字符' }]}>
+                <Input.TextArea 
+                  placeholder="简单描述知识库的内容和用途" 
+                  rows={3} 
+                  maxLength={200} 
+                  showCount 
+                  style={{ resize: 'none' }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item label="标签" name="tags">
+                <Select
+                  mode="tags"
+                  placeholder="输入或选择标签"
+                  tokenSeparators={[',', ' ']}
+                  maxTagCount={5}
+                  size="large"
+                  options={availableTags.map(tag => ({
+                    label: tag.name,
+                    value: JSON.stringify({ id: tag.id, name: tag.name })
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Divider style={{ margin: '12px 0 24px 0' }} />
+
+          <Row gutter={24}>
+            <Col span={24}>
+              <Title level={5} style={{ marginBottom: 16, fontSize: 14 }}>
+                <Space>
+                  <div style={{ width: 4, height: 14, background: token.colorSuccess, borderRadius: 2 }} />
+                  检索配置
+                </Space>
+              </Title>
+            </Col>
             
-            <Form.Item
-               label="知识库名称"
-               name="name"
-               rules={[
-                 { required: true, message: '请输入知识库名称' },
-                 { max: 50, message: '知识库名称不能超过50个字符' }
-               ]}
-               style={{ marginBottom: '20px' }}
-             >
-               <Input 
-                 placeholder="请输入知识库名称" 
-                 style={{ 
-                   borderRadius: '6px',
-                   fontSize: '14px'
-                 }}
-               />
-             </Form.Item>
+            <Col span={24}>
+              <Form.Item
+                label="检索模式"
+                name="retrievalMode"
+                rules={[{ required: true, message: '请选择检索模式' }]}
+              >
+                <Select placeholder="选择检索策略" size="large">
+                  {retrievalModes.map(item => (
+                    <Select.Option key={item.code} value={item.code}>{item.name}</Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
 
-             <Form.Item
-               label="标签"
-               name="tags"
-               style={{ marginBottom: '20px' }}
-             >
-               <Select
-                 mode="tags"
-                 placeholder="请选择已有标签或输入新标签"
-                 tokenSeparators={[',', ' ']}
-                 maxTagCount={5}
-                 style={{ borderRadius: '6px' }}
-                 options={availableTags.map(tag => ({
-                   label: tag.name,
-                   value: JSON.stringify({ id: tag.id, name: tag.name })
-                 }))}
-                 filterOption={(input, option) =>
-                   option?.label?.toLowerCase().includes(input.toLowerCase()) ?? false
-                 }
-               />
-           </Form.Item>
+            <Col span={12}>
+              <Form.Item
+                label={<Space>TopK <Tooltip title="单次召回的最大文档片段数"><SearchOutlined style={{ color: token.colorTextTertiary }} /></Tooltip></Space>}
+                name="topK"
+                rules={[{ required: true, message: '请设置TopK值' }]}
+              >
+                <Slider
+                  min={1}
+                  max={20}
+                  marks={{ 1: '1', 10: '10', 20: '20' }}
+                />
+              </Form.Item>
+            </Col>
 
-           <Form.Item
-             label="描述"
-             name="description"
-             rules={[
-               { max: 200, message: '描述不能超过200个字符' }
-             ]}
-             style={{ marginBottom: '0' }}
-           >
-             <Input.TextArea 
-               placeholder="请输入知识库描述（可选）" 
-               rows={3}
-               showCount
-               maxLength={200}
-               style={{ 
-                 borderRadius: '6px',
-                 fontSize: '14px'
-               }}
-             />
-           </Form.Item>
-          </div>
+            <Col span={12}>
+              <Form.Item
+                label={<Space>向量阈值 <Tooltip title="低于该相似度的文档将被过滤"><CloudServerOutlined style={{ color: token.colorTextTertiary }} /></Tooltip></Space>}
+                name="embedMinScore"
+                rules={[{ required: true, message: '请设置向量召回阈值' }]}
+              >
+                <Slider
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  marks={{ 0: '0', 0.5: '0.5', 1: '1' }}
+                />
+              </Form.Item>
+            </Col>
 
-          {/* 检索配置分组 */}
-          <div style={{ 
-            marginBottom: '16px',
-            padding: '16px',
-            backgroundColor: '#f6ffed',
-            borderRadius: '8px',
-            border: '1px solid #b7eb8f'
-          }}>
-            <div style={{ 
-              fontSize: '14px', 
-              fontWeight: 600, 
-              color: '#262626', 
-              marginBottom: '16px',
-              borderLeft: '3px solid #52c41a',
-              paddingLeft: '8px'
-            }}>
-              检索配置
-            </div>
+            <Col span={24}>
+              <div style={{ background: token.colorFillQuaternary, padding: 16, borderRadius: token.borderRadiusLG }}>
+                <Form.Item
+                  label="启用 Rerank 重排序"
+                  name="rerankEnabled"
+                  valuePropName="checked"
+                  style={{ marginBottom: rerankEnabledState ? 24 : 0 }}
+                >
+                  <Switch checkedChildren="开启" unCheckedChildren="关闭" />
+                </Form.Item>
 
-            <Form.Item
-             label="检索模式"
-             name="retrievalMode"
-             rules={[{ required: true, message: '请选择检索模式' }]}
-             style={{ marginBottom: '20px' }}
-           >
-             <Select
-               placeholder="请选择检索模式"
-               style={{ borderRadius: '6px' }}
-             >
-               {retrievalModes.map(item => (
-                 <Select.Option key={item.code} value={item.code}>
-                   {item.name}
-                 </Select.Option>
-               ))}
-             </Select>
-           </Form.Item>
-
-           <Form.Item
-             label="TopK"
-             name="topK"
-             rules={[{ required: true, message: '请设置TopK值' }]}
-             style={{ marginBottom: '20px' }}
-           >
-             <div style={{ padding: '0 8px' }}>
-               <Slider
-                 min={1}
-                 max={10}
-                 defaultValue={5}
-                 value={topKValue}
-                 marks={{
-                   1: { style: { fontSize: '12px' }, label: '1' },
-                   5: { style: { fontSize: '12px' }, label: '5' },
-                   10: { style: { fontSize: '12px' }, label: '10' },
-                 }}
-                 tooltip={{ formatter: (value) => `TopK: ${value}` }}
-                 styles={{ track: { backgroundColor: '#52c41a' }, handle: { borderColor: '#52c41a' } }}
-                 onChange={(value) => form.setFieldValue('topK', value)}
-               />
-             </div>
-           </Form.Item>
-
-           <Form.Item
-             label="向量召回阈值"
-             name="embedMinScore"
-             rules={[{ required: true, message: '请设置向量召回阈值' }]}
-             style={{ marginBottom: '20px' }}
-           >
-             <div style={{ padding: '0 8px' }}>
-               <Slider
-                 min={0.5}
-                 max={0.95}
-                 step={0.01}
-                 defaultValue={0.5}
-                 value={embedMinScoreValue}
-                 marks={{
-                   0.5: { style: { fontSize: '12px' }, label: '0.5' },
-                   0.7: { style: { fontSize: '12px' }, label: '0.7' },
-                   0.9: { style: { fontSize: '12px' }, label: '0.9' },
-                   0.95: { style: { fontSize: '12px' }, label: '0.95' }
-                 }}
-                 tooltip={{ formatter: (value) => `向量召回阈值: ${value}` }}
-                 styles={{ track: { backgroundColor: '#1890ff' }, handle: { borderColor: '#1890ff' } }}
-                 onChange={(value) => form.setFieldValue('embedMinScore', value)}
-               />
-             </div>
-           </Form.Item>
-
-           <Form.Item
-             label="启用Rerank"
-             name="rerankEnabled"
-             valuePropName="checked"
-             rules={[{ required: true, message: '请选择是否启用Rerank' }]}
-             style={{ marginBottom: rerankEnabledState ? '20px' : '0' }}
-           >
-             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-               <Switch
-                 size="default"
-                 checked={rerankEnabled}
-                 onChange={(checked) => {
-                   form.setFieldValue('rerankEnabled', checked);
-                   setRerankEnabledState(checked);
-                 }}
-               />
-               <span style={{ fontSize: '12px', color: '#8c8c8c' }}>
-                 开启后将对检索结果进行重新排序
-               </span>
-             </div>
-           </Form.Item>
-
-           {rerankEnabledState && (
-             <>
-               <Form.Item
-                 label="Rerank数量"
-                 name="topN"
-                 rules={[{ required: true, message: '请设置Rerank数量' }]}
-                 style={{ marginBottom: '20px' }}
-               >
-                 <div style={{ padding: '0 8px' }}>
-                   <Slider
-                     min={1}
-                     max={10}
-                     defaultValue={5}
-                     value={topNValue}
-                     marks={{
-                       1: { style: { fontSize: '12px' }, label: '1' },
-                       5: { style: { fontSize: '12px' }, label: '5' },
-                       10: { style: { fontSize: '12px' }, label: '10' },
-                     }}
-                     tooltip={{ formatter: (value) => `Rerank数量: ${value}` }}
-                     styles={{ track: { backgroundColor: '#fa8c16' }, handle: { borderColor: '#fa8c16' } }}
-                     onChange={(value) => form.setFieldValue('topN', value)}
-                   />
-                 </div>
-               </Form.Item>
-
-               <Form.Item
-                 label="Rerank召回阈值"
-                 name="rerankMinScore"
-                 style={{ marginBottom: '0' }}
-               >
-                 <div style={{ padding: '0 8px' }}>
-                   <Slider
-                     min={0.35}
-                     max={0.95}
-                     step={0.01}
-                     defaultValue={0.35}
-                     value={rerankMinScoreValue}
-                     marks={{
-                       0.35: { style: { fontSize: '12px' }, label: '0.35' },
-                       0.6: { style: { fontSize: '12px' }, label: '0.6' },
-                       0.8: { style: { fontSize: '12px' }, label: '0.8' },
-                       0.95: { style: { fontSize: '12px' }, label: '0.95' }
-                     }}
-                     tooltip={{ formatter: (value) => `Rerank召回阈值: ${value}` }}
-                     styles={{ track: { backgroundColor: '#fa8c16' }, handle: { borderColor: '#fa8c16' } }}
-                     onChange={(value) => form.setFieldValue('rerankMinScore', value)}
-                   />
-                 </div>
-               </Form.Item>
-             </>
-           )}
-          </div>
+                {rerankEnabledState && (
+                  <Row gutter={24}>
+                    <Col span={12}>
+                      <Form.Item
+                        label="Rerank TopN"
+                        name="topN"
+                        rules={[{ required: true, message: '请设置Rerank数量' }]}
+                        style={{ marginBottom: 0 }}
+                      >
+                        <Slider min={1} max={20} marks={{ 1: '1', 10: '10', 20: '20' }} />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        label="Rerank 阈值"
+                        name="rerankMinScore"
+                        style={{ marginBottom: 0 }}
+                      >
+                        <Slider min={0} max={1} step={0.01} marks={{ 0: '0', 0.5: '0.5', 1: '1' }} />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                )}
+              </div>
+            </Col>
+          </Row>
         </Form>
       </Modal>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, Upload, message } from 'antd';
+import { Modal, Form, Input, Select, Upload, message, theme } from 'antd';
 import { UploadOutlined, LinkOutlined } from '@ant-design/icons';
 import { uploadDocumentWithForm, type DocumentUploadParams, getDictItems, getDocumentTags, type DictItem } from '@/lib/api';
 
@@ -18,6 +18,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
   onSuccess,
   kbId
 }) => {
+  const { token } = theme.useToken();
   const [uploadForm] = Form.useForm();
   const [sourceType, setSourceType] = useState<string>('');
   const [uploading, setUploading] = useState(false);
@@ -139,7 +140,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
   return (
     <Modal
       title={
-        <div style={{ fontSize: '18px', fontWeight: 600, color: '#262626' }}>
+        <div style={{ fontSize: 16, fontWeight: 600, color: token.colorText }}>
           上传文档
         </div>
       }
@@ -150,144 +151,140 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
       }}
       okText="确认上传"
       cancelText="取消"
-      width={700}
+      width={640}
       confirmLoading={uploading}
       styles={{
-        body: { padding: '24px 24px 16px 24px' }
+        body: { padding: '24px 0 0 0' }
       }}
     >
       <Form
         form={uploadForm}
-        layout="horizontal"
-        labelCol={{ span: 6 }}
-        wrapperCol={{ span: 18 }}
+        layout="vertical"
         onFinish={handleSubmit}
       >
-        <Form.Item
-          label="文档标题"
-          name="title"
-          rules={[{ required: true, message: '请输入文档标题' }]}
-          style={{ marginBottom: 20 }}
-        >
-          <Input placeholder="请输入文档标题" size="large" />
-        </Form.Item>
-
-        <Form.Item
-          label="存储类型"
-          name="storageType"
-          rules={[{ required: true, message: '请选择存储类型' }]}
-          style={{ marginBottom: 20 }}
-        >
-          <Select 
-            placeholder="请选择存储类型" 
-            size="large"
-            loading={loadingDict}
-          >
-            {storageTypes.map(item => (
-              <Select.Option key={item.code} value={item.code}>
-                {item.name}
-              </Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-
-        <Form.Item
-          label="文件来源"
-          name="sourceType"
-          rules={[{ required: true, message: '请选择文件来源类型' }]}
-          style={{ marginBottom: 20 }}
-        >
-          <Select 
-            placeholder="请选择文件来源类型"
-            size="large"
-            onChange={(value) => setSourceType(value)}
-          >
-            {sourceTypes.map(item => (
-              <Select.Option key={item.code} value={item.code}>
-                {item.name}
-              </Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-
-        {isUploadType(sourceType) && (
+        <div style={{ padding: '0 24px' }}>
           <Form.Item
-            label="上传文件"
-            name="file"
-            rules={[{ required: true, message: '请选择要上传的文件' }]}
-            style={{ marginBottom: 20 }}
-            wrapperCol={{ span: 18, offset: 0 }}
+            label="文档标题"
+            name="title"
+            rules={[{ required: true, message: '请输入文档标题' }]}
           >
-            <Upload.Dragger
-              name="file"
-              beforeUpload={() => false}
-              maxCount={1}
-              style={{ padding: '20px', borderRadius: '8px' }}
-            >
-              <p className="ant-upload-drag-icon">
-                <UploadOutlined style={{ fontSize: 36, color: '#1890ff' }} />
-              </p>
-              <p className="ant-upload-text" style={{ fontSize: '16px', margin: '8px 0' }}>
-                点击或拖拽文件到此区域
-              </p>
-              <p className="ant-upload-hint" style={{ fontSize: '14px', color: '#999' }}>
-                支持 PDF、DOC、DOCX、TXT 等格式
-              </p>
-            </Upload.Dragger>
+            <Input placeholder="请输入文档标题" />
           </Form.Item>
-        )}
 
-        {isWebType(sourceType) && (
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Form.Item
+              label="存储类型"
+              name="storageType"
+              rules={[{ required: true, message: '请选择存储类型' }]}
+              style={{ flex: 1 }}
+            >
+              <Select 
+                placeholder="请选择存储类型" 
+                loading={loadingDict}
+              >
+                {storageTypes.map(item => (
+                  <Select.Option key={item.code} value={item.code}>
+                    {item.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              label="文件来源"
+              name="sourceType"
+              rules={[{ required: true, message: '请选择文件来源类型' }]}
+              style={{ flex: 1 }}
+            >
+              <Select 
+                placeholder="请选择文件来源类型"
+                onChange={(value) => setSourceType(value)}
+              >
+                {sourceTypes.map(item => (
+                  <Select.Option key={item.code} value={item.code}>
+                    {item.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </div>
+
+          {isUploadType(sourceType) && (
+            <Form.Item
+              label="上传文件"
+              name="file"
+              rules={[{ required: true, message: '请选择要上传的文件' }]}
+            >
+              <Upload.Dragger
+                name="file"
+                beforeUpload={() => false}
+                maxCount={1}
+                style={{ 
+                  padding: '20px', 
+                  borderRadius: token.borderRadius,
+                  background: token.colorFillAlter,
+                  border: `1px dashed ${token.colorBorder}`
+                }}
+              >
+                <p className="ant-upload-drag-icon">
+                  <UploadOutlined style={{ fontSize: 36, color: token.colorPrimary }} />
+                </p>
+                <p className="ant-upload-text" style={{ fontSize: 14, margin: '8px 0', color: token.colorText }}>
+                  点击或拖拽文件到此区域
+                </p>
+                <p className="ant-upload-hint" style={{ fontSize: 12, color: token.colorTextSecondary }}>
+                  支持 PDF、DOC、DOCX、TXT 等格式
+                </p>
+              </Upload.Dragger>
+            </Form.Item>
+          )}
+
+          {isWebType(sourceType) && (
+            <Form.Item
+              label="文件链接"
+              name="uploadFileUrl"
+              rules={[
+                { required: true, message: '请输入文件下载链接' },
+                { type: 'url', message: '请输入有效的URL地址' }
+              ]}
+            >
+              <Input 
+                placeholder="请输入文件下载链接地址"
+                prefix={<LinkOutlined style={{ color: token.colorTextTertiary }} />}
+              />
+            </Form.Item>
+          )}
+
           <Form.Item
-            label="文件链接"
-            name="uploadFileUrl"
-            rules={[
-              { required: true, message: '请输入文件下载链接' },
-              { type: 'url', message: '请输入有效的URL地址' }
-            ]}
-            style={{ marginBottom: 20 }}
+            label="标签"
+            name="tags"
           >
-            <Input 
-              placeholder="请输入文件下载链接地址"
-              prefix={<LinkOutlined style={{ color: '#1890ff' }} />}
-              size="large"
+            <Select
+              mode="tags"
+              placeholder="请选择或输入标签"
+              loading={loadingDict}
+              tokenSeparators={[',', ' ']}
+              options={availableTags.map(tag => ({
+                label: tag.name,
+                value: JSON.stringify({ id: tag.id, name: tag.name })
+              }))}
+              filterOption={(input, option) =>
+                option?.label?.toLowerCase().includes(input.toLowerCase()) ?? false
+              }
             />
           </Form.Item>
-        )}
 
-        <Form.Item
-          label="标签"
-          name="tags"
-          style={{ marginBottom: 20 }}
-          wrapperCol={{ span: 18, offset: 0 }}
-        >
-          <Select
-            mode="tags"
-            placeholder="请选择或输入标签"
-            loading={loadingDict}
-            style={{ borderRadius: '8px' }}
-            tokenSeparators={[',', ' ']}
-            options={availableTags.map(tag => ({
-              label: tag.name,
-              value: JSON.stringify({ id: tag.id, name: tag.name })
-            }))}
-            filterOption={(input, option) =>
-              option?.label?.toLowerCase().includes(input.toLowerCase()) ?? false
-            }
-          />
-        </Form.Item>
-
-        <Form.Item
-          label="文档描述"
-          name="description"
-          style={{ marginBottom: 0 }}
-        >
-          <Input.TextArea 
-            placeholder="请输入文档描述（可选）"
-            rows={3}
-            style={{ resize: 'none' }}
-          />
-        </Form.Item>
+          <Form.Item
+            label="文档描述"
+            name="description"
+          >
+            <Input.TextArea 
+              placeholder="请输入文档描述（可选）"
+              rows={3}
+              style={{ resize: 'none' }}
+            />
+          </Form.Item>
+        </div>
       </Form>
     </Modal>
   );

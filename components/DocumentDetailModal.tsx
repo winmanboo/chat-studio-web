@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Descriptions, Tag, Spin, message, Table, Card } from 'antd';
+import { Modal, Descriptions, Tag, Spin, message, Table, theme, Typography, Space } from 'antd';
 import { DocumentDetail, getDocumentInfo, DocumentChunk, getDocumentChunkPage } from '@/lib/api/documents';
+import { FileTextOutlined, AppstoreOutlined, InfoCircleOutlined } from '@ant-design/icons';
+
+const { Text, Title } = Typography;
 
 interface DocumentDetailModalProps {
   visible: boolean;
@@ -13,6 +16,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
   onClose,
   docId
 }) => {
+  const { token } = theme.useToken();
   const [loading, setLoading] = useState(false);
   const [documentDetail, setDocumentDetail] = useState<DocumentDetail | null>(null);
   const [chunkLoading, setChunkLoading] = useState(false);
@@ -90,19 +94,29 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
 
   const chunkColumns = [
     {
-      title: '分块序号',
+      title: '序号',
       dataIndex: 'chunkIndex',
       key: 'chunkIndex',
-      width: 100,
+      width: 80,
+      align: 'center' as const,
       render: (index: number) => index + 1
     },
     {
       title: '分块内容',
       dataIndex: 'content',
       key: 'content',
-      ellipsis: true,
       render: (content: string) => (
-        <div style={{ maxHeight: '100px', overflow: 'auto' }}>
+        <div style={{ 
+          maxHeight: '120px', 
+          overflowY: 'auto',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-all',
+          background: token.colorFillQuaternary,
+          padding: '8px 12px',
+          borderRadius: token.borderRadius,
+          fontSize: 13,
+          color: token.colorText
+        }}>
           {content}
         </div>
       )
@@ -111,96 +125,133 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
 
   return (
     <Modal
-      title="文档详情"
+      title={
+        <Space>
+          <FileTextOutlined style={{ color: token.colorPrimary }} />
+          <span style={{ fontSize: 16, fontWeight: 600 }}>文档详情</span>
+        </Space>
+      }
       open={visible}
       onCancel={onClose}
       footer={null}
-      width={1000}
+      width={900}
       destroyOnClose
+      styles={{
+        body: { padding: '20px 24px' }
+      }}
     >
       <Spin spinning={loading}>
         {documentDetail && (
-          <>
-            <Descriptions column={2} bordered style={{ marginBottom: 24 }}>
-              <Descriptions.Item label="文档ID" span={2}>
-                {documentDetail.docId}
-              </Descriptions.Item>
-              
-              <Descriptions.Item label="文档标题" span={2}>
-                {documentDetail.title}
-              </Descriptions.Item>
-              
-              <Descriptions.Item label="文件来源">
-                <Tag color="blue">{documentDetail.sourceType}</Tag>
-              </Descriptions.Item>
-              
-              <Descriptions.Item label="分块数量">
-                {documentDetail.chunkSize}
-              </Descriptions.Item>
-              
-              <Descriptions.Item label="输入Token">
-                {documentDetail.inputTokenCount || '-'}
-              </Descriptions.Item>
-              
-              <Descriptions.Item label="输出Token">
-                {documentDetail.outputTokenCount || '-'}
-              </Descriptions.Item>
-              
-              <Descriptions.Item label="总Token数">
-                {documentDetail.totalTokenCount || '-'}
-              </Descriptions.Item>
-              
-              <Descriptions.Item label="标签">
-                {documentDetail.tags && documentDetail.tags.length > 0 ? (
-                  documentDetail.tags.map((tag, index) => (
-                    <Tag key={index} color="green">{tag}</Tag>
-                  ))
-                ) : (
-                  '-'
-                )}
-              </Descriptions.Item>
-              
-              <Descriptions.Item label="描述" span={2}>
-                {documentDetail.description || '-'}
-              </Descriptions.Item>
-              
-              {documentDetail.fileUploads && (
-                <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {/* 基本信息 */}
+            <div>
+              <Title level={5} style={{ fontSize: 14, marginBottom: 16 }}>
+                <Space>
+                  <InfoCircleOutlined />
+                  基本信息
+                </Space>
+              </Title>
+              <Descriptions 
+                column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} 
+                bordered 
+                size="small"
+                labelStyle={{ width: '120px', background: token.colorFillQuaternary }}
+              >
+                <Descriptions.Item label="文档ID" span={2}>
+                  <Text copyable>{documentDetail.docId}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="来源类型">
+                  <Tag color="blue">{documentDetail.sourceType}</Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="文档标题" span={3}>
+                  {documentDetail.title}
+                </Descriptions.Item>
+                <Descriptions.Item label="分块数量">
+                  {documentDetail.chunkSize}
+                </Descriptions.Item>
+                <Descriptions.Item label="输入Token">
+                  {documentDetail.inputTokenCount?.toLocaleString() || '-'}
+                </Descriptions.Item>
+                <Descriptions.Item label="输出Token">
+                  {documentDetail.outputTokenCount?.toLocaleString() || '-'}
+                </Descriptions.Item>
+                <Descriptions.Item label="总Token数" span={3}>
+                  {documentDetail.totalTokenCount?.toLocaleString() || '-'}
+                </Descriptions.Item>
+                <Descriptions.Item label="标签" span={3}>
+                  {documentDetail.tags && documentDetail.tags.length > 0 ? (
+                    <Space size={4} wrap>
+                      {documentDetail.tags.map((tag, index) => (
+                        <Tag key={index} bordered={false} style={{ background: token.colorFillSecondary }}>{tag}</Tag>
+                      ))}
+                    </Space>
+                  ) : (
+                    <Text type="secondary">-</Text>
+                  )}
+                </Descriptions.Item>
+                <Descriptions.Item label="描述" span={3}>
+                  {documentDetail.description || <Text type="secondary">暂无描述</Text>}
+                </Descriptions.Item>
+              </Descriptions>
+            </div>
+
+            {/* 文件信息 */}
+            {documentDetail.fileUploads && (
+              <div>
+                 <Title level={5} style={{ fontSize: 14, marginBottom: 16 }}>
+                  <Space>
+                    <FileTextOutlined />
+                    文件信息
+                  </Space>
+                </Title>
+                <Descriptions 
+                  column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} 
+                  bordered 
+                  size="small"
+                  labelStyle={{ width: '120px', background: token.colorFillQuaternary }}
+                >
                   <Descriptions.Item label="原始文件名" span={2}>
                     {documentDetail.fileUploads.originalName}
                   </Descriptions.Item>
-                  
                   <Descriptions.Item label="存储类型">
                     <Tag color="orange">{documentDetail.fileUploads.storageType}</Tag>
                   </Descriptions.Item>
-                  
                   <Descriptions.Item label="文件大小">
                     {formatFileSize(documentDetail.fileUploads.size)}
                   </Descriptions.Item>
-                  
                   <Descriptions.Item label="文件类型">
                     <Tag color="purple">{documentDetail.fileUploads.contentType}</Tag>
                   </Descriptions.Item>
-                  
                   <Descriptions.Item label="上传时间">
                     {formatDate(documentDetail.fileUploads.createdTime)}
                   </Descriptions.Item>
-                  
-                  <Descriptions.Item label="存储路径" span={2}>
-                    <code style={{ fontSize: '12px', wordBreak: 'break-all' }}>
+                  <Descriptions.Item label="存储路径" span={3}>
+                    <Text type="secondary" style={{ fontSize: 12 }}>
                       {documentDetail.fileUploads.storagePath}
-                    </code>
+                    </Text>
                   </Descriptions.Item>
-                </>
-              )}
-            </Descriptions>
+                </Descriptions>
+              </div>
+            )}
 
-            <Card title="文档分块列表" style={{ marginTop: 16 }}>
+            {/* 分块列表 */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <Title level={5} style={{ fontSize: 14, margin: 0 }}>
+                  <Space>
+                    <AppstoreOutlined />
+                    分块预览
+                  </Space>
+                </Title>
+                <Tag color="processing">共 {chunkPagination.total} 个分块</Tag>
+              </div>
               <Table
                 columns={chunkColumns}
                 dataSource={chunks}
                 rowKey="chunkId"
                 loading={chunkLoading}
+                size="small"
+                bordered
                 pagination={{
                   current: chunkPagination.current,
                   pageSize: chunkPagination.pageSize,
@@ -212,8 +263,8 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
                   onShowSizeChange: handleChunkPageChange
                 }}
               />
-            </Card>
-          </>
+            </div>
+          </div>
         )}
       </Spin>
     </Modal>
