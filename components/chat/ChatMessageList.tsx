@@ -2,17 +2,16 @@ import { Avatar, Spin, Flex } from "antd";
 import React from "react";
 import { Streamdown } from "streamdown";
 
-import ToolRenderer from "@/components/chat/ToolRenderer";
 import { renderMarkdown } from "@/components/MarkdownRenderer";
-import RetrieveResultsDisplay from "@/components/RetrieveResultsDisplay";
 import { extractThinkingContent } from "@/lib/utils/thinkingUtils";
 import { extractAllToolNames, extractToolContent } from "@/lib/utils/toolUtils";
 import {
-  LoadingOutlined,
   RobotOutlined,
   UserOutlined,
+  FileTextOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
-import { Actions, Bubble, Think } from "@ant-design/x";
+import { Actions, Bubble, Think, Sources } from "@ant-design/x";
 
 // 检索结果类型定义
 interface RetrieveResult {
@@ -138,15 +137,26 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
 
                   {/* 检索结果显示 */}
                   {msg.retrieveMode && msg.kbName && msg.retrieves && (
-                    <RetrieveResultsDisplay
-                      kbName={msg.kbName}
-                      retrieves={msg.retrieves}
+                    <Sources
+                      items={msg.retrieves.map((r) => ({
+                        key: r.docId,
+                        title: r.title,
+                        icon: <FileTextOutlined />,
+                      }))}
+                      title={`在知识库「${msg.kbName}」中找到 ${msg.retrieves.length} 个相关文件`}
                     />
                   )}
 
                   {/* 工具调用显示 */}
                   {allToolNames.length > 0 && (
-                    <ToolRenderer toolNames={allToolNames} />
+                    <Sources
+                      items={allToolNames.map((name) => ({
+                        key: name,
+                        title: name,
+                        icon: <ToolOutlined />,
+                      }))}
+                      title="工具调用"
+                    />
                   )}
 
                   {/* 消息内容 */}
