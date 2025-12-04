@@ -1,10 +1,13 @@
-import { Avatar, Spin, Flex } from "antd";
-import React from "react";
+import { Avatar, Spin, Flex, Drawer, Card, message, Typography, Tag } from "antd";
+import React, { useState } from "react";
 import { Streamdown } from "streamdown";
+
+const { Text } = Typography;
 
 import { renderMarkdown } from "@/components/MarkdownRenderer";
 import { extractThinkingContent } from "@/lib/utils/thinkingUtils";
 import { extractAllToolNames, extractToolContent } from "@/lib/utils/toolUtils";
+import { getRetrieveChunks, DocumentChunk } from "@/lib/api/documents";
 import {
   RobotOutlined,
   UserOutlined,
@@ -46,6 +49,28 @@ export interface ChatMessageListProps {
 }
 
 const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [drawerTitle, setDrawerTitle] = useState('');
+  const [drawerLoading, setDrawerLoading] = useState(false);
+  const [retrievedChunks, setRetrievedChunks] = useState<DocumentChunk[]>([]);
+
+  const handleSourceClick = async (docId: string, title: string, chunkIndexs: string[]) => {
+    setDrawerTitle(title);
+    setDrawerVisible(true);
+    setDrawerLoading(true);
+    setRetrievedChunks([]);
+
+    try {
+      const chunks = await getRetrieveChunks(docId, chunkIndexs);
+      setRetrievedChunks(chunks);
+    } catch (error) {
+      console.error('Failed to fetch chunks:', error);
+      message.error('获取分块内容失败');
+    } finally {
+      setDrawerLoading(false);
+    }
+  };
+
   return (
     <>
       <Bubble.List
@@ -145,6 +170,12 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
                         title: r.title,
                         icon: <FileTextOutlined />,
                       }))}
+                      onClick={(item) => {
+                        const r = msg.retrieves?.find((retrieve) => retrieve.docId === item.key);
+                        if (r) {
+                          handleSourceClick(r.docId, r.title, r.chunkIndexs);
+                        }
+                      }}
                       title={`在知识库「${msg.kbName}」中找到 ${msg.retrieves.length} 个相关文件`}
                     />
                   )}
@@ -196,6 +227,35 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
           },
         }}
       />
+      
+      <Drawer
+        title={drawerTitle}
+        placement="right"
+        onClose={() => setDrawerVisible(false)}
+        open={drawerVisible}
+        width={600}
+      >
+        <Spin spinning={drawerLoading}>
+          <Flex vertical gap={16}>
+            {retrievedChunks.map((chunk, index) => (
+              <Card 
+                key={chunk.chunkId || index} 
+                size="small" 
+                title={
+                  <Flex align="center" gap="small">
+                    <span>分块 {chunk.chunkIndex !== undefined ? chunk.chunkIndex : index + 1}</span>
+                    {chunk.chunkId && <Tag color="blue">ID: {chunk.chunkId}</Tag>}
+                  </Flex>
+                }
+                type="inner"
+                bordered={true}
+              >
+                <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{chunk.content}</div>
+              </Card>
+            ))}
+          </Flex>
+        </Spin>
+      </Drawer>
     </>
   );
 };

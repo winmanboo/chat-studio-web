@@ -206,3 +206,13 @@ export const getDocumentChunkPage = async (params: DocumentChunkPageParams): Pro
     }
   });
 };
+
+// 获取检索的分块内容列表
+export const getRetrieveChunks = async (docId: string, indexes: string[]): Promise<DocumentChunk[]> => {
+  return await request.get('/doc/chunk/retrieves', {
+    params: {
+      docId,
+      indexes: indexes.join(',')
+    }
+  });
+};
