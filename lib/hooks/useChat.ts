@@ -106,8 +106,9 @@ export const useChat = ({
           prompt: message,
           ...(modelToUse?.providerId && { providerId: modelToUse.providerId }),
           ...(modelToUse?.modelName && { modelName: modelToUse.modelName }),
-          searchEnabled: searchMode === "web",
-          ragEnabled: searchMode === "kb",
+          search: searchMode === "web",
+          retrieval: searchMode === "kb",
+          thinking: searchMode === "think",
           ...(searchMode === "kb" && selectedKb && { kbId: selectedKb.id }),
         };
 

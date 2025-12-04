@@ -64,9 +64,10 @@ export interface ChatRequest {
   prompt: string;
   providerId?: string; // 模型提供商ID
   modelName?: string; // 模型名称
-  searchEnabled?: boolean;
-  ragEnabled?: boolean;
-  kbId?: number; // 知识库ID，当ragEnabled为true时使用
+  search?: boolean;
+  retrieval?: boolean;
+  thinking?: boolean;
+  kbId?: number; // 知识库ID，当retrieval为true时使用
 }
 
 // 聊天接口返回类型 - 流式响应，这里只做类型声明
