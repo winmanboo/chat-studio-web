@@ -146,7 +146,6 @@ export interface ModelSettings {
   useDefault?: boolean;
   maxTokens?: number;
   temperature?: number;
-  topK?: number;
   topP?: number;
   stopSequences?: string;
   frequencyPenalty?: number;
