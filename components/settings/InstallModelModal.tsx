@@ -227,19 +227,6 @@ const InstallModelModal: React.FC<InstallModelModalProps> = ({
               "核采样。模型会考虑概率质量为 Top P 的 token 结果。0.1 意味着只考虑前 10% 概率质量的 token。"
             )}
             
-            <Form.Item
-              label="Top K"
-              name="topK"
-              tooltip="仅从概率最高的 K 个 token 中进行采样"
-            >
-              <InputNumber 
-                placeholder="默认" 
-                style={{ width: '100%' }} 
-                min={1}
-                precision={0}
-              />
-            </Form.Item>
-
             {renderSliderInput(
               "frequencyPenalty", 
               "Frequency Penalty", 
