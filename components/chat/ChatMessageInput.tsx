@@ -94,10 +94,15 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
       onChange={onChange}
       placeholder={placeholder}
       allowSpeech={true}
-      readOnly={loading}
       disabled={disabled}
       suffix={false}
       onSubmit={(val) => {
+        if (loading) {
+          return;
+        }
+        if (!val.trim()) {
+          return;
+        }
         onSubmit(val);
       }}
       onCancel={onCancel}
