@@ -107,8 +107,6 @@ pnpm release:prod     # 生产环境构建
 - **语言**: TypeScript
 - **样式**: Ant Design
 - **包管理**: pnpm
-- **版本管理**: 自定义环境感知系统
-- **离线支持**: Service Worker
 
 ## 部署
 

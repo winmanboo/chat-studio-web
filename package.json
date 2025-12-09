@@ -6,19 +6,7 @@
     "dev": "next dev",
     "build": "NODE_OPTIONS=--max-old-space-size=2048 next build",
     "start": "next start",
-    "lint": "next lint",
-    "version:patch": "node scripts/update-version.js patch",
-    "version:minor": "node scripts/update-version.js minor",
-    "version:major": "node scripts/update-version.js major",
-    "version:dev": "node scripts/update-version.js dev",
-    "version:beta": "node scripts/update-version.js beta",
-    "release:dev": "pnpm version:dev && pnpm build",
-    "release:beta": "pnpm version:beta && pnpm build",
-    "release:patch": "pnpm version:patch && pnpm build",
-    "release:minor": "pnpm version:minor && pnpm build",
-    "release:major": "pnpm version:major && pnpm build",
-    "deploy:dev": "pnpm release:dev && pnpm start",
-    "deploy:prod": "pnpm release:patch && pnpm start"
+    "lint": "next lint"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",

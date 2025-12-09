@@ -4,9 +4,7 @@ import { usePathname } from "next/navigation";
 import HeaderComponent from "./Header";
 import UserModal from "./UserModal";
 import SettingsModal from "./SettingsModal";
-import VersionUpdateModal from "./VersionUpdateModal";
 import { logout, UserInfo } from "../lib/api";
-import { useServiceWorker } from "../lib/hooks/useServiceWorker";
 
 interface AppMainProps {
   children: React.ReactNode;
@@ -18,13 +16,6 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
   const [userModalOpen, setUserModalOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-
-  // 版本更新相关状态
-  const {
-    hasUpdate,
-    versionData,
-    dismissUpdate,
-  } = useServiceWorker();
 
   // 根据当前路径确定选中的tab
   const getSelectedTab = () => {
@@ -83,19 +74,6 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
     }
   };
   
-  // 版本更新相关处理函数
-  const handleVersionUpdateClose = () => {
-    dismissUpdate();
-  };
-  
-  const handleRefresh = () => {
-    window.location.reload();
-  };
-  
-  const handleOpenNewTab = () => {
-    window.open(window.location.href, '_blank');
-  };
-
   const handleLogout = async () => {
     try {
       // 调用登出接口
@@ -139,13 +117,6 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
         open={settingsModalOpen}
         onClose={handleSettingsModalClose}
         userInfo={userInfo}
-      />
-      <VersionUpdateModal
-        visible={hasUpdate}
-        versionData={versionData}
-        onClose={handleVersionUpdateClose}
-        onRefresh={handleRefresh}
-        onOpenNewTab={handleOpenNewTab}
       />
     </div>
   );
