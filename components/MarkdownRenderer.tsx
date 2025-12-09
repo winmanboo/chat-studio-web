@@ -1,9 +1,22 @@
 "use client";
 import React from "react";
-import { Streamdown } from "streamdown";
+import XMarkdown, { type ComponentProps } from "@ant-design/x-markdown";
+import Latex from "@ant-design/x-markdown/plugins/Latex";
+import { CodeHighlighter, Mermaid } from "@ant-design/x";
 
-// Streamdown渲染组件
-const StreamdownRenderer: React.FC<{ content: string }> = React.memo(
+const Code: React.FC<ComponentProps> = (props) => {
+  const { className, children } = props;
+  const lang = className?.match(/language-(\w+)/)?.[1] || "";
+
+  if (typeof children !== "string") return null;
+  if (lang === "mermaid") {
+    return <Mermaid>{children}</Mermaid>;
+  }
+  return <CodeHighlighter lang={lang}>{children}</CodeHighlighter>;
+};
+
+// Markdown渲染组件
+const MarkdownRendererInternal: React.FC<{ content: string }> = React.memo(
   ({ content }) => {
     // 如果内容不是字符串，直接返回
     if (typeof content !== "string") {
@@ -17,21 +30,23 @@ const StreamdownRenderer: React.FC<{ content: string }> = React.memo(
 
     return (
       <div className="markdown-content">
-        <Streamdown
-          controls={{
-            code: true,
-            table: true,
-            mermaid: true,
+        <XMarkdown
+          content={content}
+          streaming={{
+            enableAnimation: true,
+            hasNextChunk: true,
+            animationConfig: { fadeDuration: 250 },
           }}
-        >
-          {content}
-        </Streamdown>
+          components={{ code: Code }}
+          paragraphTag="div"
+          config={{ extensions: Latex() }}
+        />
       </div>
     );
   }
 );
 
-StreamdownRenderer.displayName = "StreamdownRenderer";
+MarkdownRendererInternal.displayName = "MarkdownRendererInternal";
 
 // Markdown渲染函数
 export const renderMarkdown = (content: string): React.ReactNode => {
@@ -45,7 +60,7 @@ export const renderMarkdown = (content: string): React.ReactNode => {
     return "";
   }
 
-  return <StreamdownRenderer content={content} />;
+  return <MarkdownRendererInternal content={content} />;
 };
 
-export default StreamdownRenderer;
+export default MarkdownRendererInternal;

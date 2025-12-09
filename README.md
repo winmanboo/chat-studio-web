@@ -105,7 +105,7 @@ pnpm release:prod     # 生产环境构建
 
 - **框架**: Next.js 14 (App Router)
 - **语言**: TypeScript
-- **样式**: Tailwind CSS
+- **样式**: Ant Design
 - **包管理**: pnpm
 - **版本管理**: 自定义环境感知系统
 - **离线支持**: Service Worker

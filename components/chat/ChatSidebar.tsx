@@ -1,5 +1,4 @@
 import { Button, Spin, theme } from "antd";
-import KeyCode from "rc-util/lib/KeyCode";
 import React from "react";
 
 import {
@@ -177,10 +176,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   onClick: onAddConversation,
                 }
               }
-              shortcutKeys={{
-                creation: ["Meta", KeyCode.O],
-                items: ["Alt", "number"],
-              }}
             />
           );
         })()}

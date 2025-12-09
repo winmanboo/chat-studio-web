@@ -1,6 +1,5 @@
 import { Avatar, Spin, Flex, Drawer, Card, message, Typography, Tag } from "antd";
 import React, { useState } from "react";
-import { Streamdown } from "streamdown";
 
 const { Text } = Typography;
 
@@ -158,7 +157,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
                   {/* 深度思考区域 */}
                   {thinkingText && (
                     <Think blink defaultExpanded={false} title={"深度思考"}>
-                      <Streamdown>{thinkingText}</Streamdown>
+                      {renderMarkdown(thinkingText)}
                     </Think>
                   )}
 
