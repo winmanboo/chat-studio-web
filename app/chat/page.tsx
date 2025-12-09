@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { ConversationsProps } from "@ant-design/x";
-import { MessageInfo } from "@ant-design/x-sdk";
 
 import ModelSelectButton from "@/components/ModelSelectButton";
 import {

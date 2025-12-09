@@ -172,7 +172,7 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
                   }}
                 />
               </Upload>
-              <Divider type="vertical" />
+              <Divider orientation="vertical" />
               {loading ? (
                 <LoadingButton type="default" />
               ) : (
