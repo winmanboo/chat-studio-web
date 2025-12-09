@@ -221,7 +221,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
                     {formatFileSize(documentDetail.fileUploads.size)}
                   </Descriptions.Item>
                   <Descriptions.Item label="文件类型">
-                    <Tag color="purple">{documentDetail.fileUploads.contentType}</Tag>
+                    <Tag color="purple" style={{ whiteSpace: 'normal', wordBreak: 'break-all', maxWidth: '100%' }}>{documentDetail.fileUploads.contentType}</Tag>
                   </Descriptions.Item>
                   <Descriptions.Item label="上传时间">
                     {formatDate(documentDetail.fileUploads.createdTime)}
