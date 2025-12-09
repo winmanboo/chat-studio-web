@@ -135,7 +135,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
       onCancel={onClose}
       footer={null}
       width={900}
-      destroyOnClose
+      destroyOnHidden
       styles={{
         body: { padding: '20px 24px' }
       }}

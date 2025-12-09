@@ -94,7 +94,7 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
       onCancel={handleCancelModal}
       footer={null}
       width={640}
-      destroyOnClose
+      destroyOnHidden
       centered
       styles={{
         body: { padding: '24px' }
