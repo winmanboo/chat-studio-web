@@ -91,11 +91,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div
         style={{
           flex: 1,
-          width: "100%",
           overflowY: "auto",
           overflowX: "hidden",
           padding: collapsed ? 0 : 8,
           display: collapsed ? "none" : "block",
+          boxSizing: "border-box",
         }}
       >
         {(() => {
@@ -154,7 +154,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
-                        width: "100%",
+                        flex: 1,
+                        minWidth: 0,
                       }}
                     >
                       <span>新建对话</span>
