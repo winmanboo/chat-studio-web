@@ -111,6 +111,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
           overflowY: 'auto',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-all',
+          maxWidth: '720px',
           background: token.colorFillQuaternary,
           padding: '8px 12px',
           borderRadius: token.borderRadius,
