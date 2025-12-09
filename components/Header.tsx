@@ -176,7 +176,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
               {workbenchTabs.map(renderTabButton)}
             </Flex>
 
-            <Divider type="vertical" style={{ height: 24, margin: 0, borderColor: token.colorBorderSecondary }} />
+            <Divider orientation="vertical" style={{ height: 24, margin: 0, borderColor: token.colorBorderSecondary }} />
 
             {/* 高级功能分组 */}
             <Flex align="center" gap={4}>

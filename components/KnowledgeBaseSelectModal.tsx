@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, List, Input, Spin, message, Tag, Empty, Pagination, theme, Typography, Flex, Avatar, Space } from 'antd';
+import { Modal, Input, Spin, message, Tag, Empty, Pagination, theme, Typography, Flex, Space } from 'antd';
 import { SearchOutlined, DatabaseOutlined, CalendarOutlined, FileTextOutlined } from '@ant-design/icons';
 import { getKnowledgeBasePage, KnowledgeBase, PageParams } from '@/lib/api/knowledgebase';
 
@@ -121,114 +121,110 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ maxHeight: '480px', overflowY: 'auto', paddingRight: 4 }}>
-              <List
-                dataSource={knowledgeBases}
-                split={false}
-                renderItem={(item) => (
-                  <List.Item
-                    key={item.id}
-                    onClick={() => handleSelectKb(item)}
-                    style={{
-                      cursor: 'pointer',
-                      padding: '16px',
-                      borderRadius: token.borderRadiusLG,
-                      border: `1px solid ${token.colorBorderSecondary}`,
-                      marginBottom: 12,
-                      backgroundColor: token.colorBgContainer,
-                      transition: 'all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1)',
-                    }}
-                    className="kb-item"
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = token.colorPrimary;
-                      e.currentTarget.style.boxShadow = token.boxShadow;
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = token.colorBorderSecondary;
-                      e.currentTarget.style.boxShadow = 'none';
-                      e.currentTarget.style.transform = 'none';
-                    }}
-                  >
-                    <Flex gap={16} style={{ width: '100%' }} align="start">
-                      {/* 图标区域 */}
-                      <div
-                        style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 12,
-                          backgroundColor: token.colorPrimaryBg,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <DatabaseOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
-                      </div>
+              {knowledgeBases.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => handleSelectKb(item)}
+                  style={{
+                    cursor: 'pointer',
+                    padding: '16px',
+                    borderRadius: token.borderRadiusLG,
+                    border: `1px solid ${token.colorBorderSecondary}`,
+                    marginBottom: 12,
+                    backgroundColor: token.colorBgContainer,
+                    transition: 'all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1)',
+                  }}
+                  className="kb-item"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = token.colorPrimary;
+                    e.currentTarget.style.boxShadow = token.boxShadow;
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = token.colorBorderSecondary;
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.transform = 'none';
+                  }}
+                >
+                  <Flex gap={16} style={{ width: '100%' }} align="start">
+                    {/* 图标区域 */}
+                    <div
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 12,
+                        backgroundColor: token.colorPrimaryBg,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <DatabaseOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
+                    </div>
 
-                      {/* 内容区域 */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <Flex justify="space-between" align="center" style={{ marginBottom: 4 }}>
-                          <Text strong style={{ fontSize: 16, color: token.colorText }}>
-                            {item.name}
-                          </Text>
-                          <Tag 
-                            color="blue" 
-                            icon={<FileTextOutlined />} 
-                            style={{ margin: 0, borderRadius: 12, padding: '0 10px' }}
-                          >
-                            {item.docCount} 文档
-                          </Tag>
-                        </Flex>
-
-                        <Text 
-                          type="secondary" 
-                          style={{ 
-                            display: 'block', 
-                            marginBottom: 12, 
-                            fontSize: 14,
-                            lineHeight: 1.5,
-                            ...(!item.description ? { fontStyle: 'italic', opacity: 0.6 } : {})
-                          }}
-                          ellipsis={{ tooltip: true }}
-                        >
-                          {item.description || '暂无描述信息'}
+                    {/* 内容区域 */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Flex justify="space-between" align="center" style={{ marginBottom: 4 }}>
+                        <Text strong style={{ fontSize: 16, color: token.colorText }}>
+                          {item.name}
                         </Text>
+                        <Tag 
+                          color="blue" 
+                          icon={<FileTextOutlined />} 
+                          style={{ margin: 0, borderRadius: 12, padding: '0 10px' }}
+                        >
+                          {item.docCount} 文档
+                        </Tag>
+                      </Flex>
 
-                        <Flex justify="space-between" align="center">
-                          <Space size={[0, 8]} wrap style={{ flex: 1 }}>
-                            {item.tags && item.tags.length > 0 ? (
-                              item.tags.slice(0, 3).map(tag => (
-                                <Tag 
-                                  key={tag.id} 
-                                  bordered={false}
-                                  style={{ 
-                                    background: token.colorFillQuaternary,
-                                    color: token.colorTextSecondary,
-                                    marginRight: 4
-                                  }}
-                                >
-                                  {tag.name}
-                                </Tag>
-                              ))
-                            ) : (
-                              <span />
-                            )}
-                            {item.tags && item.tags.length > 3 && (
-                              <Text type="secondary" style={{ fontSize: 12 }}>+{item.tags.length - 3}</Text>
-                            )}
-                          </Space>
+                      <Text 
+                        type="secondary" 
+                        style={{ 
+                          display: 'block', 
+                          marginBottom: 12, 
+                          fontSize: 14,
+                          lineHeight: 1.5,
+                          ...(!item.description ? { fontStyle: 'italic', opacity: 0.6 } : {})
+                        }}
+                        ellipsis={{ tooltip: true }}
+                      >
+                        {item.description || '暂无描述信息'}
+                      </Text>
 
-                          <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <CalendarOutlined />
-                            {new Date(item.createdTime).toLocaleDateString()}
-                          </Text>
-                        </Flex>
-                      </div>
-                    </Flex>
-                  </List.Item>
-                )}
-              />
+                      <Flex justify="space-between" align="center">
+                        <Space size={[0, 8]} wrap style={{ flex: 1 }}>
+                          {item.tags && item.tags.length > 0 ? (
+                            item.tags.slice(0, 3).map(tag => (
+                              <Tag 
+                                key={tag.id} 
+                                bordered={false}
+                                style={{ 
+                                  background: token.colorFillQuaternary,
+                                  color: token.colorTextSecondary,
+                                  marginRight: 4
+                                }}
+                              >
+                                {tag.name}
+                              </Tag>
+                            ))
+                          ) : (
+                            <span />
+                          )}
+                          {item.tags && item.tags.length > 3 && (
+                            <Text type="secondary" style={{ fontSize: 12 }}>+{item.tags.length - 3}</Text>
+                          )}
+                        </Space>
+
+                        <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <CalendarOutlined />
+                          {new Date(item.createdTime).toLocaleDateString()}
+                        </Text>
+                      </Flex>
+                    </div>
+                  </Flex>
+                </div>
+              ))}
             </div>
             
             {total > pageSize && (

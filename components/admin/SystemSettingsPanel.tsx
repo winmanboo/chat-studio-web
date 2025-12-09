@@ -13,7 +13,7 @@ const SystemSettingsPanel: React.FC<SystemSettingsPanelProps> = () => {
   return (
     <div>
       <Title level={3}>系统设置</Title>
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      <Space orientation="vertical" size="large" style={{ width: '100%' }}>
         <Card title="基础配置">
           <Text type="secondary">系统基础参数配置</Text>
         </Card>

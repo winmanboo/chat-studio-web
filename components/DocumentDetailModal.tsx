@@ -155,7 +155,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
                 column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} 
                 bordered 
                 size="small"
-                labelStyle={{ width: '120px', background: token.colorFillQuaternary }}
+                styles={{ label: { width: '120px', background: token.colorFillQuaternary } }}
               >
                 <Descriptions.Item label="文档ID" span={2}>
                   <Text copyable>{documentDetail.docId}</Text>
@@ -208,7 +208,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
                   column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} 
                   bordered 
                   size="small"
-                  labelStyle={{ width: '120px', background: token.colorFillQuaternary }}
+                  styles={{ label: { width: '120px', background: token.colorFillQuaternary } }}
                 >
                   <Descriptions.Item label="原始文件名" span={2}>
                     {documentDetail.fileUploads.originalName}

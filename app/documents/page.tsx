@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { Table, Button, Input, Tag, Space, Modal, message, Tooltip, theme, Typography, Empty } from 'antd';
+import { Table, Button, Input, Tag, Space, App, Tooltip, theme, Typography, Empty } from 'antd';
 import { 
   UploadOutlined, 
   DeleteOutlined, 
@@ -20,6 +20,7 @@ import DocumentDetailModal from '@/components/DocumentDetailModal';
 const { Title, Text } = Typography;
 
 const DocumentsPageContent: React.FC = () => {
+  const { message, modal } = App.useApp();
   const searchParams = useSearchParams();
   const router = useRouter();
   const kbId = searchParams.get('kbId');
@@ -124,7 +125,7 @@ const DocumentsPageContent: React.FC = () => {
 
   // 删除文档
   const handleDelete = (doc: Document) => {
-    Modal.confirm({
+    modal.confirm({
       title: '确认删除',
       icon: <ExclamationCircleOutlined style={{ color: token.colorError }} />,
       content: `确定要删除文档 "${doc.title}" 吗？此操作不可撤销。`,
@@ -166,7 +167,7 @@ const DocumentsPageContent: React.FC = () => {
       }}>
         <Empty
           description={
-            <Space direction="vertical" align="center">
+            <Space orientation="vertical" align="center">
               <Text>缺少知识库ID参数</Text>
               <Button type="primary" onClick={handleBack}>返回知识库</Button>
             </Space>
@@ -273,7 +274,7 @@ const DocumentsPageContent: React.FC = () => {
                 <Empty
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                   description={
-                    <Space direction="vertical" size="small">
+                    <Space orientation="vertical" size="small">
                       <Text type="secondary">暂无文档</Text>
                       <Button type="link" onClick={() => setUploadModalVisible(true)}>
                         上传第一个文档
@@ -307,7 +308,7 @@ const DocumentsPageContent: React.FC = () => {
                     </div>
                     <div style={{ overflow: 'hidden' }}>
                       <Text strong ellipsis style={{ display: 'block', maxWidth: '100%' }}>{title}</Text>
-                      <Tag bordered={false} style={{ margin: 0, fontSize: 10, lineHeight: '16px', padding: '0 4px' }}>
+                      <Tag variant='outlined' style={{ margin: 0, fontSize: 10, lineHeight: '16px', padding: '0 4px' }}>
                         {record.sourceType.toUpperCase()}
                       </Tag>
                     </div>
@@ -381,7 +382,7 @@ const DocumentsPageContent: React.FC = () => {
                  width: 140,
                  fixed: 'right',
                  render: (_, record: Document) => (
-                   <Space split={<span style={{ color: token.colorBorderSecondary }}>|</span>}>
+                   <Space separator={<span style={{ color: token.colorBorderSecondary }}>|</span>}>
                      {record.status === 'COMPLETED' ? (
                        <Typography.Link
                          onClick={() => handleViewDetail(record)}
@@ -453,20 +454,22 @@ const DocumentsPage: React.FC = () => {
   const { token } = theme.useToken();
 
   return (
-    <Suspense fallback={
-      <div style={{ 
-        height: '100%', 
-        width: '100%', 
-        background: token.colorBgContainer, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center'
-      }}>
-        <Empty description="加载中..." />
-      </div>
-    }>
-      <DocumentsPageContent />
-    </Suspense>
+    <App>
+      <Suspense fallback={
+        <div style={{ 
+          height: '100%', 
+          width: '100%', 
+          background: token.colorBgContainer, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center'
+        }}>
+          <Empty description="加载中..." />
+        </div>
+      }>
+        <DocumentsPageContent />
+      </Suspense>
+    </App>
   );
 };
 

@@ -217,7 +217,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
             >
               <Upload.Dragger
                 name="file"
-                beforeUpload={() => false}
+                beforeUpload={(file, fileList) => false}
                 maxCount={1}
                 style={{ 
                   padding: '20px', 

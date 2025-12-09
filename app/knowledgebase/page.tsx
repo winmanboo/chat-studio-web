@@ -374,7 +374,14 @@ const KnowledgeBasePage: React.FC = () => {
                   flexDirection: 'column',
                   height: '100%'
                 }}
-                bodyStyle={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column' }}
+                styles={{
+                  body: {
+                    padding: '16px',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }
+                }}
                 onClick={() => router.push(`/documents?kbId=${kb.id}`)}
               >
                 {/* 顶部区域 */}
@@ -484,7 +491,7 @@ const KnowledgeBasePage: React.FC = () => {
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description={
-                  <Space direction="vertical" align="center">
+                  <Space orientation="vertical" align="center">
                     <Text type="secondary">暂无知识库</Text>
                     <Button type="primary" icon={<PlusOutlined />} onClick={handleAddKnowledgeBase}>
                       创建第一个知识库

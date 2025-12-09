@@ -233,7 +233,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
         placement="right"
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        width={600}
+        size={600}
       >
         <Spin spinning={drawerLoading}>
           <Flex vertical gap={16}>
@@ -248,7 +248,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
                   </Flex>
                 }
                 type="inner"
-                bordered={true}
+                variant='borderless'
               >
                 <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{chunk.content}</div>
               </Card>

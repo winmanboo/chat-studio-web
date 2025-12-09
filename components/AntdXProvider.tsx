@@ -2,7 +2,7 @@
 
 import React from "react";
 import { XProvider } from "@ant-design/x";
-import { theme as antTheme } from "antd";
+import { theme as antTheme, App } from "antd";
 
 // Background：#F5F5F5
 
@@ -40,7 +40,9 @@ export const AntdXProvider = ({ children }: { children: React.ReactNode }) => {
         },
       }}
     >
-      {children}
+      <App>
+        {children}
+      </App>
     </XProvider>
   );
 };

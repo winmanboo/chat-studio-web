@@ -6,7 +6,6 @@ import {
   Tag, 
   Button, 
   Popconfirm, 
-  message, 
   Tooltip,
   Row,
   Col,
@@ -15,7 +14,8 @@ import {
   theme,
   Empty,
   Space,
-  Badge
+  Badge,
+  App
 } from 'antd';
 import { 
   EditOutlined, 
@@ -44,6 +44,7 @@ export interface MCPServerListProps {
 
 const MCPServerList: React.FC<MCPServerListProps> = ({ filterParams, refreshTrigger, onAddServer }) => {
   const { token } = theme.useToken();
+  const { message } = App.useApp();
   const [initialLoading, setInitialLoading] = useState(true);
   const [servers, setServers] = useState<MCPServer[]>([]);
   const [refreshingCards, setRefreshingCards] = useState<Set<string>>(new Set());
@@ -120,7 +121,11 @@ const MCPServerList: React.FC<MCPServerListProps> = ({ filterParams, refreshTrig
               borderRadius: token.borderRadiusLG,
               border: `1px solid ${token.colorBorderSecondary}` 
             }}
-            bodyStyle={{ padding: '20px' }}
+            styles={{
+              body: {
+                padding: '20px'
+              }
+            }}
             actions={[
               <Tooltip title="刷新状态" key="refresh">
                 <Button

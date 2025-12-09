@@ -185,7 +185,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({ value, onChange, 
     <Dropdown
       open={open}
       onOpenChange={setOpen}
-      dropdownRender={() => dropdownContent}
+      popupRender={() => dropdownContent}
       trigger={['click']}
       placement="bottomLeft"
     >
