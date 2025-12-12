@@ -263,7 +263,7 @@ const DocumentsPageContent: React.FC = () => {
             dataSource={documents}
             loading={loading}
             rowKey="docId"
-            scroll={{ y: 'calc(100vh - 300px)' }}
+            scroll={{ y: 'calc(100vh - 380px)' }}
             pagination={{
               current: currentPage,
               pageSize: pageSize,
