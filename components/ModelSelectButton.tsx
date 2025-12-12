@@ -11,6 +11,7 @@ interface ModelSelectButtonProps {
   modelList?: ModelProviderWithModels[];
   onModelSelect?: (model: ModelListItem) => void;
   loading?: boolean;
+  onDropdownOpen?: () => void;
 }
 
 const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
@@ -21,6 +22,7 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
   modelList,
   onModelSelect,
   loading = false,
+  onDropdownOpen,
 }) => {
   const { token } = theme.useToken();
   const [hovered, setHovered] = React.useState(false);
@@ -174,6 +176,11 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
         }} 
         trigger={['click']}
         placement="bottomLeft"
+        onOpenChange={(open) => {
+          if (open && onDropdownOpen) {
+            onDropdownOpen();
+          }
+        }}
       >
         {CardContent}
       </Dropdown>

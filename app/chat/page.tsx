@@ -328,10 +328,11 @@ const ChatPage: React.FC = () => {
     return unsubscribe;
   }, []);
 
-  // 监听模型变更事件，自动刷新默认模型
+  // 监听模型变更事件，自动刷新默认模型和模型列表
   useEffect(() => {
     const unsubscribe = modelEventManager.onModelChange(() => {
       loadDefaultModel();
+      loadModelList();
     });
 
     // 组件卸载时取消订阅
@@ -573,6 +574,7 @@ const ChatPage: React.FC = () => {
                 modelList={modelList}
                 onModelSelect={setSelectedModel}
                 loading={modelListLoading}
+                onDropdownOpen={loadModelList}
               />
             </div>
 
@@ -623,6 +625,7 @@ const ChatPage: React.FC = () => {
                 modelList={modelList}
                 onModelSelect={setSelectedModel}
                 loading={modelListLoading}
+                onDropdownOpen={loadModelList}
               />
             </div>
 
