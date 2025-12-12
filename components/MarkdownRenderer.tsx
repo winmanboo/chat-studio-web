@@ -3,6 +3,7 @@ import React from "react";
 import XMarkdown, { type ComponentProps } from "@ant-design/x-markdown";
 import Latex from "@ant-design/x-markdown/plugins/Latex";
 import { CodeHighlighter, Mermaid } from "@ant-design/x";
+import "@ant-design/x-markdown/themes/light.css";
 
 const Code: React.FC<ComponentProps> = (props) => {
   const { className, children } = props;
@@ -31,15 +32,16 @@ const MarkdownRendererInternal: React.FC<{ content: string }> = React.memo(
     return (
       <div className="markdown-content">
         <XMarkdown
+          className="x-markdown-light"
           content={content}
           streaming={{
             enableAnimation: true,
             hasNextChunk: true,
             animationConfig: {
-              fadeDuration: 400
-            }
+              fadeDuration: 400,
+            },
           }}
-          style={{fontSize: "15px"}}
+          style={{ fontSize: "15px" }}
           components={{ code: Code }}
           paragraphTag="div"
           config={{ extensions: Latex() }}
