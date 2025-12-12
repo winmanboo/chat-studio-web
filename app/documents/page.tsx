@@ -10,7 +10,8 @@ import {
   ExclamationCircleOutlined, 
   ReloadOutlined,
   ArrowLeftOutlined,
-  SearchOutlined
+  SearchOutlined,
+  AppstoreOutlined
 } from '@ant-design/icons';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getDocumentPage, deleteDocument, type Document } from '@/lib/api';
@@ -134,7 +135,7 @@ const DocumentsPageContent: React.FC = () => {
       okButtonProps: { danger: true },
       onOk: async () => {
         try {
-          await deleteDocument(doc.id);
+          await deleteDocument(doc.docId);
           message.success('文档删除成功');
           fetchDocuments(currentPage, searchValue);
         } catch (error) {
@@ -151,8 +152,13 @@ const DocumentsPageContent: React.FC = () => {
 
   // 处理查看详情
   const handleViewDetail = (record: Document) => {
-    setSelectedDocId(record.id.toString());
+    setSelectedDocId(record.docId);
     setDetailModalVisible(true);
+  };
+
+  // 处理查看切片
+  const handleViewChunks = (record: Document) => {
+    router.push(`/documents/chunks?docId=${record.docId}`);
   };
 
   if (!kbId) {
@@ -256,7 +262,7 @@ const DocumentsPageContent: React.FC = () => {
           <Table
             dataSource={documents}
             loading={loading}
-            rowKey="id"
+            rowKey="docId"
             scroll={{ y: 'calc(100vh - 300px)' }}
             pagination={{
               current: currentPage,
@@ -379,10 +385,27 @@ const DocumentsPageContent: React.FC = () => {
                {
                  title: '操作',
                  key: 'action',
-                 width: 140,
+                 width: 200,
                  fixed: 'right',
                  render: (_, record: Document) => (
                    <Space separator={<span style={{ color: token.colorBorderSecondary }}>|</span>}>
+                     {record.status === 'COMPLETED' ? (
+                       <Typography.Link
+                         onClick={() => handleViewChunks(record)}
+                       >
+                         <Space size={4}>
+                           <AppstoreOutlined />
+                           切片
+                         </Space>
+                       </Typography.Link>
+                     ) : (
+                        <Text disabled>
+                          <Space size={4}>
+                            <AppstoreOutlined />
+                            切片
+                          </Space>
+                        </Text>
+                     )}
                      {record.status === 'COMPLETED' ? (
                        <Typography.Link
                          onClick={() => handleViewDetail(record)}

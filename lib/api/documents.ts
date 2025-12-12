@@ -2,7 +2,7 @@ import request from './request';
 
 // 文档数据类型定义
 export interface Document {
-  id: number;
+  docId: string;
   title: string;
   sourceType: string;
   tags: string[];
@@ -42,7 +42,7 @@ export const getDocumentPage = async (params: DocumentPageParams): Promise<Docum
 };
 
 // 删除文档
-export const deleteDocument = async (docId: number): Promise<void> => {
+export const deleteDocument = async (docId: string): Promise<void> => {
   await request.delete(`/doc/delete/${docId}`);
 };
 
@@ -170,6 +170,7 @@ export interface DocumentChunk {
   chunkId: string;
   chunkIndex: number;
   content: string;
+  enabled?: boolean;
 }
 
 // 文档分块分页响应类型
@@ -191,7 +192,7 @@ export interface DocumentChunkPageParams {
 export const getDocumentInfo = async (docId: string): Promise<DocumentDetail> => {
   return await request.get('/doc/info', {
     params: {
-      id: docId
+      docId: docId
     }
   });
 };
@@ -215,4 +216,14 @@ export const getRetrieveChunks = async (docId: string, indexes: string[]): Promi
       indexes: indexes.join(',')
     }
   });
+};
+
+// 更新文档分块
+export const updateDocumentChunk = async (data: { chunkId: string; content?: string; enabled?: boolean }): Promise<void> => {
+  await request.put('/doc/chunk/update', data);
+};
+
+// 更新分块内容 (专门用于编辑保存)
+export const updateChunkContent = async (data: { docId: string; chunkId: string; content: string }): Promise<void> => {
+  await request.post('/doc/update/chunk', data);
 };
