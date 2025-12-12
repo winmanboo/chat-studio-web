@@ -35,8 +35,11 @@ const MarkdownRendererInternal: React.FC<{ content: string }> = React.memo(
           streaming={{
             enableAnimation: true,
             hasNextChunk: true,
-            animationConfig: { fadeDuration: 250 },
+            animationConfig: {
+              fadeDuration: 400
+            }
           }}
+          style={{fontSize: "15px"}}
           components={{ code: Code }}
           paragraphTag="div"
           config={{ extensions: Latex() }}
