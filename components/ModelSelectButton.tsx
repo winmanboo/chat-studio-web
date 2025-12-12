@@ -1,7 +1,7 @@
 import React from 'react';
 import { DownOutlined, SettingOutlined, RobotOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import type { ModelListItem, ModelProviderWithModels, DefaultModel } from '@/lib/api/models';
-import { theme, Tooltip, Button, Dropdown, type MenuProps, Spin, message } from 'antd';
+import { theme, Tooltip, Button, Dropdown, type MenuProps, Spin, message, Input, Divider } from 'antd';
 
 interface ModelSelectButtonProps {
   selectedModel?: ModelListItem | null;
@@ -26,6 +26,7 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
 }) => {
   const { token } = theme.useToken();
   const [hovered, setHovered] = React.useState(false);
+  const [searchValue, setSearchValue] = React.useState('');
 
   const displayModelName = selectedModel 
     ? selectedModel.modelName 
@@ -34,6 +35,39 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
       : "未安装模型";
 
   const displayIcon = selectedModel?.icon || defaultModel?.icon;
+
+  // 过滤模型列表
+  const filteredModelList = React.useMemo(() => {
+    if (!modelList) return [];
+    if (!searchValue) return modelList;
+
+    const lowerSearch = searchValue.toLowerCase();
+
+    return modelList.map(provider => {
+      // 1. 检查提供商名称是否匹配
+      const providerMatches = provider.providerName.toLowerCase().includes(lowerSearch);
+      
+      // 2. 检查模型名称是否匹配
+      const filteredModels = provider.models.filter(model => 
+        model.modelName.toLowerCase().includes(lowerSearch)
+      );
+
+      // 如果提供商名称匹配，显示该提供商下的所有模型
+      if (providerMatches) {
+        return provider;
+      }
+
+      // 如果只有模型名称匹配，只显示匹配的模型
+      if (filteredModels.length > 0) {
+        return {
+          ...provider,
+          models: filteredModels
+        };
+      }
+
+      return null;
+    }).filter(Boolean) as ModelProviderWithModels[];
+  }, [modelList, searchValue]);
 
   // 构建下拉菜单项
   const menuItems: MenuProps['items'] = React.useMemo(() => {
@@ -51,17 +85,19 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
       ];
     }
 
-    if (!modelList || modelList.length === 0) {
+    if (!filteredModelList || filteredModelList.length === 0) {
       return [
         {
           key: 'empty',
-          label: <span style={{ color: token.colorTextDescription }}>暂无可用模型</span>,
+          label: <span style={{ color: token.colorTextDescription }}>
+            {searchValue ? '未找到相关模型' : '暂无可用模型'}
+          </span>,
           disabled: true,
         }
       ];
     }
     
-    return modelList.map(provider => ({
+    return filteredModelList.map(provider => ({
       key: provider.providerId,
       type: 'group',
       label: provider.providerName,
@@ -86,7 +122,7 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
         };
       })
     }));
-  }, [modelList, onModelSelect, loading, token]);
+  }, [filteredModelList, onModelSelect, loading, token, searchValue]);
 
   const CardContent = (
     <div
@@ -177,10 +213,39 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
         trigger={['click']}
         placement="bottomLeft"
         onOpenChange={(open) => {
-          if (open && onDropdownOpen) {
-            onDropdownOpen();
+          if (open) {
+            setSearchValue(''); // 打开时重置搜索
+            if (onDropdownOpen) {
+              onDropdownOpen();
+            }
           }
         }}
+        popupRender={(menu) => (
+          <div style={{ 
+            backgroundColor: token.colorBgElevated,
+            borderRadius: token.borderRadiusLG,
+            boxShadow: token.boxShadowSecondary,
+            padding: 4,
+          }}>
+            <div style={{ padding: '8px 8px 4px 8px' }}>
+              <Input
+                placeholder="搜索模型..."
+                value={searchValue}
+                onChange={e => setSearchValue(e.target.value)}
+                allowClear
+                variant='borderless'
+                style={{
+                  background: token.colorFillAlter,
+                  borderRadius: token.borderRadius,
+                  padding: '4px 8px'
+                }}
+                onClick={(e) => e.stopPropagation()} // 防止点击输入框关闭下拉
+                onKeyDown={(e) => e.stopPropagation()} // 防止按键事件冒泡
+              />
+            </div>
+            {React.isValidElement(menu) ? React.cloneElement(menu as React.ReactElement<any>, { style: { ...(menu.props as any)?.style, boxShadow: 'none' } }) : menu}
+          </div>
+        )}
       >
         {CardContent}
       </Dropdown>
