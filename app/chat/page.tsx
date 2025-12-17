@@ -150,8 +150,8 @@ const convertSessionMessageToChatMessage = (
   // 如果是AI消息且包含检索结果，添加检索相关数据
   if (
     sessionMessage.messageType === "ASSISTANT" &&
-    sessionMessage.kbName &&
-    sessionMessage.retrieves
+    sessionMessage.retrieves &&
+    sessionMessage.retrieves.length > 0
   ) {
     chatMessage.retrieveMode = true;
     chatMessage.kbName = sessionMessage.kbName;

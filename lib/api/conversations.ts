@@ -12,10 +12,11 @@ export interface SessionItem {
 
 // 检索结果类型定义
 interface RetrieveResult {
-  kbId: number;
-  docId: string;
+  kbId?: number;
+  docId?: string;
   title: string;
-  chunkIndexs: string[];
+  chunkIndexs?: string[];
+  url?: string; // Web搜索时的URL
 }
 
 // 会话消息类型

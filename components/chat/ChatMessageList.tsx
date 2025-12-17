@@ -1,27 +1,24 @@
-import { Avatar, Spin, Flex, Drawer, Card, message, Typography, Tag } from "antd";
-import React, { useState } from "react";
+import { Avatar, Card, Drawer, Flex, message, Spin, Tag, Typography } from 'antd';
+import React, { useState } from 'react';
+
+import { renderMarkdown } from '@/components/MarkdownRenderer';
+import { DocumentChunk, getRetrieveChunks } from '@/lib/api/documents';
+import { extractThinkingContent } from '@/lib/utils/thinkingUtils';
+import { extractAllToolNames, extractToolContent } from '@/lib/utils/toolUtils';
+import {
+    FileTextOutlined, LoadingOutlined, RobotOutlined, SearchOutlined, ToolOutlined, UserOutlined
+} from '@ant-design/icons';
+import { Actions, Bubble, Sources, Think } from '@ant-design/x';
 
 const { Text } = Typography;
 
-import { renderMarkdown } from "@/components/MarkdownRenderer";
-import { extractThinkingContent } from "@/lib/utils/thinkingUtils";
-import { extractAllToolNames, extractToolContent } from "@/lib/utils/toolUtils";
-import { getRetrieveChunks, DocumentChunk } from "@/lib/api/documents";
-import {
-  RobotOutlined,
-  UserOutlined,
-  FileTextOutlined,
-  ToolOutlined,
-  LoadingOutlined,
-} from "@ant-design/icons";
-import { Actions, Bubble, Think, Sources } from "@ant-design/x";
-
 // 检索结果类型定义
 interface RetrieveResult {
-  chunkIndexs: string[];
-  docId: string;
-  kbId: number;
+  chunkIndexs?: string[];
+  docId?: string;
+  kbId?: number;
   title: string;
+  url?: string; // Web搜索时的URL
 }
 
 // 聊天消息类型定义
@@ -49,11 +46,15 @@ export interface ChatMessageListProps {
 
 const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const [drawerTitle, setDrawerTitle] = useState('');
+  const [drawerTitle, setDrawerTitle] = useState("");
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [retrievedChunks, setRetrievedChunks] = useState<DocumentChunk[]>([]);
 
-  const handleSourceClick = async (docId: string, title: string, chunkIndexs: string[]) => {
+  const handleSourceClick = async (
+    docId: string,
+    title: string,
+    chunkIndexs: string[]
+  ) => {
     setDrawerTitle(title);
     setDrawerVisible(true);
     setDrawerLoading(true);
@@ -63,8 +64,8 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
       const chunks = await getRetrieveChunks(docId, chunkIndexs);
       setRetrievedChunks(chunks);
     } catch (error) {
-      console.error('Failed to fetch chunks:', error);
-      message.error('获取分块内容失败');
+      console.error("Failed to fetch chunks:", error);
+      message.error("获取分块内容失败");
     } finally {
       setDrawerLoading(false);
     }
@@ -162,20 +163,47 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
                   )}
 
                   {/* 检索结果显示 */}
-                  {msg.retrieveMode && msg.kbName && msg.retrieves && (
+                  {msg.retrieveMode && msg.retrieves && (
                     <Sources
                       items={msg.retrieves.map((r) => ({
-                        key: r.docId,
+                        key: r.docId || r.url || r.title,
                         title: r.title,
-                        icon: <FileTextOutlined />,
+                        icon: msg.kbName ? (
+                          <FileTextOutlined />
+                        ) : (
+                          <SearchOutlined />
+                        ),
                       }))}
                       onClick={(item) => {
-                        const r = msg.retrieves?.find((retrieve) => retrieve.docId === item.key);
+                        const r = msg.retrieves?.find(
+                          (retrieve) =>
+                            (retrieve.docId ||
+                              retrieve.url ||
+                              retrieve.title) === item.key
+                        );
                         if (r) {
-                          handleSourceClick(r.docId, r.title, r.chunkIndexs);
+                          if (msg.kbName) {
+                            // 知识库检索模式
+                            if (r.docId && r.chunkIndexs) {
+                              handleSourceClick(
+                                r.docId,
+                                r.title,
+                                r.chunkIndexs
+                              );
+                            }
+                          } else {
+                            // Web搜索模式
+                            if (r.url) {
+                              window.open(r.url, "_blank");
+                            }
+                          }
                         }
                       }}
-                      title={`在知识库「${msg.kbName}」中找到 ${msg.retrieves.length} 个相关文件`}
+                      title={
+                        msg.kbName
+                          ? `在知识库「${msg.kbName}」中找到 ${msg.retrieves.length} 个相关文件`
+                          : `已搜索 ${msg.retrieves.length} 个网页内容`
+                      }
                     />
                   )}
 
@@ -226,7 +254,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
           },
         }}
       />
-      
+
       <Drawer
         title={drawerTitle}
         placement="right"
@@ -237,19 +265,30 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
         <Spin spinning={drawerLoading}>
           <Flex vertical gap={16}>
             {retrievedChunks.map((chunk, index) => (
-              <Card 
-                key={chunk.chunkId || index} 
-                size="small" 
+              <Card
+                key={chunk.chunkId || index}
+                size="small"
                 title={
                   <Flex align="center" gap="small">
-                    <span>分块 {chunk.chunkIndex !== undefined ? chunk.chunkIndex : index + 1}</span>
-                    {chunk.chunkId && <Tag color="blue">ID: {chunk.chunkId}</Tag>}
+                    <span>
+                      分块{" "}
+                      {chunk.chunkIndex !== undefined
+                        ? chunk.chunkIndex
+                        : index + 1}
+                    </span>
+                    {chunk.chunkId && (
+                      <Tag color="blue">ID: {chunk.chunkId}</Tag>
+                    )}
                   </Flex>
                 }
                 type="inner"
-                variant='borderless'
+                variant="borderless"
               >
-                <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{chunk.content}</div>
+                <div
+                  style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+                >
+                  {chunk.content}
+                </div>
               </Card>
             ))}
           </Flex>
