@@ -36,10 +36,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
   ];
 
   const advancedTabs = [
-    { key: 'agent', icon: '🤖', label: '智能体' },
     { key: 'workflow', icon: '⚡', label: '工作流' },
-    { key: 'bi', icon: '📊', label: 'BI' },
-    { key: 'news', icon: '📰', label: 'AI 情报' },
   ];
 
   const handleNewFeatureClick = (featureName: string) => {
