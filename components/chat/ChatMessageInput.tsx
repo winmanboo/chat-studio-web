@@ -22,6 +22,7 @@ interface ChatMessageInputProps {
   loading?: boolean;
   onCancel?: () => void;
   welcomeMessage?: string;
+  selectedModelAbilities?: string;
 }
 
 const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
@@ -37,10 +38,24 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
   loading = false,
   onCancel,
   welcomeMessage,
+  selectedModelAbilities,
 }) => {
   const { token } = theme.useToken();
   const [focused, setFocused] = React.useState(false);
   const [hovered, setHovered] = React.useState(false);
+
+  // 检查是否支持深度思考
+  const isThinkingSupported = React.useMemo(() => {
+    if (!selectedModelAbilities) return false;
+    return selectedModelAbilities.includes('THINKING');
+  }, [selectedModelAbilities]);
+
+  // 如果当前是深度思考模式但模型不支持，自动取消深度思考模式
+  React.useEffect(() => {
+    if (searchMode === 'think' && !isThinkingSupported) {
+      onSearchModeChange(null);
+    }
+  }, [isThinkingSupported, searchMode, onSearchModeChange]);
 
   return (
     <div
@@ -128,6 +143,7 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
               <Sender.Switch
                 key="think"
                 value={searchMode === "think"}
+                disabled={!isThinkingSupported}
                 onChange={() => {
                   if (searchMode === "think") {
                     onSearchModeChange(null);

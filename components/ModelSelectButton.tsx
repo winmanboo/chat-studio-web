@@ -1,5 +1,15 @@
 import React from 'react';
-import { DownOutlined, SettingOutlined, RobotOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { 
+  DownOutlined, 
+  SettingOutlined, 
+  RobotOutlined, 
+  CheckCircleOutlined,
+  BulbOutlined,
+  EyeOutlined,
+  PictureOutlined,
+  ToolOutlined,
+  GlobalOutlined
+} from '@ant-design/icons';
 import type { ModelListItem, ModelProviderWithModels, DefaultModel } from '@/lib/api/models';
 import { theme, Tooltip, Button, Dropdown, type MenuProps, Spin, message, Input, Divider } from 'antd';
 
@@ -27,6 +37,62 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
   const { token } = theme.useToken();
   const [hovered, setHovered] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
+
+  // 渲染能力图标组件
+  const renderAbilityIcons = (abilities?: string) => {
+    if (!abilities) return null;
+    
+    const abilityList = abilities.split(',').map(a => a.trim());
+    const icons: React.ReactNode[] = [];
+    
+    if (abilityList.includes('THINKING')) {
+      icons.push(
+        <Tooltip key="thinking" title="深度思考">
+          <BulbOutlined style={{ color: token.colorWarning }} />
+        </Tooltip>
+      );
+    }
+    
+    if (abilityList.includes('VISUAL_UNDERSTANDING')) {
+      icons.push(
+        <Tooltip key="visual" title="视觉理解">
+          <EyeOutlined style={{ color: token.colorSuccess }} />
+        </Tooltip>
+      );
+    }
+    
+    if (abilityList.includes('IMAGE_GENERATION')) {
+      icons.push(
+        <Tooltip key="image" title="图片生成">
+          <PictureOutlined style={{ color: token.purple6 }} />
+        </Tooltip>
+      );
+    }
+    
+    if (abilityList.includes('TOOL')) {
+      icons.push(
+        <Tooltip key="tool" title="工具调用">
+          <ToolOutlined style={{ color: token.colorInfo }} />
+        </Tooltip>
+      );
+    }
+    
+    if (abilityList.includes('NETWORK')) {
+      icons.push(
+        <Tooltip key="network" title="联网搜索">
+          <GlobalOutlined style={{ color: token.colorLink }} />
+        </Tooltip>
+      );
+    }
+    
+    if (icons.length === 0) return null;
+    
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8 }} onClick={(e) => e.stopPropagation()}>
+        {icons}
+      </div>
+    );
+  };
 
   const displayModelName = selectedModel 
     ? selectedModel.modelName 
@@ -105,7 +171,12 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
         const iconUrl = model.icon || provider.icon;
         return {
           key: String(model.id),
-          label: model.modelName,
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <span>{model.modelName}</span>
+              {renderAbilityIcons(model.abilities)}
+            </div>
+          ),
           icon: iconUrl ? (
             <img 
               src={iconUrl} 

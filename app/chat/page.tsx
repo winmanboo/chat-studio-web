@@ -595,6 +595,7 @@ const ChatPage: React.FC = () => {
                 onKbSelectModalOpen={() => setKbSelectModalVisible(true)}
                 placeholder="请输入内容并回车..."
                 welcomeMessage="欢迎使用 Chat Studio，我可以帮您解答问题、协助创作或提供建议。"
+                selectedModelAbilities={selectedModel?.abilities || defaultModel?.abilities}
               />
             </div>
             <div style={{ width: "70%", marginTop: "24px" }}>
@@ -670,6 +671,7 @@ const ChatPage: React.FC = () => {
                   onSearchModeChange={setSearchMode}
                   onKbSelectModalOpen={() => setKbSelectModalVisible(true)}
                   placeholder="请输入内容并回车..."
+                  selectedModelAbilities={selectedModel?.abilities || defaultModel?.abilities}
                 />
               </div>
             </div>

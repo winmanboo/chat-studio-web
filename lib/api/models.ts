@@ -28,6 +28,7 @@ export interface DefaultModel {
   icon: string;
   sort: number;
   def: boolean;
+  abilities: string;
   created?: number;
 }
 
@@ -53,6 +54,7 @@ export interface ModelListItem {
   modelName: string;
   sort: number;
   def: boolean;
+  abilities: string;
   created?: number; // 模型发布时间戳，可选字段
   providerId?: string; // 提供商ID，可选字段，在选择时添加
   icon?: string; // 模型图标
