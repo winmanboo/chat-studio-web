@@ -179,7 +179,7 @@ interface ConversationItem {
 }
 
 const ChatPage: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [hasStarted, setHasStarted] = useState(false);
