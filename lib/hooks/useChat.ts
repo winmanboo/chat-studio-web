@@ -49,7 +49,8 @@ export const useChat = ({
       searchMode: "web" | "kb" | "think" | null,
       selectedKb: KnowledgeBase | null,
       uploadId?: string,
-      contentType?: string
+      contentType?: string,
+      fileUrl?: string
     ) => {
       setUserCancelled(false);
       setSendingLoading(true);
@@ -82,6 +83,8 @@ export const useChat = ({
           content: message,
           role: "user",
           avatar: "👤",
+          fileUrl: fileUrl,
+          contentType: contentType as any,
         },
         status: "success",
       };

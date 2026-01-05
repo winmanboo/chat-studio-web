@@ -142,6 +142,12 @@ const convertSessionMessageToChatMessage = (
     modelName: sessionMessage.modelName,
   };
 
+  // 如果是USER消息且包含content字段，添加文件相关信息
+  if (sessionMessage.messageType === "USER" && sessionMessage.content) {
+    chatMessage.fileUrl = sessionMessage.content.content;
+    chatMessage.contentType = sessionMessage.content.contentType;
+  }
+
   // 如果是AI消息且包含thinking内容，添加thinking字段
   if (sessionMessage.messageType === "ASSISTANT" && sessionMessage.thinking) {
     chatMessage.thinking = sessionMessage.thinking;
@@ -504,11 +510,11 @@ const ChatPage: React.FC = () => {
   };
 
   // 发送消息的包装函数
-  const onSendMessage = (val: string, uploadId?: string, contentType?: string) => {
+  const onSendMessage = (val: string, uploadId?: string, contentType?: string, fileUrl?: string) => {
     if (!hasStarted) {
         setHasStarted(true);
     }
-    handleSubmit(val, selectedModel || defaultModel, searchMode, selectedKb, uploadId, contentType);
+    handleSubmit(val, selectedModel || defaultModel, searchMode, selectedKb, uploadId, contentType, fileUrl);
     setInputValue(""); // 提交后清空输入框
   };
 

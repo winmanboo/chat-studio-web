@@ -24,6 +24,10 @@ export interface SessionMessage {
   id: number;
   sessionId: string;
   message: string;
+  content?: {
+    content: string;
+    contentType: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'PDF';
+  };
   thinking?: string; // 深度思考内容，仅在ASSISTANT消息中存在
   messageType: 'USER' | 'ASSISTANT';
   parentId: number;

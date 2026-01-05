@@ -20,7 +20,7 @@ const BUTTON_SIZE = 18;
 interface ChatMessageInputProps {
   value: string;
   onChange: (value: string) => void;
-  onSubmit: (message: string, uploadId?: string, contentType?: string) => void;
+  onSubmit: (message: string, uploadId?: string, contentType?: string, fileUrl?: string) => void;
   searchMode: "web" | "think" | "kb" | null;
   selectedKb: KnowledgeBase | null;
   onSearchModeChange: (mode: "web" | "think" | "kb" | null) => void;
@@ -329,7 +329,11 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
           if (!val.trim() && !uploadId) {
             return;
           }
-          onSubmit(val, uploadId, contentType);
+          
+          // Get file URL from attachment items if available
+          const fileUrl = attachmentItems.length > 0 ? attachmentItems[0].url : undefined;
+          
+          onSubmit(val, uploadId, contentType, fileUrl);
           // 发送后清除上传状态
           clearUpload();
         }}
