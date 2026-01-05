@@ -5,6 +5,7 @@ import { UserInfo } from '../lib/api';
 import GeneralPanel from './settings/GeneralPanel';
 import InterfacePanel from './settings/InterfacePanel';
 import ModelPanel from './settings/ModelProviderPanel';
+import ModelListPanel from './settings/ModelListPanel';
 import AccountPanel from './settings/AccountPanel';
 import AboutPanel from './settings/AboutPanel';
 
@@ -14,7 +15,7 @@ interface SettingsModalProps {
   userInfo: UserInfo | null;
 }
 
-type SettingTab = 'general' | 'interface' | 'model' | 'account' | 'about';
+type SettingTab = 'general' | 'interface' | 'model' | 'modelList' | 'account' | 'about';
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ 
   open, 
@@ -48,6 +49,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       label: '提供商',
     },
     {
+      key: 'modelList',
+      icon: <AppstoreOutlined />,
+      label: '模型',
+    },
+    {
       key: 'account',
       icon: <UserOutlined />,
       label: '账号',
@@ -68,6 +74,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         return <InterfacePanel />;
       case 'model':
         return <ModelPanel />;
+      case 'modelList':
+        return <ModelListPanel />;
       case 'account':
         return <AccountPanel userInfo={userInfo} />;
       case 'about':
@@ -91,9 +99,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           设置
         </Space>
       }
-      width={1000}
+      width="80%"
       styles={{
-        body: { padding: 0, height: 600 }
+        body: { padding: 0, height: '80vh' }
       }}
     >
       <div style={{ display: 'flex', height: '100%' }}>

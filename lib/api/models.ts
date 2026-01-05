@@ -1,4 +1,5 @@
 import request from './request';
+import { DictItem } from './knowledgebase';
 
 // 模型提供商数据类型定义
 export interface ModelProvider {
@@ -186,4 +187,19 @@ export const modifyModelSettings = async (
 export const deleteModel = async (providerId: string): Promise<void> => {
   await request.delete(`/models/delete/${providerId}`);
   // 响应拦截器会处理错误，成功时直接返回即可
+};
+
+// 获取字典数据
+export const getDictItems = (type: string): Promise<DictItem[]> => {
+  return request.get(`/dict/items/${type}`);
+};
+
+// 新增模型定义
+export const createModel = async (model: Partial<ModelListItem>): Promise<void> => {
+  await request.post('/models/add/model', model);
+};
+
+// 删除模型定义
+export const removeModel = async (id: number): Promise<void> => {
+  await request.delete(`/models/deleteModel/${id}`);
 };
