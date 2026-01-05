@@ -4,7 +4,7 @@ import { SettingOutlined, AppstoreOutlined, SkinOutlined, RobotOutlined, UserOut
 import { UserInfo } from '../lib/api';
 import GeneralPanel from './settings/GeneralPanel';
 import InterfacePanel from './settings/InterfacePanel';
-import ModelPanel from './settings/ModelPanel';
+import ModelPanel from './settings/ModelProviderPanel';
 import AccountPanel from './settings/AccountPanel';
 import AboutPanel from './settings/AboutPanel';
 
@@ -45,7 +45,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     {
       key: 'model',
       icon: <RobotOutlined />,
-      label: '模型',
+      label: '提供商',
     },
     {
       key: 'account',
