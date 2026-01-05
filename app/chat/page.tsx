@@ -504,11 +504,11 @@ const ChatPage: React.FC = () => {
   };
 
   // 发送消息的包装函数
-  const onSendMessage = (val: string) => {
+  const onSendMessage = (val: string, uploadId?: string, contentType?: string) => {
     if (!hasStarted) {
         setHasStarted(true);
     }
-    handleSubmit(val, selectedModel || defaultModel, searchMode, selectedKb);
+    handleSubmit(val, selectedModel || defaultModel, searchMode, selectedKb, uploadId, contentType);
     setInputValue(""); // 提交后清空输入框
   };
 

@@ -47,7 +47,9 @@ export const useChat = ({
       message: string,
       modelToUse: ModelListItem | DefaultModel | null,
       searchMode: "web" | "kb" | "think" | null,
-      selectedKb: KnowledgeBase | null
+      selectedKb: KnowledgeBase | null,
+      uploadId?: string,
+      contentType?: string
     ) => {
       setUserCancelled(false);
       setSendingLoading(true);
@@ -110,6 +112,8 @@ export const useChat = ({
           retrieval: searchMode === "kb",
           thinking: searchMode === "think",
           ...(searchMode === "kb" && selectedKb && { kbId: selectedKb.id }),
+          ...(uploadId && { uploadId }),
+          ...(contentType && { contentType }),
         };
 
         const controller = new AbortController();

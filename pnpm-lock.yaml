@@ -18,11 +18,11 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1(antd@6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       '@ant-design/x-markdown':
-        specifier: ^2.1.1
-        version: 2.1.1(@types/react@19.2.7)(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
+        specifier: ^2.1.2
+        version: 2.1.3(@types/react@19.2.7)(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       '@ant-design/x-sdk':
-        specifier: ^2.1.1
-        version: 2.1.1(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
+        specifier: ^2.1.2
+        version: 2.1.3(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       antd:
         specifier: ^6.0.0
         version: 6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
@@ -134,14 +134,14 @@ packages:
     peerDependencies:
       react: '>=16.9.0'
 
-  '@ant-design/x-markdown@2.1.1':
-    resolution: {integrity: sha512-WUR1um6cz+fNkazLjm04X19OHyKBs2CNhYAY339sAC+bhSzQy6j/TbCsj8iaIODsv5137RxP+/rb2+gf6cX0rA==}
+  '@ant-design/x-markdown@2.1.3':
+    resolution: {integrity: sha512-iV6eryqQGQN0s0s2IemsmuSLsvO+5LI2X58NW5EvRrEHFH+23ZuhFymoFPGWa8OLhrHSUS2F7Q2Ux9G5NAw5gg==}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
 
-  '@ant-design/x-sdk@2.1.1':
-    resolution: {integrity: sha512-j16KSHNBOGGuG2Us3vv7KP4pAXHzPq3t6DGfMli/QT7VtSKoLINFtPYEA8SBrX6NeQ1fSYc/X8KtSlMUeaVGow==}
+  '@ant-design/x-sdk@2.1.3':
+    resolution: {integrity: sha512-5xXFYB8iZSXVBOAuyr/XfO0pcP/e+LpgSs5bKl1w0EXR9YW1vW0hQP6a1yZyhkYnik9I6yMO9uU+brexNB2+Gw==}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
@@ -2966,9 +2966,9 @@ snapshots:
       resize-observer-polyfill: 1.5.1
       throttle-debounce: 5.0.2
 
-  '@ant-design/x-markdown@2.1.1(@types/react@19.2.7)(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
+  '@ant-design/x-markdown@2.1.3(@types/react@19.2.7)(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
     dependencies:
-      classnames: 2.5.1
+      clsx: 2.1.1
       dompurify: 3.2.6
       html-react-parser: 5.2.10(@types/react@19.2.7)(react@19.0.1)
       katex: 0.16.22
@@ -2978,9 +2978,9 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
 
-  '@ant-design/x-sdk@2.1.1(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
+  '@ant-design/x-sdk@2.1.3(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
     dependencies:
-      rc-util: 5.44.4(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
+      '@rc-component/util': 1.4.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       react: 19.0.1
       react-dom: 19.0.1(react@19.0.1)
 
