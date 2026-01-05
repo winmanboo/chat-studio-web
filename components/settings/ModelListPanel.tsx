@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, Select, message, Space, Tag, Popconfirm, Typography, Avatar, Tooltip, theme } from 'antd';
 import { PlusOutlined, DeleteOutlined, ReloadOutlined, RobotOutlined, BulbOutlined, EyeOutlined, PictureOutlined, ToolOutlined, GlobalOutlined } from '@ant-design/icons';
-import { getModelList, createModel, removeModel, getDictItems, ModelProviderWithModels, ModelListItem } from '../../lib/api/models';
-import { DictItem } from '../../lib/api/knowledgebase';
+import { getModelList, createModel, removeModel, ModelProviderWithModels, ModelListItem } from '../../lib/api/models';
+import { DictItem, getDictItems } from '../../lib/api/common';
 
 const { Title, Text } = Typography;
 

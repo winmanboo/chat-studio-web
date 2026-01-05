@@ -40,12 +40,6 @@ export interface PageParams {
   keyword?: string;
 }
 
-// 字典项接口
-export interface DictItem {
-  code: string;
-  name: string;
-}
-
 // 新增知识库参数
 export interface TagItem {
   id: number;
@@ -83,11 +77,6 @@ export const getKnowledgeBaseInfo = async (id: number): Promise<KnowledgeBase> =
 // 删除知识库
 export const deleteKnowledgeBase = async (id: number): Promise<void> => {
   await request.delete(`/kb/${id}`);
-};
-
-// 获取字典数据
-export const getDictItems = (type: string): Promise<DictItem[]> => {
-  return request.get(`/dict/items/${type}`);
 };
 
 export const getKnowledgeBaseTags = (): Promise<TagItem[]> => {
