@@ -15,8 +15,8 @@ importers:
         specifier: ^1.3.0
         version: 1.3.0(@ant-design/cssinjs@2.0.1(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(antd@6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(next@16.0.7(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       '@ant-design/x':
-        specifier: ^2.1.1
-        version: 2.1.1(antd@6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
+        specifier: ^2.1.2
+        version: 2.1.3(antd@6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       '@ant-design/x-markdown':
         specifier: ^2.1.2
         version: 2.1.3(@types/react@19.2.7)(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
@@ -146,10 +146,10 @@ packages:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
 
-  '@ant-design/x@2.1.1':
-    resolution: {integrity: sha512-QAytb6OOFgDVMrVAPjcFWyoZaHEff2m/UAALXqliLSaVRwuBIthw+93YIIkeY7S5JvmtJ0H5RXniLvvlUrT6KA==}
+  '@ant-design/x@2.1.3':
+    resolution: {integrity: sha512-A+3eL9RPYwTpphm3IclhXkk/OfwRzzIw41j1NCONEDRSd4F3Du3dHo1hbDKzI42/hwR1LL8P/6hiehJvxYqHkw==}
     peerDependencies:
-      antd: ^6.1.0
+      antd: ^6.1.1
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
 
@@ -580,6 +580,12 @@ packages:
 
   '@rc-component/motion@1.1.5':
     resolution: {integrity: sha512-IokOGL+aDqG+GDZjPDN4IFSVrThSbBB2CyHl0F58vOio+5ujLesZ1hL83/hMkazqlGM5zOF7QSbR9cRxnsy8hQ==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@rc-component/motion@1.2.0':
+    resolution: {integrity: sha512-Vx+OL3I1l3HWflc1miXgjeFR9OnStKD8FOMLJCdby3I6HAOi8jo7of7iqF4hqvxQhoP31RTlNk+C+v5QjytAVg==}
     peerDependencies:
       react: '>=16.9.0'
       react-dom: '>=16.9.0'
@@ -2436,12 +2442,6 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-  rc-motion@2.9.5:
-    resolution: {integrity: sha512-w+XTUrfh7ArbYEd2582uDrEhmBHwK1ZENJiSJVb7uRxdE7qJSYjbO2eksRXmndqyKqKoYPc9ClpPh5242mV1vA==}
-    peerDependencies:
-      react: '>=16.9.0'
-      react-dom: '>=16.9.0'
-
   rc-overflow@1.4.1:
     resolution: {integrity: sha512-3MoPQQPV1uKyOMVNd6SZfONi+f3st0r8PksexIdBTeIYbMX0Jr+k7pHEDvsXtR4BpCv90/Pv2MovVNhktKrwvw==}
     peerDependencies:
@@ -2984,7 +2984,7 @@ snapshots:
       react: 19.0.1
       react-dom: 19.0.1(react@19.0.1)
 
-  '@ant-design/x@2.1.1(antd@6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
+  '@ant-design/x@2.1.3(antd@6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
     dependencies:
       '@ant-design/colors': 8.0.0
       '@ant-design/cssinjs': 2.0.1(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
@@ -2992,12 +2992,13 @@ snapshots:
       '@ant-design/fast-color': 3.0.0
       '@ant-design/icons': 6.1.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       '@babel/runtime': 7.28.4
+      '@rc-component/motion': 1.2.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
+      '@rc-component/resize-observer': 1.0.1(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
+      '@rc-component/util': 1.4.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       antd: 6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
-      classnames: 2.5.1
+      clsx: 2.1.1
       lodash.throttle: 4.1.1
       mermaid: 11.12.2
-      rc-motion: 2.9.5(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
-      rc-util: 5.44.4(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       react: 19.0.1
       react-dom: 19.0.1(react@19.0.1)
       react-syntax-highlighter: 16.1.0(react@19.0.1)
@@ -3411,6 +3412,13 @@ snapshots:
       '@babel/runtime': 7.28.2
 
   '@rc-component/motion@1.1.5(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
+    dependencies:
+      '@rc-component/util': 1.4.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
+      clsx: 2.1.1
+      react: 19.0.1
+      react-dom: 19.0.1(react@19.0.1)
+
+  '@rc-component/motion@1.2.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
     dependencies:
       '@rc-component/util': 1.4.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       clsx: 2.1.1
@@ -5616,14 +5624,6 @@ snapshots:
   punycode@2.3.1: {}
 
   queue-microtask@1.2.3: {}
-
-  rc-motion@2.9.5(react-dom@19.0.1(react@19.0.1))(react@19.0.1):
-    dependencies:
-      '@babel/runtime': 7.28.4
-      classnames: 2.5.1
-      rc-util: 5.44.4(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
-      react: 19.0.1
-      react-dom: 19.0.1(react@19.0.1)
 
   rc-overflow@1.4.1(react-dom@19.0.1(react@19.0.1))(react@19.0.1):
     dependencies:
