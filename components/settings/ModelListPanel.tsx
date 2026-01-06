@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Select, message, Space, Tag, Popconfirm, Typography, Avatar, Tooltip, theme } from 'antd';
+import { Table, Button, Modal, Form, Input, Select, message, Space, Tag, Popconfirm, Typography, Avatar, Tooltip, theme, AutoComplete } from 'antd';
 import { PlusOutlined, DeleteOutlined, ReloadOutlined, RobotOutlined, BulbOutlined, EyeOutlined, PictureOutlined, ToolOutlined, GlobalOutlined } from '@ant-design/icons';
-import { getModelList, createModel, removeModel, ModelProviderWithModels, ModelListItem } from '../../lib/api/models';
+import { getModelList, createModel, removeModel, getModelCatalog, ModelProviderWithModels, ModelListItem } from '../../lib/api/models';
 import { DictItem, getDictItems } from '../../lib/api/common';
 
 const { Title, Text } = Typography;
@@ -14,6 +14,7 @@ const ModelListPanel: React.FC = () => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [abilityOptions, setAbilityOptions] = useState<DictItem[]>([]);
+  const [modelOptions, setModelOptions] = useState<{ value: string }[]>([]);
 
   useEffect(() => {
     // 获取能力字典
@@ -117,10 +118,17 @@ const ModelListPanel: React.FC = () => {
     }
   };
 
-  const handleOpenModal = (providerId?: string) => {
+  const handleOpenModal = async (providerId?: string) => {
     form.resetFields();
+    setModelOptions([]);
     if (providerId) {
       form.setFieldsValue({ providerId });
+      try {
+        const catalog = await getModelCatalog(providerId);
+        setModelOptions(catalog.map(name => ({ value: name })));
+      } catch (error) {
+        console.error('获取模型目录失败:', error);
+      }
     }
     setIsModalOpen(true);
   };
@@ -259,7 +267,11 @@ const ModelListPanel: React.FC = () => {
             label="模型名称"
             rules={[{ required: true, message: '请输入模型名称' }]}
           >
-            <Input placeholder="例如: gpt-4" />
+            <AutoComplete
+              options={modelOptions}
+              placeholder="请选择或输入模型名称"
+              showSearch={{filterOption: (inputValue, option) => option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1}}
+            />
           </Form.Item>
 
           <Form.Item

@@ -198,3 +198,8 @@ export const createModel = async (model: Partial<ModelListItem>): Promise<void> 
 export const removeModel = async (id: number): Promise<void> => {
   await request.delete(`/models/deleteModel/${id}`);
 };
+
+// 获取模型目录
+export const getModelCatalog = async (providerId: string): Promise<string[]> => {
+  return await request.get(`/models/catalog/${providerId}`);
+};
