@@ -45,9 +45,10 @@ export interface ChatMessageListProps {
   messages: ChatMessage[];
   style?: React.CSSProperties;
   isViewingHistory?: boolean; // 是否正在查看历史消息
+  onPreview?: (content: string) => void;
 }
 
-const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
+const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, onPreview }) => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [drawerTitle, setDrawerTitle] = useState("");
   const [drawerLoading, setDrawerLoading] = useState(false);
@@ -276,7 +277,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
                   )}
 
                   {/* 消息内容 */}
-                  {finalContent && renderMarkdown(finalContent)}
+                  {finalContent && renderMarkdown(finalContent, onPreview)}
                 </div>
               );
             },
@@ -354,4 +355,4 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) => {
   );
 };
 
-export default ChatMessageList;
+export default React.memo(ChatMessageList);

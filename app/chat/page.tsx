@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { ConversationsProps } from "@ant-design/x";
 
 import ModelSelectButton from "@/components/ModelSelectButton";
@@ -9,7 +9,7 @@ import {
   DeleteOutlined,
   CommentOutlined,
 } from "@ant-design/icons";
-import { message as antdMessage, Modal, Input, Space } from "antd";
+import { message as antdMessage, Modal, Input, Space, Splitter } from "antd";
 import {
   getSessionList,
   SessionItem,
@@ -25,6 +25,7 @@ import ChatMessageInput from "@/components/chat/ChatMessageInput";
 import ChatMessageList, { ChatMessage } from "@/components/chat/ChatMessageList";
 import PromptsView from "@/components/chat/PromptsView";
 import AnimatedTitle from "@/components/chat/AnimatedTitle";
+import PreviewPanel from "@/components/chat/PreviewPanel";
 import { KnowledgeBase } from "@/lib/api/knowledgebase";
 import {
   getDefaultModel,
@@ -216,6 +217,16 @@ const ChatPage: React.FC = () => {
   const [modelList, setModelList] = useState<ModelProviderWithModels[]>([]);
   const [modelListLoading, setModelListLoading] = useState<boolean>(false);
 
+  // 预览相关状态
+  const [previewContent, setPreviewContent] = useState<string>("");
+  const [previewVisible, setPreviewVisible] = useState(false);
+
+  // 处理预览
+  const handlePreview = useCallback((content: string) => {
+    setPreviewContent(content);
+    setPreviewVisible(true);
+  }, []);
+
   // 加载会话列表
   const loadSessionList = async () => {
     try {
@@ -250,6 +261,11 @@ const ChatPage: React.FC = () => {
       }
     },
   });
+
+  // 转换消息列表，使用useMemo优化性能
+  const displayMessages = useMemo(() => {
+    return messages.map(m => m.message);
+  }, [messages]);
 
   // 加载会话消息
   const loadSessionMessages = async (sessionId: string) => {
@@ -501,6 +517,7 @@ const ChatPage: React.FC = () => {
     setInputValue(""); // 清空输入框内容
     setSearchMode(null); // 重置检索模式
     setSelectedKb(null); // 清除选中的知识库
+    setPreviewVisible(false); // 关闭预览面板
   };
 
   // 处理知识库选择
@@ -541,6 +558,7 @@ const ChatPage: React.FC = () => {
             setSelectedId(key);
             setSessionId(key); // 切换会话时设置sessionId为选中的会话ID
             setHasStarted(true);
+            setPreviewVisible(false); // 关闭预览面板
 
             // 加载该会话的历史消息
             await loadSessionMessages(key);
@@ -613,75 +631,89 @@ const ChatPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div
-            style={{
-              position: "relative",
-              height: "100%",
-              overflow: "hidden",
-            }}
-          >
-            {/* 模型选择按钮 - 聊天状态 */}
-            <div style={MODEL_SELECT_BUTTON_CONTAINER_STYLE}>
-              <ModelSelectButton
-                selectedModel={selectedModel}
-                defaultModel={defaultModel}
-                onSetDefaultClick={() => {
-                  handleSetDefaultModel();
+          <Splitter>
+            <Splitter.Panel>
+              <div
+                style={{
+                  position: "relative",
+                  height: "100%",
+                  overflow: "hidden",
+                  minWidth: 400,
                 }}
-                showSetDefault={true}
-                modelList={modelList}
-                onModelSelect={setSelectedModel}
-                loading={modelListLoading}
-                onDropdownOpen={loadModelList}
-              />
-            </div>
+              >
+                {/* 模型选择按钮 - 聊天状态 */}
+                <div style={MODEL_SELECT_BUTTON_CONTAINER_STYLE}>
+                  <ModelSelectButton
+                    selectedModel={selectedModel}
+                    defaultModel={defaultModel}
+                    onSetDefaultClick={() => {
+                      handleSetDefaultModel();
+                    }}
+                    showSetDefault={true}
+                    modelList={modelList}
+                    onModelSelect={setSelectedModel}
+                    loading={modelListLoading}
+                    onDropdownOpen={loadModelList}
+                  />
+                </div>
 
-            {/* BubbleList 区域 */}
-            <div
-              style={{
-                position: "absolute",
-                top: "40px", // 增加顶部间距为模型选择按钮留出空间
-                left: 0,
-                right: 0,
-                bottom: `${senderHeight + 30}px`, // 动态调整为Sender的实际高度并增加底部间距
-              }}
-            >
-              <ChatMessageList
-                messages={messages.map(m => m.message)}
-                isViewingHistory={!!selectedId} // 如果有选中的会话ID，说明在查看历史消息
-              />
-            </div>
-            {/* Sender 组件 - 绝对定位固定在底部 */}
-            <div
-              ref={senderRef}
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                padding: "20px",
-                display: "flex",
-                justifyContent: "center",
-                zIndex: 10,
-              }}
-            >
-              <div style={BOTTOM_SENDER_CONTAINER_STYLE}>
-                <ChatMessageInput
-                  value={inputValue}
-                  onChange={setInputValue}
-                  onSubmit={onSendMessage}
-                  loading={sendingLoading}
-                  onCancel={handleCancel}
-                  searchMode={searchMode}
-                  selectedKb={selectedKb}
-                  onSearchModeChange={setSearchMode}
-                  onKbSelectModalOpen={() => setKbSelectModalVisible(true)}
-                  placeholder="请输入内容并回车..."
-                  selectedModelAbilities={selectedModel?.abilities || defaultModel?.abilities}
-                />
+                {/* BubbleList 区域 */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "40px", // 增加顶部间距为模型选择按钮留出空间
+                    left: 0,
+                    right: 0,
+                    bottom: `${senderHeight + 30}px`, // 动态调整为Sender的实际高度并增加底部间距
+                  }}
+                >
+                  <ChatMessageList
+                    messages={displayMessages}
+                    isViewingHistory={!!selectedId} // 如果有选中的会话ID，说明在查看历史消息
+                    onPreview={handlePreview}
+                  />
+                </div>
+                {/* Sender 组件 - 绝对定位固定在底部 */}
+                <div
+                  ref={senderRef}
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    padding: "20px",
+                    display: "flex",
+                    justifyContent: "center",
+                    zIndex: 10,
+                  }}
+                >
+                  <div style={BOTTOM_SENDER_CONTAINER_STYLE}>
+                    <ChatMessageInput
+                      value={inputValue}
+                      onChange={setInputValue}
+                      onSubmit={onSendMessage}
+                      loading={sendingLoading}
+                      onCancel={handleCancel}
+                      searchMode={searchMode}
+                      selectedKb={selectedKb}
+                      onSearchModeChange={setSearchMode}
+                      onKbSelectModalOpen={() => setKbSelectModalVisible(true)}
+                      placeholder="请输入内容并回车..."
+                      selectedModelAbilities={selectedModel?.abilities || defaultModel?.abilities}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </Splitter.Panel>
+            {previewVisible && (
+              <Splitter.Panel defaultSize="40%">
+                <PreviewPanel
+                  content={previewContent}
+                  onClose={() => setPreviewVisible(false)}
+                />
+              </Splitter.Panel>
+            )}
+          </Splitter>
         )}
       </div>
       {/* 编辑会话名称的模态框 */}
@@ -713,6 +745,7 @@ const ChatPage: React.FC = () => {
           setSessionId(null);
           setMessages([]);
           setHasStarted(false);
+          setPreviewVisible(false); // 关闭预览面板
         }}
       />
 
