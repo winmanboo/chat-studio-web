@@ -58,23 +58,6 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, onPreview }
   const [retrievedChunks, setRetrievedChunks] = useState<DocumentChunk[]>([]);
   const listRef = useRef<any>(null);
 
-  // 监听消息变化，自动滚动到底部
-  useEffect(() => {
-    // 使用 requestAnimationFrame 确保在下一帧 DOM 更新后执行
-    const rafId = requestAnimationFrame(() => {
-      // 检查 scrollBoxNativeElement 是否存在，确保组件已完全挂载
-      if (listRef.current?.scrollBoxNativeElement) {
-        try {
-          listRef.current.scrollTo({ top: 'bottom', behavior: 'smooth' });
-        } catch (e) {
-          console.warn('Scroll to bottom failed:', e);
-        }
-      }
-    });
-
-    return () => cancelAnimationFrame(rafId);
-  }, [messages]);
-
   const handleSourceClick = async (
     docId: string,
     title: string,
