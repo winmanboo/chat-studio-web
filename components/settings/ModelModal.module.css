@@ -1,0 +1,27 @@
+.form {
+  margin-top: 24px;
+}
+
+.providerDescription {
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.settingsContainer {
+  padding: 20px 20px 4px 20px;
+  margin-bottom: 24px;
+  border-radius: 8px; /* Fallback if token not used directly in CSS */
+}
+
+.sliderInputNumber {
+  width: 100% !important;
+}
+
+.modalTitle {
+  font-weight: 600;
+}
+
+.modalSubTitle {
+  font-size: 14px;
+  font-weight: 400;
+}

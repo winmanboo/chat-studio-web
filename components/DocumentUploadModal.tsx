@@ -5,6 +5,8 @@ import { Modal, Form, Input, Select, Upload, message, theme } from 'antd';
 import { UploadOutlined, LinkOutlined } from '@ant-design/icons';
 import { uploadDocumentWithForm, type DocumentUploadParams, getDictItems, getDocumentTags, type DictItem } from '@/lib/api';
 
+import styles from './DocumentUploadModal.module.css';
+
 interface DocumentUploadModalProps {
   visible: boolean;
   onCancel: () => void;
@@ -24,6 +26,18 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
   const [uploading, setUploading] = useState(false);
   const [storageTypes, setStorageTypes] = useState<DictItem[]>([]);
   const [loadingDict, setLoadingDict] = useState(false);
+  
+  // Define CSS variables for the component
+  const cssVars = {
+    '--text-color': token.colorText,
+    '--text-secondary': token.colorTextSecondary,
+    '--text-tertiary': token.colorTextTertiary,
+    '--primary-color': token.colorPrimary,
+    '--border-radius': `${token.borderRadius}px`,
+    '--fill-alter': token.colorFillAlter,
+    '--border-color': token.colorBorder,
+  } as any;
+
   
   // 静态来源类型数据
   const sourceTypes = [
@@ -140,7 +154,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
   return (
     <Modal
       title={
-        <div style={{ fontSize: 16, fontWeight: 600, color: token.colorText }}>
+        <div className={styles.modalTitle} style={cssVars}>
           上传文档
         </div>
       }
@@ -161,8 +175,9 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
         form={uploadForm}
         layout="vertical"
         onFinish={handleSubmit}
+        style={cssVars}
       >
-        <div style={{ padding: '0 24px' }}>
+        <div className={styles.formContent}>
           <Form.Item
             label="文档标题"
             name="title"
@@ -171,12 +186,12 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
             <Input placeholder="请输入文档标题" />
           </Form.Item>
 
-          <div style={{ display: 'flex', gap: 16 }}>
+          <div className={styles.row}>
             <Form.Item
               label="存储类型"
               name="storageType"
               rules={[{ required: true, message: '请选择存储类型' }]}
-              style={{ flex: 1 }}
+              className={styles.col}
             >
               <Select 
                 placeholder="请选择存储类型" 
@@ -194,7 +209,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
               label="文件来源"
               name="sourceType"
               rules={[{ required: true, message: '请选择文件来源类型' }]}
-              style={{ flex: 1 }}
+              className={styles.col}
             >
               <Select 
                 placeholder="请选择文件来源类型"
@@ -219,20 +234,15 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                 name="file"
                 beforeUpload={(file, fileList) => false}
                 maxCount={1}
-                style={{ 
-                  padding: '20px', 
-                  borderRadius: token.borderRadius,
-                  background: token.colorFillAlter,
-                  border: `1px dashed ${token.colorBorder}`
-                }}
+                className={styles.uploadDragger}
               >
                 <p className="ant-upload-drag-icon">
-                  <UploadOutlined style={{ fontSize: 36, color: token.colorPrimary }} />
+                  <UploadOutlined className={styles.uploadIcon} />
                 </p>
-                <p className="ant-upload-text" style={{ fontSize: 14, margin: '8px 0', color: token.colorText }}>
+                <p className={`ant-upload-text ${styles.uploadText}`}>
                   点击或拖拽文件到此区域
                 </p>
-                <p className="ant-upload-hint" style={{ fontSize: 12, color: token.colorTextSecondary }}>
+                <p className={`ant-upload-hint ${styles.uploadHint}`}>
                   支持 PDF、DOC、DOCX、TXT 等格式
                 </p>
               </Upload.Dragger>
@@ -250,7 +260,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
             >
               <Input 
                 placeholder="请输入文件下载链接地址"
-                prefix={<LinkOutlined style={{ color: token.colorTextTertiary }} />}
+                prefix={<LinkOutlined className={styles.linkIcon} />}
               />
             </Form.Item>
           )}
@@ -281,7 +291,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
             <Input.TextArea 
               placeholder="请输入文档描述（可选）"
               rows={3}
-              style={{ resize: 'none' }}
+              className={styles.textArea}
             />
           </Form.Item>
         </div>

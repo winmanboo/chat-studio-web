@@ -1,0 +1,124 @@
+.loadingContainer {
+  text-align: center;
+  padding: 50px 0;
+}
+
+.loadingText {
+  margin-top: 16px;
+}
+
+.title {
+  margin-bottom: 24px !important;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.subTitle {
+  margin-bottom: 16px !important;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardTitleLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modelIcon {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+.cardContent {
+  margin-bottom: 8px;
+}
+
+.modelDesc {
+  font-size: 12px;
+  color: #666;
+}
+
+.providerCard {
+  height: 200px;
+  border-radius: 12px;
+  position: relative;
+}
+
+/* Ant Design Card body override */
+.providerCard :global(.ant-card-body) {
+  padding: 16px 16px 56px 16px;
+  height: calc(100% - 57px);
+}
+
+.providerCardContent {
+  height: 100%;
+  overflow: hidden;
+}
+
+.providerDescContainer {
+  margin-bottom: 12px;
+}
+
+.providerDesc {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 0 !important;
+}
+
+.installButton {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  width: calc(100% - 32px);
+  border-radius: 8px;
+}
+
+.providerTitle {
+  display: flex;
+  align-items: center;
+}
+
+.providerIcon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+}
+
+.deleteConfirmContent {
+  color: #ff4d4f;
+  font-size: 12px;
+}
+
+.modelCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modelCardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.installedModelsTitle {
+  margin-bottom: 16px !important;
+}
+
+.installedModelsContainer {
+  margin-bottom: 32px;
+}
+
+.cardHeight {
+    height: 100%;
+}

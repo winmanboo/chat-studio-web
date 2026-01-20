@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Button, Space, message, Switch, InputNumber, Slider, Row, Col, Divider, Tooltip, Typography, theme } from 'antd';
 import { SettingOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import classNames from 'classnames';
 import { InstalledModel, modifyModelSettings, getModelSettings, ModelSettings } from '../../lib/api';
+import styles from './ModelModal.module.css';
 
 const { Text } = Typography;
 
@@ -141,7 +143,7 @@ const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
         </Col>
         <Col span={8}>
           <Form.Item name={name} noStyle>
-            <InputNumber min={min} max={max} step={step} style={{ width: '100%' }} />
+            <InputNumber min={min} max={max} step={step} className={styles.sliderInputNumber} />
           </Form.Item>
         </Col>
       </Row>
@@ -230,12 +232,13 @@ const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
         </Form.Item>
 
         {!useDefaultSettings && (
-          <div style={{ 
-            background: token.colorFillQuaternary, 
-            padding: '20px 20px 4px 20px', 
-            borderRadius: token.borderRadiusLG,
-            marginBottom: 24
-          }}>
+          <div 
+            className={styles.settingsContainer}
+            style={{ 
+              background: token.colorFillQuaternary, 
+              borderRadius: token.borderRadiusLG,
+            }}
+          >
             <Form.Item
               label="Max Tokens"
               name="maxTokens"
@@ -243,7 +246,7 @@ const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
             >
               <InputNumber 
                 placeholder="不限制" 
-                style={{ width: '100%' }} 
+                className={styles.sliderInputNumber} 
                 min={1}
                 precision={0}
               />

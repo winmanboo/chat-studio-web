@@ -1,30 +1,33 @@
 import React from 'react';
-import { Typography, Card, Space, Divider } from 'antd';
+import { Typography, Card, Space, Divider, theme } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
+import styles from './SettingsCommon.module.css';
 
 const { Title, Text, Paragraph } = Typography;
 
 const AboutPanel: React.FC = () => {
+  const { token } = theme.useToken();
+
   return (
     <div>
-      <Title level={4} style={{ marginBottom: 24 }}>关于</Title>
+      <Title level={4} className={styles.panelTitle}>关于</Title>
       <Card>
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <InfoCircleOutlined style={{ fontSize: 48, color: '#1890ff', marginBottom: 16 }} />
-          <Title level={3} style={{ margin: 0 }}>Chat Studio</Title>
+        <div className={styles.centerContainer}>
+          <InfoCircleOutlined className={styles.largeIcon} />
+          <Title level={3} className={styles.titleReset}>Chat Studio</Title>
           <Text type="secondary">智能对话助手</Text>
         </div>
         <Divider />
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Space direction="vertical" className={styles.section} size="middle">
+          <div className={styles.spaceBetween}>
             <Text strong>版本:</Text>
             <Text>v1.0.0</Text>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className={styles.spaceBetween}>
             <Text strong>构建时间:</Text>
             <Text>2024-01-15</Text>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className={styles.spaceBetween}>
             <Text strong>技术栈:</Text>
             <Text>Next.js + React + TypeScript</Text>
           </div>

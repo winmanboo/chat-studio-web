@@ -1,0 +1,57 @@
+.modalTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.formContent {
+  padding: 0 24px;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+}
+
+.col {
+  flex: 1;
+}
+
+/* Ant Design Upload Dragger override/customization container */
+.uploadDraggerContainer {
+  /* These styles are applied to the dragger component via style prop usually, 
+     but if we can use class, we should. 
+     Antd Dragger style prop overrides internal styles. 
+     Let's try to keep it clean. */
+}
+
+.uploadDragger {
+  padding: 20px !important;
+  border-radius: var(--border-radius) !important;
+  background: var(--fill-alter) !important;
+  border: 1px dashed var(--border-color) !important;
+}
+
+.uploadIcon {
+  font-size: 36px !important;
+  color: var(--primary-color) !important;
+}
+
+.uploadText {
+  font-size: 14px;
+  margin: 8px 0;
+  color: var(--text-color);
+}
+
+.uploadHint {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.linkIcon {
+  color: var(--text-tertiary);
+}
+
+.textArea {
+  resize: none;
+}

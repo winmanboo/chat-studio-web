@@ -1,5 +1,6 @@
 import { Avatar, Card, Drawer, Flex, message, Spin, Tag, Typography, Image } from 'antd';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import classNames from 'classnames';
 
 import { renderMarkdown } from '@/components/MarkdownRenderer';
 import { DocumentChunk, getRetrieveChunks } from '@/lib/api/documents';
@@ -10,6 +11,8 @@ import {
     FilePdfOutlined, VideoCameraOutlined, AudioOutlined
 } from '@ant-design/icons';
 import { Actions, Bubble, Sources, Think } from '@ant-design/x';
+
+import styles from './ChatMessageList.module.css';
 
 const { Text } = Typography;
 
@@ -53,6 +56,24 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, onPreview }
   const [drawerTitle, setDrawerTitle] = useState("");
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [retrievedChunks, setRetrievedChunks] = useState<DocumentChunk[]>([]);
+  const listRef = useRef<any>(null);
+
+  // 监听消息变化，自动滚动到底部
+  useEffect(() => {
+    // 使用 requestAnimationFrame 确保在下一帧 DOM 更新后执行
+    const rafId = requestAnimationFrame(() => {
+      // 检查 scrollBoxNativeElement 是否存在，确保组件已完全挂载
+      if (listRef.current?.scrollBoxNativeElement) {
+        try {
+          listRef.current.scrollTo({ top: 'bottom', behavior: 'smooth' });
+        } catch (e) {
+          console.warn('Scroll to bottom failed:', e);
+        }
+      }
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [messages]);
 
   const handleSourceClick = async (
     docId: string,
@@ -78,20 +99,17 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, onPreview }
   return (
     <>
       <Bubble.List
-        style={{
-          height: "100%",
-          overflow: "auto",
-          padding: "24px 0",
-        }}
+        ref={listRef}
+        className={styles.bubbleList}
         autoScroll
         items={messages.map((msg, index) => ({
           key: index,
-          style: { padding: "12px 10%" },
+          className: styles.bubbleItem,
           content: { ...msg, messageIndex: index },
           role: msg.role,
           header: msg.role === "assistant" ? msg.modelName : undefined,
           loading: msg.isLoading,
-          variant: msg.role === "user" ? "filled" : "borderless",
+          variant: "shadow",
         }))}
         role={{
           user: {
@@ -103,46 +121,36 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, onPreview }
               const renderFileContent = () => {
                 if (!msg.contentType || !msg.fileUrl) return null;
                 
-                const fileStyle = { marginBottom: 8, maxWidth: '100%' };
-                const placeholderStyle = { 
-                  ...fileStyle, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  padding: '8px 12px', 
-                  background: 'rgba(0,0,0,0.05)', 
-                  borderRadius: 8
-                };
-                
                 switch (msg.contentType) {
                   case 'IMAGE':
                     return (
-                      <div style={fileStyle}>
+                      <div className={styles.imageContainer}>
                         <Image
                           src={msg.fileUrl}
                           alt="Uploaded Image"
-                          style={{ maxWidth: '300px', maxHeight: '300px', borderRadius: 8 }}
+                          className={styles.image}
                         />
                       </div>
                     );
                   case 'VIDEO':
                     return (
-                      <div style={placeholderStyle}>
-                         <VideoCameraOutlined style={{ fontSize: 24, color: '#1890ff', marginRight: 8 }} />
-                         <Text ellipsis style={{ maxWidth: 200 }}>视频文件</Text>
+                      <div className={styles.filePlaceholder}>
+                         <VideoCameraOutlined className={styles.videoIcon} />
+                         <Text ellipsis className={styles.fileName}>视频文件</Text>
                       </div>
                     );
                   case 'AUDIO':
                     return (
-                      <div style={placeholderStyle}>
-                         <AudioOutlined style={{ fontSize: 24, color: '#13c2c2', marginRight: 8 }} />
-                         <Text ellipsis style={{ maxWidth: 200 }}>音频文件</Text>
+                      <div className={styles.filePlaceholder}>
+                         <AudioOutlined className={styles.audioIcon} />
+                         <Text ellipsis className={styles.fileName}>音频文件</Text>
                       </div>
                     );
                   case 'PDF':
                     return (
-                      <div style={placeholderStyle}>
-                         <FilePdfOutlined style={{ fontSize: 24, color: '#ff4d4f', marginRight: 8 }} />
-                         <Text ellipsis style={{ maxWidth: 200 }}>PDF文档</Text>
+                      <div className={styles.filePlaceholder}>
+                         <FilePdfOutlined className={styles.pdfIcon} />
+                         <Text ellipsis className={styles.fileName}>PDF文档</Text>
                       </div>
                     );
                   default:
@@ -151,27 +159,21 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, onPreview }
               };
 
               return (
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                    lineHeight: "1.5",
-                  }}
-                >
+                <div className={styles.messageContent}>
                   {renderFileContent()}
                   {msg.displayContent || msg.content}
                 </div>
               );
             },
             avatar: <Avatar icon={<UserOutlined />} />,
-            className: "user-bubble",
+            className: styles.userBubble,
           },
           assistant: {
             placement: "start",
             loadingRender: () => (
-              <Flex align="center" gap="small" style={{ opacity: 0.6 }}>
+              <Flex align="center" gap="small" className={styles.assistantLoading}>
                 <LoadingOutlined spin style={{ fontSize: 16 }} />
-                <span style={{ fontSize: 14 }}>Thinking...</span>
+                <span className={styles.thinkingText}>Thinking...</span>
               </Flex>
             ),
             contentRender: (content: any) => {
@@ -341,9 +343,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, onPreview }
                 type="inner"
                 variant="borderless"
               >
-                <div
-                  style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
-                >
+                <div className={styles.cardContent}>
                   {chunk.content}
                 </div>
               </Card>

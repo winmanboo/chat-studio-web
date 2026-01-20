@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { ConversationsProps } from "@ant-design/x";
 
 import ModelSelectButton from "@/components/ModelSelectButton";
@@ -23,7 +23,6 @@ import KnowledgeBaseSelectModal from "@/components/KnowledgeBaseSelectModal";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ChatMessageInput from "@/components/chat/ChatMessageInput";
 import ChatMessageList, { ChatMessage } from "@/components/chat/ChatMessageList";
-import PromptsView from "@/components/chat/PromptsView";
 import AnimatedTitle from "@/components/chat/AnimatedTitle";
 import PreviewPanel from "@/components/chat/PreviewPanel";
 import { KnowledgeBase } from "@/lib/api/knowledgebase";
@@ -39,52 +38,7 @@ import { loginEventManager } from "@/lib/events/loginEvents";
 import { modelEventManager } from "@/lib/events/modelEvents";
 import { useChat } from "@/lib/hooks/useChat";
 
-// Chat Studio标题样式
-const CHAT_STUDIO_TITLE_STYLE = {
-  fontSize: 32,
-  fontWeight: 600,
-  color: "#222",
-  letterSpacing: 1,
-  textAlign: "center" as const,
-  marginBottom: "40px",
-};
-
-// 中心容器样式
-const CENTER_CONTAINER_STYLE = {
-  width: "100%",
-  display: "flex",
-  flexDirection: "column" as const,
-  alignItems: "center",
-  justifyContent: "center",
-  flex: 1,
-  position: "relative" as const,
-  backgroundColor: "#fff",
-};
-
-// 中间Sender容器样式
-const MIDDLE_SENDER_CONTAINER_STYLE = {
-  width: "70%",
-  display: "flex",
-  flexDirection: "column" as const,
-  alignItems: "center",
-  justifyContent: "center",
-};
-
-// 底部Sender容器样式
-const BOTTOM_SENDER_CONTAINER_STYLE = {
-  width: "85%",
-  margin: "0 auto",
-  display: "flex",
-  justifyContent: "center",
-};
-
-// 模型选择组件的绝对定位样式
-const MODEL_SELECT_BUTTON_CONTAINER_STYLE = {
-  position: "absolute" as const,
-  top: "10px",
-  left: "10px",
-  zIndex: 10,
-};
+import styles from "./page.module.css";
 
 // 时间分组函数
 const getTimeGroup = (timestamp: number): string => {
@@ -186,7 +140,7 @@ interface ConversationItem {
 }
 
 const ChatPage: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [hasStarted, setHasStarted] = useState(false);
@@ -198,9 +152,7 @@ const ChatPage: React.FC = () => {
   
   // 用于控制Sender输入框的值
   const [inputValue, setInputValue] = useState(""); 
-  const senderRef = useRef<HTMLDivElement>(null);
-  const [senderHeight, setSenderHeight] = useState(100); // 跟踪Sender高度
-
+  
   // 检索模式
   const [searchMode, setSearchMode] = useState<null | "web"| 'think' | "kb">(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -215,7 +167,6 @@ const ChatPage: React.FC = () => {
   );
   const [defaultModel, setDefaultModel] = useState<DefaultModel | null>(null);
   const [modelList, setModelList] = useState<ModelProviderWithModels[]>([]);
-  const [modelListLoading, setModelListLoading] = useState<boolean>(false);
 
   // 预览相关状态
   const [previewContent, setPreviewContent] = useState<string>("");
@@ -292,13 +243,10 @@ const ChatPage: React.FC = () => {
   // 加载模型列表
   const loadModelList = async () => {
     try {
-      setModelListLoading(true);
       const list = await getModelList();
       setModelList(list);
     } catch (error) {
       console.error("加载模型列表失败:", error);
-    } finally {
-      setModelListLoading(false);
     }
   };
 
@@ -361,22 +309,6 @@ const ChatPage: React.FC = () => {
     return unsubscribe;
   }, []);
 
-  // 监听Sender高度变化
-  useEffect(() => {
-    if (!senderRef.current) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setSenderHeight(entry.contentRect.height);
-      }
-    });
-
-    resizeObserver.observe(senderRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [hasStarted]);
 
   // 修改会话名称
   const handleEditConversation = (key: string, currentLabel: string) => {
@@ -432,11 +364,7 @@ const ChatPage: React.FC = () => {
       centered: true,
       maskClosable: true,
       width: 400,
-      styles: {
-        body: {
-          padding: "24px",
-        },
-      },
+      className: styles.confirmModal,
       onOk: async () => {
         try {
           // 调用删除会话API，传递单个sessionId
@@ -536,15 +464,7 @@ const ChatPage: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        height: "100%",
-        width: "100%",
-        background: "#fff",
-        display: "flex",
-        flexDirection: "row",
-      }}
-    >
+    <div className={styles.pageContainer}>
       {/* 左侧对话管理区 */}
       <ChatSidebar
         collapsed={collapsed}
@@ -575,38 +495,26 @@ const ChatPage: React.FC = () => {
         onAddConversation={handleAddConversation}
       />
       {/* 右侧聊天区 */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          minHeight: 0,
-        }}
-      >
-        {!hasStarted ? (
-          <div style={CENTER_CONTAINER_STYLE}>
-            {/* 模型选择按钮 - 初始状态，置于左上角 */}
-            <div style={MODEL_SELECT_BUTTON_CONTAINER_STYLE}>
-              <ModelSelectButton
-                selectedModel={selectedModel}
-                defaultModel={defaultModel}
-                onSetDefaultClick={() => {
-                  handleSetDefaultModel();
-                }}
-                showSetDefault={true}
-                modelList={modelList}
-                onModelSelect={setSelectedModel}
-                loading={modelListLoading}
-                onDropdownOpen={loadModelList}
-              />
-            </div>
-
-            <AnimatedTitle
-              text="这里是 Chat Studio，专属于你的聊天工作室！"
-              style={CHAT_STUDIO_TITLE_STYLE}
+      <div className={styles.chatArea}>
+        <div className={styles.modelSelectContainer}>
+          <ModelSelectButton
+              selectedModel={selectedModel}
+              defaultModel={defaultModel}
+              onSetDefaultClick={() => {
+                handleSetDefaultModel();
+              }}
+              showSetDefault={true}
+              modelList={modelList}
+              onModelSelect={setSelectedModel}
+              onDropdownOpen={loadModelList}
             />
-            <div style={MIDDLE_SENDER_CONTAINER_STYLE}>
+        </div>
+        {!hasStarted ? (
+          <div className={styles.centerContainer}>
+            <AnimatedTitle
+              className={styles.title}
+            />
+            <div className={styles.middleSenderContainer}>
               <ChatMessageInput
                 value={inputValue}
                 onChange={setInputValue}
@@ -617,103 +525,52 @@ const ChatPage: React.FC = () => {
                 selectedKb={selectedKb}
                 onSearchModeChange={setSearchMode}
                 onKbSelectModalOpen={() => setKbSelectModalVisible(true)}
-                placeholder="请输入内容并回车..."
-                welcomeMessage="欢迎使用 Chat Studio，我可以帮您解答问题、协助创作或提供建议。"
                 selectedModelAbilities={selectedModel?.abilities || defaultModel?.abilities}
-              />
-            </div>
-            <div style={{ width: "70%", marginTop: "24px" }}>
-              <PromptsView
-                onItemClick={(prompt) => {
-                  setInputValue(prompt);
-                }}
               />
             </div>
           </div>
         ) : (
-          <Splitter>
-            <Splitter.Panel>
-              <div
-                style={{
-                  position: "relative",
-                  height: "100%",
-                  overflow: "hidden",
-                  minWidth: 400,
-                }}
-              >
-                {/* 模型选择按钮 - 聊天状态 */}
-                <div style={MODEL_SELECT_BUTTON_CONTAINER_STYLE}>
-                  <ModelSelectButton
-                    selectedModel={selectedModel}
-                    defaultModel={defaultModel}
-                    onSetDefaultClick={() => {
-                      handleSetDefaultModel();
-                    }}
-                    showSetDefault={true}
-                    modelList={modelList}
-                    onModelSelect={setSelectedModel}
-                    loading={modelListLoading}
-                    onDropdownOpen={loadModelList}
-                  />
-                </div>
-
-                {/* BubbleList 区域 */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "40px", // 增加顶部间距为模型选择按钮留出空间
-                    left: 0,
-                    right: 0,
-                    bottom: `${senderHeight + 30}px`, // 动态调整为Sender的实际高度并增加底部间距
-                  }}
-                >
-                  <ChatMessageList
-                    messages={displayMessages}
-                    isViewingHistory={!!selectedId} // 如果有选中的会话ID，说明在查看历史消息
-                    onPreview={handlePreview}
-                  />
-                </div>
-                {/* Sender 组件 - 绝对定位固定在底部 */}
-                <div
-                  ref={senderRef}
-                  style={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    padding: "20px",
-                    display: "flex",
-                    justifyContent: "center",
-                    zIndex: 10,
-                  }}
-                >
-                  <div style={BOTTOM_SENDER_CONTAINER_STYLE}>
-                    <ChatMessageInput
-                      value={inputValue}
-                      onChange={setInputValue}
-                      onSubmit={onSendMessage}
-                      loading={sendingLoading}
-                      onCancel={handleCancel}
-                      searchMode={searchMode}
-                      selectedKb={selectedKb}
-                      onSearchModeChange={setSearchMode}
-                      onKbSelectModalOpen={() => setKbSelectModalVisible(true)}
-                      placeholder="请输入内容并回车..."
-                      selectedModelAbilities={selectedModel?.abilities || defaultModel?.abilities}
+          <div className={styles.chatContent}>
+            <Splitter className={styles.splitter}>
+              <Splitter.Panel>
+                <div className={styles.splitterPanel}>
+                  {/* BubbleList 区域 */}
+                  <div className={styles.messageListContainer}>
+                    <ChatMessageList
+                      messages={displayMessages}
+                      isViewingHistory={!!selectedId} // 如果有选中的会话ID，说明在查看历史消息
+                      onPreview={handlePreview}
                     />
                   </div>
+                  {/* Sender 组件 - Flex布局在底部 */}
+                  <div className={styles.bottomSenderWrapper}>
+                    <div className={styles.bottomSenderContainer}>
+                      <ChatMessageInput
+                        value={inputValue}
+                        onChange={setInputValue}
+                        onSubmit={onSendMessage}
+                        loading={sendingLoading}
+                        onCancel={handleCancel}
+                        searchMode={searchMode}
+                        selectedKb={selectedKb}
+                        onSearchModeChange={setSearchMode}
+                        onKbSelectModalOpen={() => setKbSelectModalVisible(true)}
+                        selectedModelAbilities={selectedModel?.abilities || defaultModel?.abilities}
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </Splitter.Panel>
-            {previewVisible && (
-              <Splitter.Panel defaultSize="40%">
-                <PreviewPanel
-                  content={previewContent}
-                  onClose={() => setPreviewVisible(false)}
-                />
               </Splitter.Panel>
-            )}
-          </Splitter>
+              {previewVisible && (
+                <Splitter.Panel defaultSize="40%">
+                  <PreviewPanel
+                    content={previewContent}
+                    onClose={() => setPreviewVisible(false)}
+                  />
+                </Splitter.Panel>
+              )}
+            </Splitter>
+          </div>
         )}
       </div>
       {/* 编辑会话名称的模态框 */}

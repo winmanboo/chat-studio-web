@@ -3,6 +3,7 @@ import { Modal, Button, Form, Input, Space, Tabs, message } from 'antd';
 import { UserOutlined, MailOutlined, LockOutlined, GiftOutlined, SendOutlined } from '@ant-design/icons';
 import { login, register, sendCode, LoginRequest, RegisterRequest, AuthResponse } from '@/lib/api';
 import { loginEventManager } from '@/lib/events/loginEvents';
+import styles from './UserModal.module.css';
 
 interface UserModalProps {
   open: boolean;
@@ -235,7 +236,7 @@ const UserModal: React.FC<UserModalProps> = ({
                   required
                   help="点击发送验证码按钮将验证码发送到您的邮箱"
                 >
-                  <Space.Compact style={{ width: '100%' }}>
+                  <Space.Compact>
                     <Form.Item
                       name="captcha"
                       noStyle
@@ -270,7 +271,7 @@ const UserModal: React.FC<UserModalProps> = ({
             </Form.Item>
             
             {activeTab === 'login' && (
-              <div style={{ textAlign: 'center' }}>
+              <div>
                 <Button type="link" onClick={() => handleLogin()}>
                   一键登录（演示模式）
                 </Button>

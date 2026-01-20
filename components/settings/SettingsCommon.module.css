@@ -1,0 +1,74 @@
+.panelTitle {
+  margin-bottom: 24px !important;
+}
+
+.section {
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rowLabel {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.rowIcon {
+  margin-right: 8px;
+}
+
+.rowDescription {
+  font-size: 12px;
+}
+
+.selectWidth {
+  width: 100% !important;
+}
+
+.labelContainer {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.card {
+  margin-bottom: 24px !important;
+}
+
+.avatarContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.avatar {
+  margin-right: 16px !important;
+}
+
+.titleReset {
+  margin: 0 !important;
+  margin-bottom: 4px !important;
+}
+
+.divider {
+  margin: 16px 0 !important;
+}
+
+.spaceBetween {
+  display: flex;
+  justify-content: space-between;
+}
+
+.centerContainer {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.largeIcon {
+  font-size: 48px;
+  color: var(--primary-color);
+  margin-bottom: 16px;
+}

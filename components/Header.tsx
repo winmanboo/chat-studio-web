@@ -3,9 +3,10 @@ import { Layout, Avatar, Button, Dropdown, message, theme, Divider, Tag, Flex, T
 import type { MenuProps } from 'antd';
 import { UserOutlined, SettingOutlined, LogoutOutlined, CrownOutlined, AppstoreOutlined, RocketOutlined, UpOutlined, DownOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import classNames from 'classnames';
+import styles from './Header.module.css';
 
 const { Header } = Layout;
-const { Text } = Typography;
 
 interface UserInfo {
   userId: string;
@@ -26,7 +27,6 @@ interface HeaderProps {
 
 const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSettingsClick, isLogin, onLogout, userInfo }) => {
   const router = useRouter();
-  const { token } = theme.useToken();
   const [collapsed, setCollapsed] = React.useState(false);
 
   const workbenchTabs = [
@@ -72,8 +72,8 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
     {
       key: 'online',
       label: (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 8, height: 8, backgroundColor: '#52c41a', borderRadius: '50%' }}></div>
+        <div className={styles.onlineStatusItem}>
+          <div className={styles.onlineStatusDot}></div>
           当前在线用户: 1
         </div>
       ),
@@ -84,43 +84,25 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
   const renderTabButton = (tab: { key: string; icon: string; label: string }) => {
     const isSelected = selectedTab === tab.key;
     return (
-      <div style={{ position: 'relative' }} key={tab.key}>
+      <div className={styles.tabButtonWrapper} key={tab.key}>
         <Button
           type="text"
-          icon={<span style={{ fontSize: '16px' }}>{tab.icon}</span>}
+          icon={<span className={styles.tabIcon}>{tab.icon}</span>}
           onClick={() => {
             if (tab.key === 'chat') router.push('/chat');
             else if (tab.key === 'kb') router.push('/knowledgebase');
             else if (tab.key === 'mcp') router.push('/mcp');
             else handleNewFeatureClick(tab.label);
           }}
-          style={{
-            height: 36,
-            borderRadius: 8,
-            padding: '0 16px',
-            background: isSelected ? token.colorPrimary : 'transparent',
-            color: isSelected ? '#fff' : token.colorTextSecondary,
-            fontWeight: isSelected ? 600 : 400,
-            border: 'none',
-            transition: 'all 0.3s ease',
-          }}
+          className={classNames(styles.tabButton, {
+            [styles.tabButtonSelected]: isSelected,
+            [styles.tabButtonNormal]: !isSelected,
+          })}
         >
           {tab.label}
         </Button>
         {isSelected && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: -4,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: 20,
-              height: 3,
-              borderRadius: 2,
-              background: token.colorPrimary,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          />
+          <div className={styles.tabIndicator} />
         )}
       </div>
     );
@@ -128,89 +110,46 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
 
   return (
     <Header
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 24px',
-        background: collapsed ? 'transparent' : 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: collapsed ? 'none' : 'blur(8px)',
-        borderBottom: collapsed ? 'none' : '1px solid rgba(0, 0, 0, 0.06)',
-        height: collapsed ? 0 : 64,
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000,
-        transition: 'all 0.3s ease',
-        overflow: 'visible'
-      }}
+      className={classNames(styles.header, { [styles.headerCollapsed]: collapsed })}
     >
-      <div style={{
-        display: 'flex',
-        width: '100%',
-        height: '100%',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        opacity: collapsed ? 0 : 1,
-        transition: 'opacity 0.2s ease',
-        pointerEvents: collapsed ? 'none' : 'auto',
-      }}>
-        <div className="logo" style={{ fontSize: 20, fontWeight: 'bold', color: token.colorPrimary, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className={classNames(styles.innerContainer, { [styles.innerContainerCollapsed]: collapsed })}>
+        <div className={styles.logo}>
           Chat Studio
         </div>
 
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            background: token.colorFillQuaternary, 
-            padding: '4px 8px', 
-            borderRadius: 12,
-            gap: 12
-          }}>
+        <div className={styles.tabsWrapper}>
+          <div className={styles.tabsContainer}>
             {/* 工作台分组 */}
-            <Flex align="center" gap={4}>
-              <Text style={{ fontSize: 12, color: token.colorTextDescription, padding: '0 8px' }}>工作台</Text>
+            <Flex align="center" gap={4} className={styles.tabGroup}>
               {workbenchTabs.map(renderTabButton)}
             </Flex>
 
-            <Divider orientation="vertical" style={{ height: 24, margin: 0, borderColor: token.colorBorderSecondary }} />
+            <Divider orientation="vertical" />
 
             {/* 高级功能分组 */}
             <Flex align="center" gap={4}>
-              <Text style={{ fontSize: 12, color: token.colorTextDescription, padding: '0 8px' }}>高级功能</Text>
               {advancedTabs.map(renderTabButton)}
             </Flex>
           </div>
         </div>
 
         {/* 右上角用户按钮 */}
-        <div>
+        <div className={styles.userContainer}>
           {isLogin ? (
             <Dropdown
-              menu={{ items: menuItems, style: { width: 200 } }}
+              menu={{ items: menuItems, className: styles.dropdownMenu }}
               trigger={['click']}
               placement="bottomRight"
             >
               <Avatar
                 size={40}
                 icon={<UserOutlined />}
-                style={{ 
-                  cursor: 'pointer', 
-                  background: token.colorPrimaryBg, 
-                  color: token.colorPrimary,
-                  border: `1px solid ${token.colorPrimaryBorder}`
-                }}
               />
             </Dropdown>
           ) : (
             <Avatar
               size={40}
               icon={<UserOutlined />}
-              style={{ 
-                cursor: 'pointer', 
-                background: token.colorFillSecondary, 
-                color: token.colorTextSecondary 
-              }}
               onClick={onUserClick}
             />
           )}
@@ -220,28 +159,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({ selectedTab, onUserClick, onSe
       {/* 收起/展开按钮 */}
       <div
         onClick={() => setCollapsed(!collapsed)}
-        style={{
-          position: 'absolute',
-          bottom: -20,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: 48,
-          height: 20,
-          background: 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(0, 0, 0, 0.06)',
-          borderTop: 'none',
-          borderBottomLeftRadius: 12,
-          borderBottomRightRadius: 12,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          zIndex: 1001,
-          color: token.colorTextSecondary,
-          fontSize: 12,
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.02)'
-        }}
+        className={styles.collapseButton}
       >
         {collapsed ? <DownOutlined /> : <UpOutlined />}
       </div>

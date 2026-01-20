@@ -1,0 +1,15 @@
+.searchContainer {
+  margin-bottom: 16px;
+}
+
+.searchInput {
+  width: 300px;
+}
+
+.editingInput {
+  width: 100%;
+}
+
+.sessionTitle {
+  max-width: 200px;
+}

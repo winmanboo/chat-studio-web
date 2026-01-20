@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Card, Button, Row, Col, Tag, Divider, Spin, message, Modal, Space } from 'antd';
 import { DownloadOutlined, SettingOutlined, CloudOutlined, DesktopOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import classNames from 'classnames';
 import { getModelProviders, ModelProvider, getInstalledModels, InstalledModel, deleteModel } from '../../lib/api';
 import { modelEventManager } from '../../lib/events/modelEvents';
 import ModelSettingsModal from './ModelSettingsModal';
 import InstallModelModal from './InstallModelModal';
+import styles from './ModelProviderPanel.module.css';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -49,12 +51,7 @@ const ModelPanel: React.FC = () => {
         <img 
           src={model.icon} 
           alt={model.modelInstalledName}
-          style={{ 
-            width: 16, 
-            height: 16, 
-            borderRadius: 2,
-            objectFit: 'cover'
-          }}
+          className={styles.modelIcon}
           onError={(e) => {
             // 如果图标加载失败，回退到类型图标
             const target = e.target as HTMLImageElement;
@@ -176,27 +173,27 @@ const ModelPanel: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px 0' }}>
+      <div className={styles.loadingContainer}>
         <Spin size="large" />
-        <div style={{ marginTop: 16 }}>加载模型数据...</div>
+        <div className={styles.loadingText}>加载模型数据...</div>
       </div>
     );
   }
   return (
     <div>
-      <Title level={4} style={{ marginBottom: 24 }}>模型管理</Title>
+      <Title level={4} className={styles.title}>模型管理</Title>
       
       {/* 已安装模型列表 */}
-      <div style={{ marginBottom: 32 }}>
-        <Title level={5} style={{ marginBottom: 16 }}>已安装模型</Title>
+      <div className={styles.installedModelsContainer}>
+        <Title level={5} className={styles.installedModelsTitle}>已安装模型</Title>
         <Row gutter={[16, 16]}>
           {installedModels.map((model) => (
             <Col xs={24} sm={12} lg={8} key={model.id}>
               <Card
                 size="small"
                 title={
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div className={styles.modelCardHeader}>
+                    <div className={styles.modelCardTitle}>
                       {renderModelIcon(model)}
                       <span>{model.modelInstalledName}</span>
                     </div>
@@ -230,12 +227,12 @@ const ModelPanel: React.FC = () => {
                     />
                   </Space>
                 }
-                style={{ height: '100%' }}
+                className={styles.cardHeight}
               >
-                <div style={{ marginBottom: 8 }}>
+                <div className={styles.cardContent}>
                   {renderModelTypeTag(model.sourceType)}
                 </div>
-                <Text style={{ fontSize: 12, color: '#666' }}>
+                <Text className={styles.modelDesc}>
                   {model.sourceType === 'service' ? '云端托管的AI模型服务' : '本地部署的AI模型'}
                 </Text>
               </Card>
@@ -248,24 +245,23 @@ const ModelPanel: React.FC = () => {
 
       {/* 模型提供商列表 */}
        <div>
-         <Title level={5} style={{ marginBottom: 16 }}>模型提供商</Title>
+         <Title level={5} className={styles.subTitle}>模型提供商</Title>
          <Row gutter={[16, 16]}>
            {modelProviders.map((provider) => (
              <Col xs={24} sm={12} lg={8} key={provider.id}>
                <Card
                   size="small"
                   title={
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <img src={provider.icon} alt={provider.providerName} style={{ width: 20, height: 20, marginRight: 8 }} />
+                    <div className={styles.providerTitle}>
+                      <img src={provider.icon} alt={provider.providerName} className={styles.providerIcon} />
                       <span>{provider.providerName}</span>
                     </div>
                   }
-                  style={{ height: 200, borderRadius: 12, position: 'relative' }}
-                  bodyStyle={{ padding: '16px 16px 56px 16px', height: 'calc(100% - 57px)' }}
+                  className={styles.providerCard}
                 >
-                  <div style={{ height: '100%', overflow: 'hidden' }}>
-                    <div style={{ marginBottom: 12 }}>
-                      <Paragraph style={{ fontSize: 12, color: '#666', marginBottom: 0 }} ellipsis={{ rows: 2, tooltip: provider.description }}>
+                  <div className={styles.providerCardContent}>
+                    <div className={styles.providerDescContainer}>
+                      <Paragraph className={styles.providerDesc} ellipsis={{ rows: 2, tooltip: provider.description }}>
                         {provider.description}
                       </Paragraph>
                     </div>
@@ -273,14 +269,7 @@ const ModelPanel: React.FC = () => {
                   <Button 
                     type="primary"
                     icon={<DownloadOutlined />}
-                    style={{ 
-                      position: 'absolute',
-                      bottom: 16,
-                      left: 16,
-                      right: 16,
-                      width: 'calc(100% - 32px)',
-                      borderRadius: 8
-                    }}
+                    className={styles.installButton}
                     size="small"
                     onClick={() => handleOpenInstall(provider)}
                   >

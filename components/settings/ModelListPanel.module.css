@@ -1,0 +1,26 @@
+.container {
+  margin-top: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.title {
+  margin: 0 !important;
+}
+
+.providerInfo {
+  font-size: 12px;
+}
+
+.providerCount {
+  font-size: 12px;
+}
+
+.actionButton {
+  padding: 0;
+}

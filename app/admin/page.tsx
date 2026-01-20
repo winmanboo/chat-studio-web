@@ -31,14 +31,14 @@ const AdminConsole: React.FC = () => {
       const parsedUserInfo = JSON.parse(storedUserInfo);
       setUserInfo(parsedUserInfo);
       
-      // 如果不是管理员，重定向到首页
+      // 如果不是管理员，重定向到聊天页
       if (parsedUserInfo.userRole !== 'ADMIN') {
-        router.push('/');
+        router.push('/chat');
         return;
       }
     } else {
-      // 未登录，重定向到首页
-      router.push('/');
+      // 未登录，重定向到聊天页
+      router.push('/chat');
       return;
     }
   }, [router]);

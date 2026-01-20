@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, Select, message, Space, Tag, Popconfirm, Typography, Avatar, Tooltip, theme, AutoComplete } from 'antd';
-import { PlusOutlined, DeleteOutlined, ReloadOutlined, RobotOutlined, BulbOutlined, EyeOutlined, PictureOutlined, ToolOutlined, GlobalOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, ReloadOutlined, BulbOutlined, EyeOutlined, PictureOutlined, ToolOutlined, GlobalOutlined } from '@ant-design/icons';
+import classNames from 'classnames';
 import { getModelList, createModel, removeModel, getModelCatalog, ModelProviderWithModels, ModelListItem } from '../../lib/api/models';
 import { DictItem, getDictItems } from '../../lib/api/common';
+import styles from './ModelListPanel.module.css';
 
 const { Title, Text } = Typography;
 
@@ -153,7 +155,7 @@ const ModelListPanel: React.FC = () => {
         <Space>
           <Avatar src={record.icon} shape="square" size="small" />
           <Text strong>{text}</Text>
-          <Text type="secondary" style={{ fontSize: 12 }}>({record.models.length} 个模型)</Text>
+          <Text type="secondary" className={styles.providerCount}>({record.models.length} 个模型)</Text>
         </Space>
       ),
     },
@@ -225,9 +227,9 @@ const ModelListPanel: React.FC = () => {
   };
 
   return (
-    <div style={{ marginTop: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={5} style={{ margin: 0 }}>模型列表管理</Title>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <Title level={5} className={styles.title}>模型列表管理</Title>
         <Space>
           <Button icon={<ReloadOutlined />} onClick={fetchData} loading={loading}>刷新</Button>
         </Space>

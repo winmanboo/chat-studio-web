@@ -1,0 +1,22 @@
+.container {
+  display: flex;
+  height: 100%;
+}
+
+.sidebar {
+  width: 200px;
+  border-right: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+}
+
+.menu {
+  border: none !important;
+  background-color: transparent !important;
+  height: 100%;
+}
+
+.content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}

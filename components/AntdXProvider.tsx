@@ -16,6 +16,7 @@ export const AntdXProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <XProvider
       theme={{
+        cssVar: { key: 'ant' },
         token: {
           colorPrimary: "#3F51B5",
           colorTextBase: "#333333",

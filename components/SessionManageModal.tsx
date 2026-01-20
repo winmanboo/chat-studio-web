@@ -20,6 +20,7 @@ import {
 } from '@ant-design/icons';
 import { SessionItem, getSessionList, deleteSession, updateSessionTitle } from '@/lib/api/conversations';
 import type { ColumnsType } from 'antd/es/table';
+import styles from './SessionManageModal.module.css';
 
 const { Search } = Input;
 const { Text } = Typography;
@@ -190,7 +191,7 @@ const SessionManageModal: React.FC<SessionManageModalProps> = ({
               value={editingTitle}
               onChange={(e) => setEditingTitle(e.target.value)}
               onPressEnter={() => saveEdit(record.sessionId)}
-              style={{ width: '100%' }}
+              className={styles.editingInput}
               autoFocus
             />
           );
@@ -199,7 +200,7 @@ const SessionManageModal: React.FC<SessionManageModalProps> = ({
         return (
           <Text
             ellipsis={{ tooltip: text }}
-            style={{ maxWidth: 200 }}
+            className={styles.sessionTitle}
           >
             {text}
           </Text>
@@ -309,11 +310,11 @@ const SessionManageModal: React.FC<SessionManageModalProps> = ({
       ]}
       destroyOnHidden
     >
-      <div style={{ marginBottom: 16 }}>
+      <div className={styles.searchContainer}>
         <Search
           placeholder="搜索会话名称"
           allowClear
-          style={{ width: 300 }}
+          className={styles.searchInput}
           onSearch={handleSearch}
           onChange={(e) => {
             if (!e.target.value) {

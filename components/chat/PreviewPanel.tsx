@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Button, Space, Tooltip, message } from 'antd';
 import { CloseOutlined, CopyOutlined, DownloadOutlined, FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons';
+import styles from './PreviewPanel.module.css';
 
 interface PreviewPanelProps {
   content: string;
@@ -76,16 +77,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ content, onClose }) => {
   }, [content]);
 
   return (
-    <div ref={containerRef} style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff', borderLeft: '1px solid #f0f0f0' }}>
-      <div style={{
-        padding: '8px 16px',
-        borderBottom: '1px solid #f0f0f0',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        background: '#fafafa'
-      }}>
-        <span style={{ fontWeight: 500 }}>HTML 预览</span>
+    <div ref={containerRef} className={styles.container}>
+      <div className={styles.header}>
+        <span className={styles.title}>HTML 预览</span>
         <Space>
           <Tooltip title="复制源码">
             <Button type="text" icon={<CopyOutlined />} onClick={handleCopy} />
@@ -101,11 +95,11 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ content, onClose }) => {
           </Tooltip>
         </Space>
       </div>
-      <div style={{ flex: 1, overflow: 'hidden', padding: 0 }}>
+      <div className={styles.content}>
         <iframe
           key={iframeKey}
           ref={iframeRef}
-          style={{ width: '100%', height: '100%', border: 'none' }}
+          className={styles.iframe}
           sandbox="allow-scripts allow-forms allow-popups allow-modals allow-same-origin"
           title="preview"
           srcDoc={processedContent}

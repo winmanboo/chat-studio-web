@@ -16,6 +16,7 @@
     "@ant-design/x-sdk": "^2.1.2",
     "antd": "^6.0.0",
     "axios": "^1.7.9",
+    "classnames": "^2.5.1",
     "dayjs": "^1.11.18",
     "dotenv": "^17.2.2",
     "echarts": "^6.0.0",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/classnames": "^2.3.0",
     "@types/node": "^20",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",

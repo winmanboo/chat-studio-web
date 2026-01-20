@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Descriptions, Tag, Spin, message, theme, Typography, Space, Tooltip } from 'antd';
 import { DocumentDetail, getDocumentInfo } from '@/lib/api/documents';
 import { FileTextOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import styles from './DocumentDetailModal.module.css';
 
 const { Text, Title } = Typography;
 
@@ -61,7 +62,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
       title={
         <Space>
           <FileTextOutlined style={{ color: token.colorPrimary }} />
-          <span style={{ fontSize: 16, fontWeight: 600 }}>文档详情</span>
+          <span className={styles.modalTitle}>文档详情</span>
         </Space>
       }
       open={visible}
@@ -75,10 +76,10 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
     >
       <Spin spinning={loading}>
         {documentDetail && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div className={styles.container}>
             {/* 基本信息 */}
             <div>
-              <Title level={5} style={{ fontSize: 14, marginBottom: 16 }}>
+              <Title level={5} className={styles.sectionTitle}>
                 <Space>
                   <InfoCircleOutlined />
                   基本信息
@@ -88,7 +89,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
                 column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} 
                 bordered 
                 size="small"
-                styles={{ label: { width: '120px', background: token.colorFillQuaternary } }}
+                styles={{ label: { width: '120px', background: 'var(--fill-quaternary)' } }}
               >
                 <Descriptions.Item label="文档ID" span={2}>
                   <Text copyable>{documentDetail.docId}</Text>
@@ -115,7 +116,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
                   {documentDetail.tags && documentDetail.tags.length > 0 ? (
                     <Space size={4} wrap>
                       {documentDetail.tags.map((tag, index) => (
-                        <Tag key={index} bordered={false} style={{ background: token.colorFillSecondary }}>{tag}</Tag>
+                        <Tag key={index} bordered={false} style={{ background: 'var(--fill-secondary)' }}>{tag}</Tag>
                       ))}
                     </Space>
                   ) : (
@@ -131,7 +132,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
             {/* 文件信息 */}
             {documentDetail.fileUploads && (
               <div>
-                 <Title level={5} style={{ fontSize: 14, marginBottom: 16 }}>
+                 <Title level={5} className={styles.sectionTitle}>
                   <Space>
                     <FileTextOutlined />
                     文件信息
@@ -141,7 +142,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
                   column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} 
                   bordered 
                   size="small"
-                  styles={{ label: { width: '120px', background: token.colorFillQuaternary } }}
+                  styles={{ label: { width: '120px', background: 'var(--fill-quaternary)' } }}
                 >
                   <Descriptions.Item label="原始文件名" span={2}>
                     {documentDetail.fileUploads.originalName}
@@ -154,13 +155,8 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
                   </Descriptions.Item>
                   <Descriptions.Item label="文件类型">
                     <Tooltip title={documentDetail.fileUploads.contentType}>
-                      <Tag color="purple" style={{ display: 'inline-flex', alignItems: 'center', maxWidth: '100%' }}>
-                        <span style={{ 
-                          maxWidth: 160, 
-                          overflow: 'hidden', 
-                          textOverflow: 'ellipsis', 
-                          whiteSpace: 'nowrap'
-                        }}>
+                      <Tag color="purple" className={styles.tagWrapper}>
+                        <span className={styles.truncatedText}>
                           {documentDetail.fileUploads.contentType}
                         </span>
                       </Tag>
@@ -170,7 +166,7 @@ const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
                     {formatDate(documentDetail.fileUploads.createdTime)}
                   </Descriptions.Item>
                   <Descriptions.Item label="存储路径" span={3}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type="secondary" className={styles.secondaryText}>
                       {documentDetail.fileUploads.storagePath}
                     </Text>
                   </Descriptions.Item>

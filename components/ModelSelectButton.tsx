@@ -1,18 +1,33 @@
-import React from 'react';
-import { 
-  DownOutlined, 
-  SettingOutlined, 
-  RobotOutlined, 
-  CheckCircleOutlined,
-  BulbOutlined,
-  EyeOutlined,
-  PictureOutlined,
-  ToolOutlined,
-  GlobalOutlined
-} from '@ant-design/icons';
-import type { ModelListItem, ModelProviderWithModels, DefaultModel } from '@/lib/api/models';
-import { theme, Tooltip, Button, Dropdown, type MenuProps, Spin, message, Input, Divider } from 'antd';
+import {
+  Button,
+  Dropdown,
+  Input,
+  MenuProps,
+  message,
+  Spin,
+  Tooltip,
+} from "antd";
+import React from "react";
 
+import {
+  BulbOutlined,
+  CheckCircleOutlined,
+  DownOutlined,
+  EyeOutlined,
+  GlobalOutlined,
+  PictureOutlined,
+  RobotOutlined,
+  SettingOutlined,
+  ToolOutlined,
+} from "@ant-design/icons";
+
+import styles from "./ModelSelectButton.module.css";
+
+import type {
+  ModelListItem,
+  ModelProviderWithModels,
+  DefaultModel,
+} from "@/lib/api/models";
 interface ModelSelectButtonProps {
   selectedModel?: ModelListItem | null;
   defaultModel?: DefaultModel | null;
@@ -20,7 +35,6 @@ interface ModelSelectButtonProps {
   showSetDefault?: boolean; // 控制是否显示"设为默认"文本
   modelList?: ModelProviderWithModels[];
   onModelSelect?: (model: ModelListItem) => void;
-  loading?: boolean;
   onDropdownOpen?: () => void;
 }
 
@@ -31,74 +45,74 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
   showSetDefault = true, // 默认显示"设为默认"文本
   modelList,
   onModelSelect,
-  loading = false,
   onDropdownOpen,
 }) => {
-  const { token } = theme.useToken();
-  const [hovered, setHovered] = React.useState(false);
-  const [searchValue, setSearchValue] = React.useState('');
+  const [searchValue, setSearchValue] = React.useState("");
 
   // 渲染能力图标组件
   const renderAbilityIcons = (abilities?: string) => {
     if (!abilities) return null;
-    
-    const abilityList = abilities.split(',').map(a => a.trim());
+
+    const abilityList = abilities.split(",").map((a) => a.trim());
     const icons: React.ReactNode[] = [];
-    
-    if (abilityList.includes('THINKING')) {
+
+    if (abilityList.includes("THINKING")) {
       icons.push(
         <Tooltip key="thinking" title="深度思考">
-          <BulbOutlined style={{ color: token.colorWarning }} />
+          <BulbOutlined />
         </Tooltip>
       );
     }
-    
-    if (abilityList.includes('VISUAL_UNDERSTANDING')) {
+
+    if (abilityList.includes("VISUAL_UNDERSTANDING")) {
       icons.push(
         <Tooltip key="visual" title="视觉理解">
-          <EyeOutlined style={{ color: token.colorSuccess }} />
+          <EyeOutlined />
         </Tooltip>
       );
     }
-    
-    if (abilityList.includes('IMAGE_GENERATION')) {
+
+    if (abilityList.includes("IMAGE_GENERATION")) {
       icons.push(
         <Tooltip key="image" title="图片生成">
-          <PictureOutlined style={{ color: token.purple6 }} />
+          <PictureOutlined />
         </Tooltip>
       );
     }
-    
-    if (abilityList.includes('TOOL')) {
+
+    if (abilityList.includes("TOOL")) {
       icons.push(
         <Tooltip key="tool" title="工具调用">
-          <ToolOutlined style={{ color: token.colorInfo }} />
+          <ToolOutlined />
         </Tooltip>
       );
     }
-    
-    if (abilityList.includes('NETWORK')) {
+
+    if (abilityList.includes("NETWORK")) {
       icons.push(
         <Tooltip key="network" title="联网搜索">
-          <GlobalOutlined style={{ color: token.colorLink }} />
+          <GlobalOutlined />
         </Tooltip>
       );
     }
-    
+
     if (icons.length === 0) return null;
-    
+
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8 }} onClick={(e) => e.stopPropagation()}>
+      <div
+        style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 8 }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {icons}
       </div>
     );
   };
 
-  const displayModelName = selectedModel 
-    ? selectedModel.modelName 
-    : defaultModel 
-      ? defaultModel.modelName 
-      : "未安装模型";
+  const displayModelName = selectedModel
+    ? selectedModel.modelName
+    : defaultModel
+    ? defaultModel.modelName
+    : "未安装模型";
 
   const displayIcon = selectedModel?.icon || defaultModel?.icon;
 
@@ -109,146 +123,96 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
 
     const lowerSearch = searchValue.toLowerCase();
 
-    return modelList.map(provider => {
-      // 1. 检查提供商名称是否匹配
-      const providerMatches = provider.providerName.toLowerCase().includes(lowerSearch);
-      
-      // 2. 检查模型名称是否匹配
-      const filteredModels = provider.models.filter(model => 
-        model.modelName.toLowerCase().includes(lowerSearch)
-      );
+    return modelList
+      .map((provider) => {
+        // 1. 检查提供商名称是否匹配
+        const providerMatches = provider.providerName
+          .toLowerCase()
+          .includes(lowerSearch);
 
-      // 如果提供商名称匹配，显示该提供商下的所有模型
-      if (providerMatches) {
-        return provider;
-      }
+        // 2. 检查模型名称是否匹配
+        const filteredModels = provider.models.filter((model) =>
+          model.modelName.toLowerCase().includes(lowerSearch)
+        );
 
-      // 如果只有模型名称匹配，只显示匹配的模型
-      if (filteredModels.length > 0) {
-        return {
-          ...provider,
-          models: filteredModels
-        };
-      }
+        // 如果提供商名称匹配，显示该提供商下的所有模型
+        if (providerMatches) {
+          return provider;
+        }
 
-      return null;
-    }).filter(Boolean) as ModelProviderWithModels[];
+        // 如果只有模型名称匹配，只显示匹配的模型
+        if (filteredModels.length > 0) {
+          return {
+            ...provider,
+            models: filteredModels,
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean) as ModelProviderWithModels[];
   }, [modelList, searchValue]);
 
   // 构建下拉菜单项
-  const menuItems: MenuProps['items'] = React.useMemo(() => {
-    if (loading) {
-      return [
-        {
-          key: 'loading',
-          label: (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-              <Spin size="small" />
-            </div>
-          ),
-          disabled: true,
-        }
-      ];
-    }
-
+  const menuItems: MenuProps["items"] = React.useMemo(() => {
     if (!filteredModelList || filteredModelList.length === 0) {
       return [
         {
-          key: 'empty',
-          label: <span style={{ color: token.colorTextDescription }}>
-            {searchValue ? '未找到相关模型' : '暂无可用模型'}
-          </span>,
+          key: "empty",
+          label: <span>{searchValue ? "未找到相关模型" : "暂无可用模型"}</span>,
           disabled: true,
-        }
+        },
       ];
     }
-    
-    return filteredModelList.map(provider => ({
+
+    return filteredModelList.map((provider) => ({
       key: provider.providerId,
-      type: 'group',
+      type: "group",
       label: provider.providerName,
-      children: provider.models.map(model => {
+      children: provider.models.map((model) => {
         const iconUrl = model.icon || provider.icon;
         return {
           key: String(model.id),
           label: (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <div className={styles.menuItemLabel}>
               <span>{model.modelName}</span>
               {renderAbilityIcons(model.abilities)}
             </div>
           ),
           icon: iconUrl ? (
-            <img 
-              src={iconUrl} 
-              alt={model.modelName} 
-              style={{ 
-                width: 16, 
-                height: 16, 
-                borderRadius: 2,
-                objectFit: 'contain' 
-              }} 
+            <img
+              src={iconUrl}
+              alt={model.modelName}
+              className={styles.menuItemIcon}
             />
-          ) : <RobotOutlined />,
-          onClick: () => onModelSelect && onModelSelect({ ...model, icon: iconUrl, providerId: provider.providerId }),
+          ) : (
+            <RobotOutlined />
+          ),
+          onClick: () =>
+            onModelSelect &&
+            onModelSelect({
+              ...model,
+              icon: iconUrl,
+              providerId: provider.providerId,
+            }),
         };
-      })
+      }),
     }));
-  }, [filteredModelList, onModelSelect, loading, token, searchValue]);
+  }, [filteredModelList, onModelSelect, searchValue]);
 
   const CardContent = (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '8px 12px',
-        borderRadius: 12,
-        background: hovered ? token.colorFillSecondary : token.colorFillQuaternary,
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        border: `1px solid ${hovered ? token.colorBorder : 'transparent'}`,
-        minWidth: 180,
-        boxShadow: hovered ? token.boxShadowTertiary : 'none',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div className={styles.cardContent}>
+      <div className={styles.modelInfo}>
         {displayIcon ? (
-          <img 
-            src={displayIcon} 
-            alt="icon" 
-            style={{ 
-              width: 24, 
-              height: 24, 
-              borderRadius: 6,
-              objectFit: 'cover'
-            }} 
-          />
+          <img src={displayIcon} alt="icon" className={styles.modelIcon} />
         ) : (
-          <div style={{
-            width: 24,
-            height: 24,
-            borderRadius: 6,
-            background: token.colorPrimaryBg,
-            color: token.colorPrimary,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 14,
-          }}>
+          <div className={styles.fallbackIcon}>
             <RobotOutlined />
           </div>
         )}
-        <span style={{ 
-          fontWeight: 500, 
-          color: token.colorText,
-          fontSize: 14 
-        }}>
-          {displayModelName}
-        </span>
+        <span className={styles.modelName}>{displayModelName}</span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <div className={styles.cardActions}>
         <Tooltip title="模型设置">
           <Button
             type="text"
@@ -258,71 +222,53 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
               e.stopPropagation();
               message.info("功能正在开发中");
             }}
-            style={{
-              color: token.colorTextSecondary,
-              width: 24,
-              height: 24,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className={styles.settingsButton}
           />
         </Tooltip>
-        <DownOutlined style={{ fontSize: 10, color: token.colorTextTertiary, marginLeft: 4 }} />
+        <DownOutlined className={styles.downIcon} />
       </div>
     </div>
   );
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div className={styles.container}>
       {/* 模型卡片 - 始终使用 Dropdown */}
-      <Dropdown 
-        menu={{ 
+      <Dropdown
+        menu={{
           items: menuItems,
-          style: { maxHeight: 400, overflowY: 'auto', minWidth: 200 }
-        }} 
-        trigger={['click']}
+        }}
+        trigger={["click"]}
         placement="bottomLeft"
         onOpenChange={(open) => {
           if (open) {
-            setSearchValue(''); // 打开时重置搜索
+            setSearchValue(""); // 打开时重置搜索
             if (onDropdownOpen) {
               onDropdownOpen();
             }
           }
         }}
         popupRender={(menu) => (
-          <div style={{ 
-            backgroundColor: token.colorBgElevated,
-            borderRadius: token.borderRadiusLG,
-            boxShadow: token.boxShadowSecondary,
-            padding: 4,
-          }}>
-            <div style={{ padding: '8px 8px 4px 8px' }}>
+          <div style={{backgroundColor: '#fff'}}>
+            <div style={{ padding: "8px" }}>
               <Input
                 placeholder="搜索模型..."
                 value={searchValue}
-                onChange={e => setSearchValue(e.target.value)}
+                onChange={(e) => setSearchValue(e.target.value)}
                 allowClear
-                variant='borderless'
-                style={{
-                  background: token.colorFillAlter,
-                  borderRadius: token.borderRadius,
-                  padding: '4px 8px'
-                }}
+                variant="borderless"
+                className={styles.searchInput}
                 onClick={(e) => e.stopPropagation()} // 防止点击输入框关闭下拉
                 onKeyDown={(e) => e.stopPropagation()} // 防止按键事件冒泡
               />
             </div>
-            {React.isValidElement(menu) ? React.cloneElement(menu as React.ReactElement<any>, { style: { ...(menu.props as any)?.style, boxShadow: 'none' } }) : menu}
+            {React.isValidElement(menu)
+              ? React.cloneElement(menu as React.ReactElement<any>,)
+              : menu}
           </div>
         )}
       >
         {CardContent}
       </Dropdown>
-
-      {/* 附属操作区 */}
-
 
       {/* 附属操作区 */}
       {showSetDefault && (
@@ -331,15 +277,7 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
             type="text"
             icon={<CheckCircleOutlined />}
             onClick={onSetDefaultClick}
-            style={{
-              color: token.colorTextSecondary,
-              fontSize: 16,
-              width: 32,
-              height: 32,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className={styles.setDefaultButton}
           />
         </Tooltip>
       )}

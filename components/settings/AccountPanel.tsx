@@ -1,7 +1,8 @@
 import React from 'react';
-import { Typography, Avatar, Card, Divider, Space, Button } from 'antd';
+import { Typography, Avatar, Card, Divider, Space, Button, theme } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { UserInfo } from '../../lib/api';
+import styles from './SettingsCommon.module.css';
 
 const { Title, Text } = Typography;
 
@@ -10,6 +11,7 @@ interface AccountPanelProps {
 }
 
 const AccountPanel: React.FC<AccountPanelProps> = ({ userInfo }) => {
+  const { token } = theme.useToken();
   // 格式化容量显示
   const formatCapacity = (capacity?: number) => {
     if (!capacity) return '0 MB';
@@ -26,56 +28,56 @@ const AccountPanel: React.FC<AccountPanelProps> = ({ userInfo }) => {
   const formatState = (state?: string) => {
     switch (state) {
       case 'INIT':
-        return { text: '初始（未激活）', color: '#faad14' };
+        return { text: '初始（未激活）', color: token.colorWarning };
       case 'ACTIVE':
-        return { text: '已激活', color: '#52c41a' };
+        return { text: '已激活', color: token.colorSuccess };
       case 'FROZEN':
-        return { text: '冻结', color: '#ff4d4f' };
+        return { text: '冻结', color: token.colorError };
       default:
-        return { text: state || '未知', color: '#8c8c8c' };
+        return { text: state || '未知', color: token.colorTextSecondary };
     }
   };
 
   return (
     <div>
-      <Title level={4} style={{ marginBottom: 24 }}>账号信息</Title>
-      <Card style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+      <Title level={4} className={styles.panelTitle}>账号信息</Title>
+      <Card className={styles.card}>
+        <div className={styles.avatarContainer}>
           <Avatar 
             size={64} 
             src={userInfo?.profileAvatarUrl} 
             icon={<UserOutlined />} 
-            style={{ marginRight: 16 }} 
+            className={styles.avatar}
           />
           <div>
-            <Title level={5} style={{ margin: 0, marginBottom: 4 }}>
+            <Title level={5} className={styles.titleReset}>
               {userInfo?.nickName || 'Chat Studio User'}
             </Title>
             <Text type="secondary">{userInfo?.email || 'user@chatstudio.com'}</Text>
           </div>
         </div>
-        <Divider style={{ margin: '16px 0' }} />
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Divider className={styles.divider} />
+        <Space direction="vertical" className={styles.section}>
+          <div className={styles.spaceBetween}>
             <Text strong>用户ID:</Text>
             <Text>{userInfo?.userId || '未知'}</Text>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className={styles.spaceBetween}>
             <Text strong>用户角色:</Text>
             <Text>{userInfo?.userRole === 'ADMIN' ? '管理员' : '普通用户'}</Text>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className={styles.spaceBetween}>
             <Text strong>账号状态:</Text>
             <Text style={{ color: formatState(userInfo?.state).color }}>
               {formatState(userInfo?.state).text}
             </Text>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className={styles.spaceBetween}>
             <Text strong>存储容量:</Text>
             <Text>{formatCapacity(userInfo?.capacity)}</Text>
           </div>
           {userInfo?.inviteCode && (
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className={styles.spaceBetween}>
               <Text strong>邀请码:</Text>
               <Text>{userInfo.inviteCode}</Text>
             </div>

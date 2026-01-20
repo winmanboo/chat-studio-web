@@ -5,6 +5,7 @@ import HeaderComponent from "./Header";
 import UserModal from "./UserModal";
 import SettingsModal from "./SettingsModal";
 import { logout, UserInfo } from "../lib/api";
+import styles from "./AppMain.module.css";
 
 interface AppMainProps {
   children: React.ReactNode;
@@ -88,13 +89,13 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
       }
       setUserInfo(null);
       setIsLogin(false);
-      // 登出后重定向到主页面，清理所有界面数据
-      window.location.href = '/';
+      // 登出后重定向到chat页面，清理所有界面数据
+      window.location.href = '/chat';
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
+    <div className={styles.container}>
       <HeaderComponent 
         selectedTab={getSelectedTab()} 
         onUserClick={handleUserClick}
@@ -103,8 +104,8 @@ const AppMain: React.FC<AppMainProps> = ({ children }) => {
         onLogout={handleLogout}
         userInfo={userInfo}
       />
-      <main style={{ flex: 1, width: '100%', alignSelf: 'stretch', display: 'flex', minHeight: 0 }}>
-        <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+      <main className={styles.main}>
+        <div className={styles.contentWrapper}>
           {children}
         </div>
       </main>

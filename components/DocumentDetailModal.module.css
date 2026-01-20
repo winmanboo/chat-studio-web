@@ -1,0 +1,32 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sectionTitle {
+  font-size: 14px !important;
+  margin-bottom: 16px !important;
+}
+
+.tagWrapper {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+}
+
+.truncatedText {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.secondaryText {
+  font-size: 12px;
+}
+
+.modalTitle {
+  font-size: 16px;
+  font-weight: 600;
+}

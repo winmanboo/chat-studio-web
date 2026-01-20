@@ -1,20 +1,37 @@
 import React, { useEffect, useState } from "react";
 import { motion, Variants } from "framer-motion";
+import classNames from "classnames";
+import styles from "./AnimatedTitle.module.css";
 
 interface AnimatedTitleProps {
-  text: string;
+  text?: string;
   style?: React.CSSProperties;
+  className?: string;
 }
 
-const AnimatedTitle: React.FC<AnimatedTitleProps> = ({ text, style }) => {
+const SLOGANS = [
+  "你好呀～今天想聊点什么？",
+  "我在这儿呢，有什么问题尽管问吧！",
+  "无论大事小事，我都很乐意听你说",
+  "今天的心情如何？需要我陪你聊聊吗？",
+  "嗨，我是你的AI伙伴，随时为你效劳～",
+  "有什么好奇的、困惑的？我来帮你解答！",
+  "别犹豫，你的每一个问题都值得被认真对待",
+  "想探索知识？还是只想闲聊？我都可以！",
+  "世界很大，问题很多——但你有我",
+  "从天文地理到生活琐事，问我就好！"
+];
+
+const AnimatedTitle: React.FC<AnimatedTitleProps> = ({ text, style, className }) => {
   const [displayText, setDisplayText] = useState("");
   const [isTypingComplete, setIsTypingComplete] = useState(false);
 
   useEffect(() => {
+    const targetText = text || SLOGANS[Math.floor(Math.random() * SLOGANS.length)];
     let currentIndex = 0;
     const timer = setInterval(() => {
-      if (currentIndex <= text.length) {
-        setDisplayText(text.slice(0, currentIndex));
+      if (currentIndex <= targetText.length) {
+        setDisplayText(targetText.slice(0, currentIndex));
         currentIndex++;
       } else {
         setIsTypingComplete(true);
@@ -41,26 +58,15 @@ const AnimatedTitle: React.FC<AnimatedTitleProps> = ({ text, style }) => {
 
   return (
     <div
-      style={{
-        ...style,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
+      className={classNames(styles.container, className)}
+      style={style as any}
     >
       <span>{displayText}</span>
       {!isTypingComplete && (
         <motion.span
           variants={cursorVariants}
           animate="blinking"
-          style={{
-            display: "inline-block",
-            width: "2px", // 光标宽度
-            height: "1em", // 光标高度跟随字体大小
-            backgroundColor: "currentColor", // 使用当前文本颜色
-            marginLeft: "2px", // 光标与文本的间距
-            verticalAlign: "middle", // 垂直对齐
-          }}
+          className={styles.cursor}
         />
       )}
     </div>

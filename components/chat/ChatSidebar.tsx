@@ -1,5 +1,7 @@
 import { Button, Spin, theme } from "antd";
 import React from "react";
+import classNames from "classnames";
+import styles from "./ChatSidebar.module.css";
 
 import {
   CommentOutlined,
@@ -44,7 +46,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   groupable,
   creation,
 }) => {
-  const { token } = theme.useToken();
 
   const items = React.useMemo(() => {
     if (conversations.length === 0) return [];
@@ -53,62 +54,37 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   return (
     <div
-      style={{
-        width: collapsed ? 64 : 280,
-        transition: "width 0.2s ease-in-out",
-        borderRight: `1px solid ${token.colorBorderSecondary}`,
-        display: "flex",
-        flexDirection: "column",
-        background: token.colorBgContainer,
-        height: "100%",
-        color: token.colorText,
-      }}
+      className={classNames(styles.sidebar, {
+        [styles.sidebarCollapsed]: collapsed,
+      })}
     >
       {/* 顶部操作区 (仅在折叠时显示新建按钮) */}
       {collapsed && (
-        <div
-          style={{
-            padding: "16px 0 8px",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
+        <div className={styles.topActions}>
           <Button
             type="text"
             icon={<PlusOutlined />}
             onClick={onAddConversation}
-            style={{
-              fontSize: 18,
-              color: token.colorText,
-              width: 40,
-              height: 40,
-            }}
+            className={styles.addButton}
           />
         </div>
       )}
 
       {/* 中间滚动区 */}
       <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          overflowX: "hidden",
-          padding: collapsed ? 0 : 8,
-          display: collapsed ? "none" : "block",
-          boxSizing: "border-box",
-        }}
+        className={classNames(styles.scrollArea, {
+          [styles.scrollAreaCollapsed]: collapsed,
+        })}
       >
         {(() => {
           if (loading) {
+            if (collapsed) {
+              return null;
+            }
             return (
-              <div style={{ textAlign: "center", padding: "20px" }}>
+              <div className={styles.loadingContainer}>
                 <Spin size="small" />
-                <div
-                  style={{
-                    marginTop: "8px",
-                    color: token.colorTextDescription,
-                  }}
-                >
+                <div className={styles.loadingText}>
                   加载中...
                 </div>
               </div>
@@ -116,31 +92,26 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           }
 
           if (conversations.length === 0) {
+            if (collapsed) {
+              return null;
+            }
             return (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "40px 20px",
-                  color: token.colorTextDescription,
-                }}
-              >
-                <CommentOutlined
-                  style={{
-                    fontSize: "32px",
-                    marginBottom: "12px",
-                    display: "block",
-                  }}
-                />
-                <div style={{ fontSize: "14px", marginBottom: "8px" }}>
+              <div className={styles.emptyContainer}>
+                <CommentOutlined className={styles.emptyIcon} />
+                <div className={styles.emptyText}>
                   暂无会话
                 </div>
               </div>
             );
           }
 
+          if (collapsed) {
+            return null;
+          }
+
           return (
             <Conversations
-              style={{ width: "100%", color: token.colorText }}
+              className={styles.conversations}
               items={items}
               activeKey={selectedId}
               onActiveChange={onConversationSelect}
@@ -149,26 +120,9 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               creation={
                 creation || {
                   label: (
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        flex: 1,
-                        minWidth: 0,
-                      }}
-                    >
+                    <div className={styles.newChatLabel}>
                       <span>新建对话</span>
-                      <span
-                        style={{
-                          fontSize: 12,
-                          color: token.colorTextTertiary,
-                          background: token.colorFillQuaternary,
-                          padding: "0 4px",
-                          borderRadius: 4,
-                          fontFamily: "monospace",
-                        }}
-                      >
+                      <span className={styles.shortcutKey}>
                         ⌘ O
                       </span>
                     </div>
@@ -184,40 +138,26 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
       {/* 底部工具栏 */}
       <div
-        style={{
-          padding: 12,
-          borderTop: collapsed
-            ? "none"
-            : `1px solid ${token.colorBorderSecondary}`,
-          display: "flex",
-          flexDirection: collapsed ? "column" : "row",
-          alignItems: "center",
-          justifyContent: collapsed ? "center" : "space-between",
-          gap: 8,
-        }}
+        className={classNames(styles.bottomToolbar, {
+          [styles.bottomToolbarCollapsed]: collapsed,
+        })}
       >
         <Button
           type="text"
           icon={<SettingOutlined />}
           onClick={onSettingsClick}
-          style={{
-            fontSize: 16,
-            color: token.colorTextSecondary,
-            width: collapsed ? 40 : undefined,
-            height: collapsed ? 40 : undefined,
-          }}
+          className={classNames(styles.toolbarButton, {
+            [styles.toolbarButtonCollapsed]: collapsed,
+          })}
         />
 
         <Button
           type="text"
           icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           onClick={() => onCollapsedChange(!collapsed)}
-          style={{
-            fontSize: 16,
-            color: token.colorTextSecondary,
-            width: collapsed ? 40 : undefined,
-            height: collapsed ? 40 : undefined,
-          }}
+          className={classNames(styles.toolbarButton, {
+            [styles.toolbarButtonCollapsed]: collapsed,
+          })}
         />
       </div>
     </div>

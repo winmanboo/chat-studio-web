@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Input, Spin, message, Tag, Empty, Pagination, theme, Typography, Flex, Space } from 'antd';
 import { SearchOutlined, DatabaseOutlined, CalendarOutlined, FileTextOutlined } from '@ant-design/icons';
 import { getKnowledgeBasePage, KnowledgeBase, PageParams } from '@/lib/api/knowledgebase';
+import classNames from 'classnames';
+import styles from './KnowledgeBaseSelectModal.module.css';
 
 const { Search } = Input;
 const { Text, Title } = Typography;
@@ -82,10 +84,22 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
     onCancel();
   };
 
+  const cssVars = {
+    '--primary-color': token.colorPrimary,
+    '--primary-color-bg': token.colorPrimaryBg,
+    '--border-radius-lg': `${token.borderRadiusLG}px`,
+    '--border-color-secondary': token.colorBorderSecondary,
+    '--bg-container': token.colorBgContainer,
+    '--box-shadow': token.boxShadow,
+    '--text-color': token.colorText,
+    '--fill-quaternary': token.colorFillQuaternary,
+    '--text-secondary': token.colorTextSecondary,
+  } as any;
+
   return (
     <Modal
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className={styles.titleContainer}>
           <DatabaseOutlined style={{ color: token.colorPrimary }} />
           <span>选择知识库</span>
         </div>
@@ -100,14 +114,14 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
         body: { padding: '24px' }
       }}
     >
-      <div style={{ marginBottom: 24 }}>
+      <div className={styles.searchContainer} style={cssVars}>
         <Search
           placeholder="搜索知识库名称或描述..."
           allowClear
           enterButton={<SearchOutlined />}
           onSearch={handleSearch}
           size="large"
-          style={{ width: '100%' }}
+          className={styles.searchInput}
         />
       </div>
       
@@ -116,63 +130,35 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
           <Empty 
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description="暂无可选知识库" 
-            style={{ margin: '48px 0' }}
+            className={styles.emptyState}
           />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ maxHeight: '480px', overflowY: 'auto', paddingRight: 4 }}>
+          <div className={styles.listContainer} style={cssVars}>
+            <div className={styles.scrollArea}>
               {knowledgeBases.map((item) => (
                 <div
                   key={item.id}
                   onClick={() => handleSelectKb(item)}
-                  style={{
-                    cursor: 'pointer',
-                    padding: '16px',
-                    borderRadius: token.borderRadiusLG,
-                    border: `1px solid ${token.colorBorderSecondary}`,
-                    marginBottom: 12,
-                    backgroundColor: token.colorBgContainer,
-                    transition: 'all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1)',
-                  }}
-                  className="kb-item"
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = token.colorPrimary;
-                    e.currentTarget.style.boxShadow = token.boxShadow;
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = token.colorBorderSecondary;
-                    e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.transform = 'none';
-                  }}
+                  className={styles.kbItem}
                 >
-                  <Flex gap={16} style={{ width: '100%' }} align="start">
+                  <Flex gap={16} className={styles.fullWidth} align="start">
                     {/* 图标区域 */}
                     <div
-                      style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 12,
-                        backgroundColor: token.colorPrimaryBg,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
+                      className={styles.iconContainer}
                     >
-                      <DatabaseOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
+                      <DatabaseOutlined className={styles.icon} />
                     </div>
 
                     {/* 内容区域 */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <Flex justify="space-between" align="center" style={{ marginBottom: 4 }}>
-                        <Text strong style={{ fontSize: 16, color: token.colorText }}>
+                    <div className={styles.contentContainer}>
+                      <Flex justify="space-between" align="center" className={styles.itemHeader}>
+                        <Text strong className={styles.itemName}>
                           {item.name}
                         </Text>
                         <Tag 
                           color="blue" 
                           icon={<FileTextOutlined />} 
-                          style={{ margin: 0, borderRadius: 12, padding: '0 10px' }}
+                          className={styles.docCountTag}
                         >
                           {item.docCount} 文档
                         </Tag>
@@ -180,30 +166,22 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
 
                       <Text 
                         type="secondary" 
-                        style={{ 
-                          display: 'block', 
-                          marginBottom: 12, 
-                          fontSize: 14,
-                          lineHeight: 1.5,
-                          ...(!item.description ? { fontStyle: 'italic', opacity: 0.6 } : {})
-                        }}
+                        className={classNames(styles.itemDescription, {
+                          [styles.itemDescriptionEmpty]: !item.description
+                        })}
                         ellipsis={{ tooltip: true }}
                       >
                         {item.description || '暂无描述信息'}
                       </Text>
 
                       <Flex justify="space-between" align="center">
-                        <Space size={[0, 8]} wrap style={{ flex: 1 }}>
+                        <Space size={[0, 8]} wrap className={styles.tagsContainer}>
                           {item.tags && item.tags.length > 0 ? (
                             item.tags.slice(0, 3).map(tag => (
                               <Tag 
                                 key={tag.id} 
                                 bordered={false}
-                                style={{ 
-                                  background: token.colorFillQuaternary,
-                                  color: token.colorTextSecondary,
-                                  marginRight: 4
-                                }}
+                                className={styles.tag}
                               >
                                 {tag.name}
                               </Tag>
@@ -212,11 +190,11 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
                             <span />
                           )}
                           {item.tags && item.tags.length > 3 && (
-                            <Text type="secondary" style={{ fontSize: 12 }}>+{item.tags.length - 3}</Text>
+                            <Text type="secondary" className={styles.smallText}>+{item.tags.length - 3}</Text>
                           )}
                         </Space>
 
-                        <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Text type="secondary" className={styles.dateText}>
                           <CalendarOutlined />
                           {new Date(item.createdTime).toLocaleDateString()}
                         </Text>
@@ -228,7 +206,7 @@ const KnowledgeBaseSelectModal: React.FC<KnowledgeBaseSelectModalProps> = ({
             </div>
             
             {total > pageSize && (
-              <div style={{ textAlign: 'center', paddingTop: 16, borderTop: `1px solid ${token.colorBorderSecondary}` }}>
+              <div className={styles.paginationContainer}>
                 <Pagination
                   current={currentPage}
                   total={total}

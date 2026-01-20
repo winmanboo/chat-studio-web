@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Menu, Space } from 'antd';
+import { Modal, Menu, Space, theme } from 'antd';
 import { SettingOutlined, AppstoreOutlined, SkinOutlined, RobotOutlined, UserOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { UserInfo } from '../lib/api';
 import GeneralPanel from './settings/GeneralPanel';
@@ -8,6 +8,7 @@ import ModelPanel from './settings/ModelProviderPanel';
 import ModelListPanel from './settings/ModelListPanel';
 import AccountPanel from './settings/AccountPanel';
 import AboutPanel from './settings/AboutPanel';
+import styles from './SettingsModal.module.css';
 
 interface SettingsModalProps {
   open: boolean;
@@ -104,32 +105,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         body: { padding: 0, height: '80vh' }
       }}
     >
-      <div style={{ display: 'flex', height: '100%' }}>
+      <div className={styles.container}>
         {/* 左侧导航 */}
-        <div style={{ 
-          width: 200, 
-          borderRight: '1px solid #f0f0f0',
-          backgroundColor: '#fafafa'
-        }}>
+        <div className={styles.sidebar}>
           <Menu
             mode="vertical"
             selectedKeys={[activeTab]}
             items={menuItems}
             onClick={({ key }) => setActiveTab(key as SettingTab)}
-            style={{ 
-              border: 'none',
-              backgroundColor: 'transparent',
-              height: '100%'
-            }}
+            className={styles.menu}
           />
         </div>
         
         {/* 右侧内容 */}
-        <div style={{ 
-          flex: 1, 
-          padding: 24,
-          overflowY: 'auto'
-        }}>
+        <div className={styles.content}>
           {renderContent()}
         </div>
       </div>

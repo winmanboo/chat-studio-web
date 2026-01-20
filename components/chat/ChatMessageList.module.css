@@ -1,0 +1,75 @@
+.bubbleList {
+  height: 100%;
+  overflow: auto;
+}
+
+.bubbleItem {
+  padding: 12px 10%;
+}
+
+.fileContent {
+  margin-bottom: 8px;
+  max-width: 100%;
+}
+
+.filePlaceholder {
+  margin-bottom: 8px;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+}
+
+.imageContainer {
+  margin-bottom: 8px;
+  max-width: 100%;
+}
+
+.image {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 8px;
+}
+
+.videoIcon {
+  font-size: 24px;
+  color: #1890ff;
+  margin-right: 8px;
+}
+
+.audioIcon {
+  font-size: 24px;
+  color: #13c2c2;
+  margin-right: 8px;
+}
+
+.pdfIcon {
+  font-size: 24px;
+  color: #ff4d4f;
+  margin-right: 8px;
+}
+
+.fileName {
+  max-width: 200px;
+}
+
+.messageContent {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.assistantLoading {
+  opacity: 0.6;
+}
+
+.thinkingText {
+  font-size: 14px;
+}
+
+.cardContent {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
