@@ -140,7 +140,7 @@ interface ConversationItem {
 }
 
 const ChatPage: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [hasStarted, setHasStarted] = useState(false);
@@ -177,6 +177,17 @@ const ChatPage: React.FC = () => {
     setPreviewContent(content);
     setPreviewVisible(true);
   }, []);
+
+  // Splitter 面板大小控制
+  const [panelSizes, setPanelSizes] = useState<(number | string)[]>(['100%']);
+
+  useEffect(() => {
+    if (previewVisible) {
+      setPanelSizes(['60%', '40%']);
+    } else {
+      setPanelSizes(['100%']);
+    }
+  }, [previewVisible]);
 
   // 加载会话列表
   const loadSessionList = async () => {
@@ -531,8 +542,8 @@ const ChatPage: React.FC = () => {
           </div>
         ) : (
           <div className={styles.chatContent}>
-            <Splitter className={styles.splitter}>
-              <Splitter.Panel>
+            <Splitter className={styles.splitter} onResize={setPanelSizes}>
+              <Splitter.Panel size={panelSizes[0]} min="40%">
                 <div className={styles.splitterPanel}>
                   {/* BubbleList 区域 */}
                   <div className={styles.messageListContainer}>
@@ -562,7 +573,7 @@ const ChatPage: React.FC = () => {
                 </div>
               </Splitter.Panel>
               {previewVisible && (
-                <Splitter.Panel defaultSize="40%">
+                <Splitter.Panel size={panelSizes[1]}>
                   <PreviewPanel
                     content={previewContent}
                     onClose={() => setPreviewVisible(false)}
