@@ -69,6 +69,13 @@ const ChatMessageList = forwardRef<ChatMessageListRef, ChatMessageListProps>(({ 
     }
   }));
 
+  // 监听消息列表长度变化（新消息发送/接收时），自动滚动到底部
+  useEffect(() => {
+    if (messages.length > 0) {
+      listRef.current?.scrollTo({ top: 'bottom', behavior: 'smooth' });
+    }
+  }, [messages.length]);
+
   const handleSourceClick = async (
     docId: string,
     title: string,
