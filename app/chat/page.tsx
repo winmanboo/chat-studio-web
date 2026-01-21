@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { ConversationsProps } from "@ant-design/x";
 
 import ModelSelectButton from "@/components/ModelSelectButton";
@@ -8,8 +8,9 @@ import {
   EditOutlined,
   DeleteOutlined,
   CommentOutlined,
+  ArrowDownOutlined,
 } from "@ant-design/icons";
-import { message as antdMessage, Modal, Input, Space, Splitter } from "antd";
+import { message as antdMessage, Modal, Input, Space, Splitter, FloatButton } from "antd";
 import {
   getSessionList,
   SessionItem,
@@ -22,7 +23,7 @@ import SessionManageModal from "@/components/SessionManageModal";
 import KnowledgeBaseSelectModal from "@/components/KnowledgeBaseSelectModal";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ChatMessageInput from "@/components/chat/ChatMessageInput";
-import ChatMessageList, { ChatMessage } from "@/components/chat/ChatMessageList";
+import ChatMessageList, { ChatMessage, ChatMessageListRef } from "@/components/chat/ChatMessageList";
 import AnimatedTitle from "@/components/chat/AnimatedTitle";
 import PreviewPanel from "@/components/chat/PreviewPanel";
 import { KnowledgeBase } from "@/lib/api/knowledgebase";
@@ -150,6 +151,9 @@ const ChatPage: React.FC = () => {
   } | null>(null);
   const [newConversationName, setNewConversationName] = useState("");
   
+  const chatListRef = useRef<ChatMessageListRef>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+
   // 用于控制Sender输入框的值
   const [inputValue, setInputValue] = useState(""); 
   
@@ -465,6 +469,36 @@ const ChatPage: React.FC = () => {
     setSearchMode("kb");
   };
 
+  // 滚动监听
+  const handleScroll = (e: React.UIEvent<HTMLElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    
+    // 处理负值 scrollTop (通常出现在某些浏览器的 column-reverse 布局中)
+    // 如果 scrollTop <= 0，说明使用了反向滚动，0 通常是底部
+    // 注意：如果是标准滚动，0 是顶部。为了兼容反向滚动的底部检测，我们在 0 时也隐藏按钮
+    // 这是一个权衡：标准滚动的顶部也不会显示回到底部按钮，这通常是可以接受的
+    if (scrollTop <= 0) {
+      if (Math.abs(scrollTop) > 100) {
+        setShowScrollToBottom(true);
+      } else {
+        setShowScrollToBottom(false);
+      }
+      return;
+    }
+
+    // 标准滚动逻辑
+    // 当距离底部超过100px时显示按钮
+    if (scrollHeight > clientHeight && scrollHeight - scrollTop - clientHeight > 100) {
+      setShowScrollToBottom(true);
+    } else {
+      setShowScrollToBottom(false);
+    }
+  };
+
+  const scrollToBottom = () => {
+    chatListRef.current?.scrollToBottom();
+  };
+
   // 发送消息的包装函数
   const onSendMessage = (val: string, uploadId?: string, contentType?: string, fileUrl?: string) => {
     if (!hasStarted) {
@@ -548,10 +582,19 @@ const ChatPage: React.FC = () => {
                   {/* BubbleList 区域 */}
                   <div className={styles.messageListContainer}>
                     <ChatMessageList
+                      ref={chatListRef}
                       messages={displayMessages}
                       isViewingHistory={!!selectedId} // 如果有选中的会话ID，说明在查看历史消息
                       onPreview={handlePreview}
+                      onScroll={handleScroll}
                     />
+                    {showScrollToBottom && (
+                      <FloatButton
+                        icon={<ArrowDownOutlined />}
+                        onClick={scrollToBottom}
+                        style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: 24 }}
+                      />
+                    )}
                   </div>
                   {/* Sender 组件 - Flex布局在底部 */}
                   <div className={styles.bottomSenderWrapper}>

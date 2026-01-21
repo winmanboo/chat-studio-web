@@ -1,5 +1,5 @@
 import { Avatar, Card, Drawer, Flex, message, Spin, Tag, Typography, Image } from 'antd';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import classNames from 'classnames';
 
 import { renderMarkdown } from '@/components/MarkdownRenderer';
@@ -43,20 +43,31 @@ export interface ChatMessage {
   fileUrl?: string; // 文件链接
 }
 
+export interface ChatMessageListRef {
+  scrollToBottom: () => void;
+}
+
 // 组件属性接口
 export interface ChatMessageListProps {
   messages: ChatMessage[];
   style?: React.CSSProperties;
   isViewingHistory?: boolean; // 是否正在查看历史消息
   onPreview?: (content: string) => void;
+  onScroll?: (e: React.UIEvent<HTMLElement>) => void;
 }
 
-const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, onPreview }) => {
+const ChatMessageList = forwardRef<ChatMessageListRef, ChatMessageListProps>(({ messages, onPreview, onScroll }, ref) => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [drawerTitle, setDrawerTitle] = useState("");
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [retrievedChunks, setRetrievedChunks] = useState<DocumentChunk[]>([]);
   const listRef = useRef<any>(null);
+
+  useImperativeHandle(ref, () => ({
+    scrollToBottom: () => {
+      listRef.current?.scrollTo({ top: 'bottom', behavior: 'smooth' })
+    }
+  }));
 
   const handleSourceClick = async (
     docId: string,
@@ -85,6 +96,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, onPreview }
         ref={listRef}
         className={styles.bubbleList}
         autoScroll
+        onScroll={onScroll}
         items={messages.map((msg, index) => ({
           key: index,
           className: styles.bubbleItem,
@@ -336,6 +348,6 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, onPreview }
       </Drawer>
     </>
   );
-};
+});
 
 export default React.memo(ChatMessageList);

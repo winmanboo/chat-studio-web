@@ -61,6 +61,7 @@
 .messageListContainer {
   flex: 1;
   overflow: hidden;
+  position: relative;
 }
 
 .bottomSenderWrapper {
