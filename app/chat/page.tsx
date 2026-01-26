@@ -449,6 +449,7 @@ const ChatPage: React.FC = () => {
 
   // 新建对话逻辑：切换到初始聊天状态
   const handleAddConversation = () => {
+    handleCancel();
     // 清除当前选中的会话
     setSelectedId("");
     // 切换到初始状态（Sender在中间）
@@ -461,6 +462,7 @@ const ChatPage: React.FC = () => {
     setSearchMode(null); // 重置检索模式
     setSelectedKb(null); // 清除选中的知识库
     setPreviewVisible(false); // 关闭预览面板
+    setShowScrollToBottom(false);
   };
 
   // 处理知识库选择
@@ -520,10 +522,12 @@ const ChatPage: React.FC = () => {
         onSettingsClick={() => setSessionManageModalVisible(true)}
         onConversationSelect={async (key) => {
           try {
+            handleCancel();
             setSelectedId(key);
             setSessionId(key); // 切换会话时设置sessionId为选中的会话ID
             setHasStarted(true);
             setPreviewVisible(false); // 关闭预览面板
+            setShowScrollToBottom(false);
 
             // 加载该会话的历史消息
             await loadSessionMessages(key);
@@ -651,12 +655,14 @@ const ChatPage: React.FC = () => {
         onSessionsChange={loadSessionList}
         selectedSessionId={selectedId}
         onSelectedSessionDeleted={() => {
+          handleCancel();
           // 当前选中的会话被删除时，重置到新建会话状态
           setSelectedId("");
           setSessionId(null);
           setMessages([]);
           setHasStarted(false);
           setPreviewVisible(false); // 关闭预览面板
+          setShowScrollToBottom(false);
         }}
       />
 
