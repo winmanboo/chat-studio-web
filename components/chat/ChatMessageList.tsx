@@ -1,4 +1,4 @@
-import { Avatar, Card, Drawer, Flex, message, Spin, Tag, Typography, Image } from 'antd';
+import { Avatar, Card, Drawer, Flex, message, Spin, Tag, Typography, Image, theme } from 'antd';
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import classNames from 'classnames';
 
@@ -62,6 +62,7 @@ const ChatMessageList = forwardRef<ChatMessageListRef, ChatMessageListProps>(({ 
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [retrievedChunks, setRetrievedChunks] = useState<DocumentChunk[]>([]);
   const listRef = useRef<any>(null);
+  const { token } = theme.useToken();
 
   useImperativeHandle(ref, () => ({
     scrollToBottom: () => {
@@ -111,7 +112,12 @@ const ChatMessageList = forwardRef<ChatMessageListRef, ChatMessageListProps>(({ 
           role: msg.role,
           header: msg.role === "assistant" ? msg.modelName : undefined,
           loading: msg.isLoading,
-          variant: "shadow",
+          variant: msg.role === 'user' ? "shadow" : 'borderless',
+          styles: {
+            content: {
+              backgroundColor: msg.role === 'user' ? token.colorPrimaryBg : 'transparent',
+            }
+          }
         }))}
         role={{
           user: {
@@ -167,7 +173,6 @@ const ChatMessageList = forwardRef<ChatMessageListRef, ChatMessageListProps>(({ 
                 </div>
               );
             },
-            className: styles.userBubble,
           },
           assistant: {
             placement: "start",
