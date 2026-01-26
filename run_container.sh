@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CONTAINER_NAME="chat-studio-web"
-VERSION="0.6.2"
+VERSION="0.6.4"
 
 docker rm -f $CONTAINER_NAME
 
