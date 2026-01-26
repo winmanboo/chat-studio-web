@@ -167,7 +167,6 @@ const ChatMessageList = forwardRef<ChatMessageListRef, ChatMessageListProps>(({ 
                 </div>
               );
             },
-            avatar: <Avatar icon={<UserOutlined />} />,
             className: styles.userBubble,
           },
           assistant: {
@@ -311,7 +310,6 @@ const ChatMessageList = forwardRef<ChatMessageListRef, ChatMessageListProps>(({ 
                 ]}
               />
             ),
-            avatar: <Avatar icon={<RobotOutlined />} />,
           },
         }}
       />
