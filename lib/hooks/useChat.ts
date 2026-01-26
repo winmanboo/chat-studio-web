@@ -26,15 +26,12 @@ export const useChat = ({
   const [abortController, setAbortController] = useState<AbortController | null>(
     null
   );
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [userCancelled, setUserCancelled] = useState<boolean>(false);
 
   useEffect(() => {
     setSessionId(initialSessionId);
   }, [initialSessionId]);
 
   const handleCancel = useCallback(() => {
-    setUserCancelled(true);
     if (abortController) {
       abortController.abort();
       setAbortController(null);
@@ -52,7 +49,6 @@ export const useChat = ({
       contentType?: string,
       fileUrl?: string
     ) => {
-      setUserCancelled(false);
       setSendingLoading(true);
 
       let currentSessionId = sessionId;
