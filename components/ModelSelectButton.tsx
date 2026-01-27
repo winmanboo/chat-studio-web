@@ -6,6 +6,7 @@ import {
   message,
   Spin,
   Tooltip,
+  theme
 } from "antd";
 import React from "react";
 
@@ -47,6 +48,7 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
   onModelSelect,
   onDropdownOpen,
 }) => {
+  const { token } = theme.useToken();
   const [searchValue, setSearchValue] = React.useState("");
 
   // 渲染能力图标组件
@@ -59,7 +61,7 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
     if (abilityList.includes("THINKING")) {
       icons.push(
         <Tooltip key="thinking" title="深度思考">
-          <BulbOutlined />
+          <BulbOutlined style={{ color: token.colorWarning }} />
         </Tooltip>
       );
     }
@@ -67,7 +69,7 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
     if (abilityList.includes("VISUAL_UNDERSTANDING")) {
       icons.push(
         <Tooltip key="visual" title="视觉理解">
-          <EyeOutlined />
+          <EyeOutlined style={{ color: token.colorSuccess }} />
         </Tooltip>
       );
     }
@@ -75,7 +77,7 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
     if (abilityList.includes("IMAGE_GENERATION")) {
       icons.push(
         <Tooltip key="image" title="图片生成">
-          <PictureOutlined />
+          <PictureOutlined style={{ color: token.purple6 }} />
         </Tooltip>
       );
     }
@@ -83,7 +85,7 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
     if (abilityList.includes("TOOL")) {
       icons.push(
         <Tooltip key="tool" title="工具调用">
-          <ToolOutlined />
+          <ToolOutlined style={{ color: token.colorInfo }} />
         </Tooltip>
       );
     }
@@ -91,7 +93,7 @@ const ModelSelectButton: React.FC<ModelSelectButtonProps> = ({
     if (abilityList.includes("NETWORK")) {
       icons.push(
         <Tooltip key="network" title="联网搜索">
-          <GlobalOutlined />
+          <GlobalOutlined style={{ color: token.colorLink }} />
         </Tooltip>
       );
     }
