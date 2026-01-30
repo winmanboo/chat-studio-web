@@ -15,14 +15,14 @@ importers:
         specifier: ^1.3.0
         version: 1.3.0(@ant-design/cssinjs@2.0.1(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(antd@6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(next@16.0.7(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       '@ant-design/x':
-        specifier: ^2.1.2
-        version: 2.1.3(antd@6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
+        specifier: ^2.2.1
+        version: 2.2.1(antd@6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       '@ant-design/x-markdown':
-        specifier: ^2.1.2
-        version: 2.1.3(@types/react@19.2.7)(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
+        specifier: ^2.2.1
+        version: 2.2.1(@types/react@19.2.7)(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       '@ant-design/x-sdk':
-        specifier: ^2.1.2
-        version: 2.1.3(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
+        specifier: ^2.2.1
+        version: 2.2.1(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       antd:
         specifier: ^6.0.0
         version: 6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
@@ -140,20 +140,20 @@ packages:
     peerDependencies:
       react: '>=16.9.0'
 
-  '@ant-design/x-markdown@2.1.3':
-    resolution: {integrity: sha512-iV6eryqQGQN0s0s2IemsmuSLsvO+5LI2X58NW5EvRrEHFH+23ZuhFymoFPGWa8OLhrHSUS2F7Q2Ux9G5NAw5gg==}
+  '@ant-design/x-markdown@2.2.1':
+    resolution: {integrity: sha512-wqETe1UktJ2xs4BwfPcO6dZio7tuTpVxFpyTSjJyo6rnROo6pnf3O0E5FukMuchdqJcYFL74obqxQFMeVfsNTQ==}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
 
-  '@ant-design/x-sdk@2.1.3':
-    resolution: {integrity: sha512-5xXFYB8iZSXVBOAuyr/XfO0pcP/e+LpgSs5bKl1w0EXR9YW1vW0hQP6a1yZyhkYnik9I6yMO9uU+brexNB2+Gw==}
+  '@ant-design/x-sdk@2.2.1':
+    resolution: {integrity: sha512-wtX2i7WJllGFg3JLYdzkvP8gzJtrkrx6Xn224OQRwk4W++wVmYQTOKx6Q9j4oLttS4dO5nB4Fpo820FtPl2rkQ==}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
 
-  '@ant-design/x@2.1.3':
-    resolution: {integrity: sha512-A+3eL9RPYwTpphm3IclhXkk/OfwRzzIw41j1NCONEDRSd4F3Du3dHo1hbDKzI42/hwR1LL8P/6hiehJvxYqHkw==}
+  '@ant-design/x@2.2.1':
+    resolution: {integrity: sha512-Wh20TdjZ+sxSKJMhfFwrPZmEsrHn1zWHu0ilsw9rgKGyVOMobhii1FU+8W9DWBeHapj5FEjLeMe88rx2+JFo+A==}
     peerDependencies:
       antd: ^6.1.1
       react: '>=18.0.0'
@@ -1589,8 +1589,8 @@ packages:
     resolution: {integrity: sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw==}
     engines: {node: '>=0.12'}
 
-  entities@6.0.1:
-    resolution: {integrity: sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g==}
+  entities@7.0.1:
+    resolution: {integrity: sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA==}
     engines: {node: '>=0.12'}
 
   es-abstract@1.24.0:
@@ -1931,11 +1931,11 @@ packages:
   highlightjs-vue@1.0.0:
     resolution: {integrity: sha512-PDEfEF102G23vHmPhLyPboFCD+BkMGu+GuJe2d9/eH4FsCwvgBpnc9n0pGE+ffKdph38s6foEZiEjdgHdzp+IA==}
 
-  html-dom-parser@5.1.2:
-    resolution: {integrity: sha512-9nD3Rj3/FuQt83AgIa1Y3ruzspwFFA54AJbQnohXN+K6fL1/bhcDQJJY5Ne4L4A163ADQFVESd/0TLyNoV0mfg==}
+  html-dom-parser@5.1.4:
+    resolution: {integrity: sha512-UGjp7y8jSrDU2RdN2J9FDOo3X+WBu+LkS/I3TjjFW020ocZWjPvave+RKk1zeuY2sUWy5fh6zHgXHthzDGlFNQ==}
 
-  html-react-parser@5.2.10:
-    resolution: {integrity: sha512-DjOLloguuDA+Ed7Q7PKhvMQmCl2+Yk/pfvvca68fvn15QFBbL4uHGxXwoXQ4sqS0UyuRH2lJb0S8yZCL3lvehQ==}
+  html-react-parser@5.2.14:
+    resolution: {integrity: sha512-yiSZHuJq6LwQc450IhpLApug8bKTpHv5oVsClpVS1jEDepifXYcJu0Sw0r7pqEl89q/ZpO0nth6LEDWtz5n6qg==}
     peerDependencies:
       '@types/react': 0.14 || 15 || 16 || 17 || 18 || 19
       react: 0.14 || 15 || 16 || 17 || 18 || 19
@@ -1946,8 +1946,8 @@ packages:
   html-void-elements@3.0.0:
     resolution: {integrity: sha512-bEqo66MRXsUGxWHV5IP0PUiAWwoEjba4VCzg0LjFJBpchPaTfyfCKTG6bc5F8ucKec3q5y6qOdGyYTSBEvhCrg==}
 
-  htmlparser2@10.0.0:
-    resolution: {integrity: sha512-TwAZM+zE5Tq3lrEHvOlvwgj1XLWQCtaaibSN11Q+gGBAS7Y1uZSWwXXRe4iF6OXnaq1riyQAPFOBtYc77Mxq0g==}
+  htmlparser2@10.1.0:
+    resolution: {integrity: sha512-VTZkM9GWRAtEpveh7MSF6SjjrpNVNNVJfFup7xTY3UpFtm67foy9HDVXneLtFVt4pMz5kZtgNcvCniNFb1hlEQ==}
 
   iconv-lite@0.6.3:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
@@ -2976,11 +2976,11 @@ snapshots:
       resize-observer-polyfill: 1.5.1
       throttle-debounce: 5.0.2
 
-  '@ant-design/x-markdown@2.1.3(@types/react@19.2.7)(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
+  '@ant-design/x-markdown@2.2.1(@types/react@19.2.7)(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
     dependencies:
       clsx: 2.1.1
       dompurify: 3.2.6
-      html-react-parser: 5.2.10(@types/react@19.2.7)(react@19.0.1)
+      html-react-parser: 5.2.14(@types/react@19.2.7)(react@19.0.1)
       katex: 0.16.22
       marked: 15.0.12
       react: 19.0.1
@@ -2988,13 +2988,13 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
 
-  '@ant-design/x-sdk@2.1.3(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
+  '@ant-design/x-sdk@2.2.1(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
     dependencies:
       '@rc-component/util': 1.4.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
       react: 19.0.1
       react-dom: 19.0.1(react@19.0.1)
 
-  '@ant-design/x@2.1.3(antd@6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
+  '@ant-design/x@2.2.1(antd@6.0.0(react-dom@19.0.1(react@19.0.1))(react@19.0.1))(react-dom@19.0.1(react@19.0.1))(react@19.0.1)':
     dependencies:
       '@ant-design/colors': 8.0.0
       '@ant-design/cssinjs': 2.0.1(react-dom@19.0.1(react@19.0.1))(react@19.0.1)
@@ -4579,7 +4579,7 @@ snapshots:
 
   entities@4.5.0: {}
 
-  entities@6.0.1: {}
+  entities@7.0.1: {}
 
   es-abstract@1.24.0:
     dependencies:
@@ -5083,15 +5083,15 @@ snapshots:
 
   highlightjs-vue@1.0.0: {}
 
-  html-dom-parser@5.1.2:
+  html-dom-parser@5.1.4:
     dependencies:
       domhandler: 5.0.3
-      htmlparser2: 10.0.0
+      htmlparser2: 10.1.0
 
-  html-react-parser@5.2.10(@types/react@19.2.7)(react@19.0.1):
+  html-react-parser@5.2.14(@types/react@19.2.7)(react@19.0.1):
     dependencies:
       domhandler: 5.0.3
-      html-dom-parser: 5.1.2
+      html-dom-parser: 5.1.4
       react: 19.0.1
       react-property: 2.0.2
       style-to-js: 1.1.21
@@ -5100,12 +5100,12 @@ snapshots:
 
   html-void-elements@3.0.0: {}
 
-  htmlparser2@10.0.0:
+  htmlparser2@10.1.0:
     dependencies:
       domelementtype: 2.3.0
       domhandler: 5.0.3
       domutils: 3.2.2
-      entities: 6.0.1
+      entities: 7.0.1
 
   iconv-lite@0.6.3:
     dependencies:
